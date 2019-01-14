@@ -5,7 +5,8 @@ lex.yy.c: shell.l
 	flex shell.l
 
 clean:
-	rm *~ argshell lexx.yy.c
+	rm ./*~ ./argshell ./lex.yy.c
 
 run:
+	make
 	./argshell
