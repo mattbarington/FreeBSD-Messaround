@@ -132,13 +132,13 @@ main()
 		redirect(args[i+1], STDIN_FILENO, O_RDONLY);
 	      } else if (!strcmp(args[i], ">")) {
 		printf("i've discovered that '%s' is '>' at argument %d\n", args[i], i);
-		//		if (newArgs != args) {
-		newArgs = subarray(args, 0, i);
-		printf("Here's the subarray:\n");
-		for (i = 0; newArgs[i]; i++) {
-		  printf("%s\n",newArgs[i]);
+		if (newArgs == args) {
+		  newArgs = subarray(args, 0, i);
+		  printf("Here's the subarray:\n");
+		  for (i = 0; newArgs[i]; i++) {
+		    printf("%s\n",newArgs[i]);
+		  }
 		}
-		  //		}
 		printf("let's redirect w file %s\n", args[i+1]);
 		redirect(args[i+1], STDOUT_FILENO, O_WRONLY | O_CREAT);
 	      }	   
