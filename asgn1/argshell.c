@@ -35,8 +35,7 @@ void execute(char* command, char* args[]) {
   perror("Something has gone wrong!: \n");
 }
 
-int redirect(char*filename, int fd, int flags,...) {
-  int saved = dup(fd);
+void redirect(char*filename, int fd, int flags,...) {
   int nfd = open(filename, flags);
   if (nfd < 0) {
     fprintf(stderr, "There was a problem opening file '%s' in redirect\nExiting...\n", filename);
@@ -44,7 +43,17 @@ int redirect(char*filename, int fd, int flags,...) {
   }
   dup2(nfd, fd);
   close(nfd);
-  return saved;
+}
+
+void redirect2(char* filename, int fd1, int fd2, int flags,...) {
+  int nfd = open(filename, flags);
+  if (nfd < 0) {
+    fprintf(stderr, "There was a problem opening file '%s' in redirect\nExiting...\n", filename);
+    exit(1);
+  }
+  dup2(nfd, fd1);
+  dup2(nfd, fd2);
+  close(nfd);
 }
 
 int
@@ -70,6 +79,9 @@ main()
 	    waitpid(pid, NULL, 0);
 	  } else {
 	    char** newArgs = args;
+	    int saved_stdin = dup(STDIN_FILENO);
+	    int saved_stdout = dup(STDOUT_FILENO);
+	    int saved_stderr = dup(STDERR_FILENO);
 	    for (i = 0; args[i]; i++) {
 	      //	      printf("checking %s\n", args[i]);	   
 	      if (!strcmp(args[i], "<")) {
@@ -79,23 +91,32 @@ main()
 		//		}
 		//		printf("-----------------\n");
 		//		printf("Opening %s\n", args[i+1]);
-		int saved_stdin = redirect(args[i+1], STDIN_FILENO, O_RDONLY);
+		redirect(args[i+1], STDIN_FILENO, O_RDONLY);
 	      } else if (!strcmp(args[i], ">")) {	
 		if (newArgs == args) {
 		  newArgs = subarray(args, 0, i);
 		}
-		int saved_stdout = redirect(args[i+1], STDOUT_FILENO, O_WRONLY | O_CREAT);
+		redirect(args[i+1], STDOUT_FILENO, O_WRONLY | O_CREAT);
 	      } else if (!strcmp(args[i], ">>")) {
-		int saved_stdout = redirect(args[i+1], STDOUT_FILENO, O_WRONLY | O_CREAT | O_APPEND);
+		redirect(args[i+1], STDOUT_FILENO, O_WRONLY | O_CREAT | O_APPEND);
 		if (newArgs == args) {
 		  newArgs = subarray(args, 0, i);
 		}		
+	      } else if (!strcmp(args[i], ">&")) {
+		if (newArgs == args) {
+		  newArgs = subarray(args, 0, i);
+		}
+		redirect2(args[i+1], STDOUT_FILENO, STDERR_FILENO, O_RDWR | O_CREAT);
+	      } else if (!strcmp(args[i], ">>&")) {
+		if (newArgs == args) {
+		  newArgs = subarray(args, 0, i);
+		}
+		redirect2(args[i+1], STDERR_FILENO, STDOUT_FILENO, O_RDWR | O_CREAT | O_APPEND);
 	      }
 	    }
 	    execute(args[0], newArgs);
 	  }
-	}
-	
+	}	
     }
     printf("broke out of while\n");
     return 0;
