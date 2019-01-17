@@ -27,12 +27,12 @@ char** subarray(char** args, int start, int end) {
 }
 
 void execute(char* command, char* args[]) {
-  //  printf("executing command %s with arguments: \n", command);
-  //  for (int i = 0; args[i]; i++) {
-  //    printf("%s ",args[i]);
-  //  }
+  printf("executing command [ %s ] with arguments: \n", command);
+  for (int i = 0; args[i]; i++) {
+    printf("%s ",args[i]);
+  }
   int s = execvp(command, args);
-  perror("Something has gone wrong!: \n");
+  fprintf(stderr,"%d: Something has gone wrong!: %d\n", getpid(), errno);
 }
 
 void redirect(char*filename, int fd, int flags,...) {
@@ -61,7 +61,8 @@ main()
 {
     int         i;
     char **     args;
-
+    char homeDirectory[100];
+    getcwd(homeDirectory, sizeof(homeDirectory));
     while (1) {
 	printf ("Command ('exit' to quit): ");
 	args = get_args();
@@ -83,14 +84,15 @@ main()
 	    int saved_stdout = dup(STDOUT_FILENO);
 	    int saved_stderr = dup(STDERR_FILENO);
 	    for (i = 0; args[i]; i++) {
-	      //	      printf("checking %s\n", args[i]);	   
+	      printf("checking %s\n", args[i]);	   
 	      if (!strcmp(args[i], "<")) {
 		newArgs = subarray(args, 0, i);
-		//for (int a = 0; a < i; a++) {
-		//		  printf("%s\n", newArgs[a]);
-		//		}
-		//		printf("-----------------\n");
-		//		printf("Opening %s\n", args[i+1]);
+		printf("------Subarray----\n");
+		for (int a = 0; a < i; a++) {
+		  printf("%s\n", newArgs[a]);
+		}
+		printf("-----------------\n");
+		printf("Opening %s\n", args[i+1]);
 		redirect(args[i+1], STDIN_FILENO, O_RDONLY);
 	      } else if (!strcmp(args[i], ">")) {	
 		if (newArgs == args) {
@@ -112,9 +114,34 @@ main()
 		  newArgs = subarray(args, 0, i);
 		}
 		redirect2(args[i+1], STDERR_FILENO, STDOUT_FILENO, O_RDWR | O_CREAT | O_APPEND);
+	      } else if (!strcmp(args[i], ";")) {
+		printf("%d: let's fork and then execute the things\n", getpid());
+		int runpid = fork();
+		if (runpid) {
+		  waitpid(runpid, NULL, 0);
+		} else {
+		  printf("%d: let's execute boyoos\n", getpid());
+		  newArgs = subarray(newArgs,0,i);
+		  execute(args[0], newArgs);
+		}
+		printf("%d: now let's reset this bad guy\n", getpid());
+		args = &args[i + 1];
+		i = -1; //the for loop structure will incrememnt i++ to i=0. This is nasty, but without iterators...
+	      } else if (!strcmp(args[i],"cd")) {
+		printf("Change to directory '%s'\n",args[i+1]);		
+		if (args[i+1] && strcmp(args[i+1], ";")) {	      
+		  chdir(args[i+1]);
+		} else {
+		  chdir(homeDirectory);
+		}	       
+		args = &args[i+2];
+		i = -1;
 	      }
 	    }
-	    execute(args[0], newArgs);
+	    if (args[0]){
+	      fprintf(stderr,"one final execute\n");
+	      execute(args[0], newArgs);
+	    }
 	  }
 	}	
     }
