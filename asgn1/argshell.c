@@ -56,6 +56,52 @@ void redirect2(char* filename, int fd1, int fd2, int flags,...) {
   close(nfd);
 }
 
+void isolateRun(char** args) {
+
+int pid = fork();
+ if (pid) {
+   waitpid(pid, NULL, 0);
+ } else {
+   char** newArgs = args;
+   for (i = 0; args[i]; i++) {
+     printf("checking %s\n", args[i]);	   
+     if (!strcmp(args[i], "<")) {
+       newArgs = subarray(args, 0, i);
+       printf("------Subarray----\n");
+       for (int a = 0; a < i; a++) {
+	 printf("%s\n", newArgs[a]);
+       }
+       printf("-----------------\n");
+       printf("Opening %s\n", args[i+1]);
+       redirect(args[i+1], STDIN_FILENO, O_RDONLY);
+     } else if (!strcmp(args[i], ">")) {	
+       if (newArgs == args) {
+	 newArgs = subarray(args, 0, i);
+       }
+       redirect(args[i+1], STDOUT_FILENO, O_WRONLY | O_CREAT);
+     } else if (!strcmp(args[i], ">>")) {
+       redirect(args[i+1], STDOUT_FILENO, O_WRONLY | O_CREAT | O_APPEND);
+       if (newArgs == args) {
+	 newArgs = subarray(args, 0, i);
+       }		
+     } else if (!strcmp(args[i], ">&")) {
+       if (newArgs == args) {
+	 newArgs = subarray(args, 0, i);
+       }
+       redirect2(args[i+1], STDOUT_FILENO, STDERR_FILENO, O_RDWR | O_CREAT);
+     } else if (!strcmp(args[i], ">>&")) {
+       if (newArgs == args) {
+	 newArgs = subarray(args, 0, i);
+       }
+       redirect2(args[i+1], STDERR_FILENO, STDOUT_FILENO, O_RDWR | O_CREAT | O_APPEND);
+     }
+     // would be taking care of ;
+
+     //would be taking care of cd?
+   }
+ }
+}
+
 int
 main()
 {
@@ -66,6 +112,7 @@ main()
     while (1) {
 	printf ("Command ('exit' to quit): ");
 	args = get_args();
+	
 	for (i = 0; args[i] != NULL; i++) {
 	    printf ("Argument %d: %s\n", i, args[i]);
 	}
@@ -75,14 +122,13 @@ main()
 	    printf ("Exiting...\n");
 	    break;
 	} else {
-	  int pid = fork();
+	  /*	  int pid = fork();
 	  if (pid) {
 	    waitpid(pid, NULL, 0);
 	  } else {
+	  */
+	  
 	    char** newArgs = args;
-	    int saved_stdin = dup(STDIN_FILENO);
-	    int saved_stdout = dup(STDOUT_FILENO);
-	    int saved_stderr = dup(STDERR_FILENO);
 	    for (i = 0; args[i]; i++) {
 	      printf("checking %s\n", args[i]);	   
 	      if (!strcmp(args[i], "<")) {
@@ -133,7 +179,7 @@ main()
 		  chdir(args[i+1]);
 		} else {
 		  chdir(homeDirectory);
-		}	       
+		}	      
 		args = &args[i+2];
 		i = -1;
 	      }
@@ -142,7 +188,7 @@ main()
 	      fprintf(stderr,"one final execute\n");
 	      execute(args[0], newArgs);
 	    }
-	  }
+	    //	} //closing the fork if
 	}	
     }
     printf("broke out of while\n");
