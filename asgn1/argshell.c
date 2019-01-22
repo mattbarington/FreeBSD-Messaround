@@ -80,10 +80,10 @@ void isolateRun(char** args, int pipeInput) {
     fprintf(stderr, "%s, ", args[j]);
   }
   fprintf(stderr, "\n-------------------------\n");
-  int pid = fork();
-  if (pid) {
-    waitpid(pid, NULL, 0);
-  } else {
+  //  int pid = fork();
+  //  if (pid) {
+  //    waitpid(pid, NULL, 0);
+  //  } else {
    char** newArgs = args;
    for (int i = 0; args[i]; i++) {
      //     printf("checking %s\n", args[i]);	   
@@ -122,7 +122,7 @@ void isolateRun(char** args, int pipeInput) {
        }
        int fd[2];
        int nextpid = fork();
-       if (nextpid == 0) {
+       if (nextpid == 0) {	 
 	 isolateRun(subarray(args, i + 1, strlen(args) - 1 - i), 1);
        } else {
 	 execute(args[0], newArgs);
@@ -133,7 +133,7 @@ void isolateRun(char** args, int pipeInput) {
      }
    }
    execute(args[0], newArgs);
-  }
+   //  } //if child
 }
 
 void forknRun(char** args) {
