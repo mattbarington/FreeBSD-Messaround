@@ -35,6 +35,20 @@ void execute(char* command, char* args[]) {
   fprintf(stderr,"%d: Something has gone wrong!: %d\n", getpid(), errno);
 }
 
+void pipe_output_stdout(int fd[]) {
+  close(fd[0]);
+  //  close(STDOUT_FILENO);
+  dup2(fd[1], STDOUT_FILENO);
+  close(fd[1]);
+}
+
+void pipe_input_stdin(int fd[]) {
+  close(fd[1]);
+  //  close(STDIN_FILENO);
+  dup2(fd[0], STDIN_FILENO);
+  close(fd[0]);
+}
+
 void redirect(char*filename, int fd, int flags,...) {
   int nfd = open(filename, flags);
   if (nfd < 0) {
@@ -60,7 +74,7 @@ void dprint(char* str) {
   fprintf(stderr, "%s", str);
 }
 
-void isolateRun(char** args) {
+void isolateRun(char** args, int pipeInput) {
   fprintf(stderr,"isolated args:\n-------------------------\n");
   for (int j = 0; args[j]; j++) {
     fprintf(stderr, "%s, ", args[j]);
@@ -102,10 +116,21 @@ void isolateRun(char** args) {
 	 newArgs = subarray(args, 0, i);
        }
        redirect2(args[i+1], STDERR_FILENO, STDOUT_FILENO, O_RDWR | O_CREAT | O_APPEND);
+     } else if (!strcmp(args[i], "|")) {
+       if (newArgs == args) {
+	 newArgs = subarray(args, 0, i);
+       }
+       int fd[2];
+       int nextpid = fork();
+       if (nextpid == 0) {
+	 isolateRun(subarray(args, i + 1, strlen(args) - 1 - i), 1);
+       } else {
+	 execute(args[0], newArgs);
+       }
+       pipe_output_stdout(fd);
+       execute(args[0], newArgs);
+       
      }
-     // would be taking care of ;
-     
-     //would be taking care of cd?  
    }
    execute(args[0], newArgs);
   }
@@ -129,12 +154,13 @@ main()
 	    printf ("No arguments on line!\n");
 	} else if ( !strcmp (args[0], "exit")) {
 	    printf ("Exiting...\n");
+
 	    break;
 	} else {
 	  for (i = 0; args[i]; i++) {
 	    if (args[i] == NULL) {
-	      printf("time to to execute all of those beautiful commands\n");
-	      isolateRun(args);
+	      //	      printf("time to to execute all of those beautiful commands\n");
+	      isolateRun(args, 0);
 	    } else if (!strcmp(args[i], "cd")) {  /* handles cd command  */
 	      if (args[i+1] == NULL) {
 		dprint("There is nothing after cd!\n");
@@ -145,22 +171,24 @@ main()
 		args = &args[i+2];
 		i = -1;
 	      } else {
-		printf("You want me to change the directory to '%s'?\n", args[i+1]);
+		//		printf("You want me to change the directory to '%s'?\n", args[i+1]);
 		chdir(args[i+1]);
 		if (args[i+2] != NULL && !strcmp(args[i+2], ";")) {
-		  printf("I've just cahnged the directory to '%s' and now I might need to execute another command after '%s'\n",args[i+1],args[i+2]);
+		  		  printf("I've just cahnged the directory to '%s' and now I might need to execute another command after '%s'\n",args[i+1],args[i+2]);
 		  args = &args[i+3];
 		  i = -1;
 		}
 	      }      	
 	    } else if (!strcmp(args[i], ";")) {
 	      dprint("we've encountered a juug semicolon\n");
-	      isolateRun(subarray(args, 0, i));
+	      isolateRun(subarray(args, 0, i), 0);
 	      args = &args[i+1];
 	      i = -1;
-	    }       // if args[i] == 'cd'	   
+	    } else if (!strcmp(args[i], "|")) {
+	      
+	    }// if args[i] == 'cd'	   
 	  } //for i in args
-	  isolateRun(args);
+	  isolateRun(args, 0);
 	  printf("There's a new player on the field\n");
 	} // else from args[0] == NULl
     }
