@@ -136,6 +136,15 @@ void isolateRun(char** args, int pipeInput) {
   }
 }
 
+void forknRun(char** args) {
+  int pid = fork();
+  if (pid == 0) {
+    isolateRun(args, 0);
+  } else {
+    waitpid(pid, NULL, 0);
+  }
+}
+
 int
 main()
 {
@@ -160,7 +169,7 @@ main()
 	  for (i = 0; args[i]; i++) {
 	    if (args[i] == NULL) {
 	      //	      printf("time to to execute all of those beautiful commands\n");
-	      isolateRun(args, 0);
+	      forknRun(args); //isolateRun(args,0);
 	    } else if (!strcmp(args[i], "cd")) {  /* handles cd command  */
 	      if (args[i+1] == NULL) {
 		dprint("There is nothing after cd!\n");
@@ -181,14 +190,14 @@ main()
 	      }      	
 	    } else if (!strcmp(args[i], ";")) {
 	      dprint("we've encountered a juug semicolon\n");
-	      isolateRun(subarray(args, 0, i), 0);
+	      forknRun(subarray(args, 0, i));// isolateRun(subarray(args, 0, i), 0);
 	      args = &args[i+1];
 	      i = -1;
 	    } else if (!strcmp(args[i], "|")) {
 	      
 	    }// if args[i] == 'cd'	   
 	  } //for i in args
-	  isolateRun(args, 0);
+	  forknRun(args);//isolateRun(args, 0);
 	  printf("There's a new player on the field\n");
 	} // else from args[0] == NULl
     }
