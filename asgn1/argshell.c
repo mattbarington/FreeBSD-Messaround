@@ -16,15 +16,15 @@ void dprint(char* str) {
 int arrLen(char** A) {
   int count = 0;
   while (A[count]) {
-    fprintf(stderr, "arrLen checking out A[%d]:%s\n",count, A[count]);
+    //    fprintf(stderr, "arrLen checking out A[%d]:%s\n",count, A[count]);
     count++;
   }
   return count;
 }
 
 char** subarray(char** args, int start, int end) {
-  fprintf(stderr, "In subarray from %d to %d\n", start, end);
-  //  for (int i = 0; args[i] != NULL; i++) {
+  // fprintf(stderr, "In subarray from %d to %d\n", start, end);
+   //  for (int i = 0; args[i] != NULL; i++) {
   //            printf ("Argument %d: %s\n", i, args[i]);
   //  }
   //  fprintf(stderr,"subarray w indicies %d, to %d\n",start,end);
@@ -33,16 +33,16 @@ char** subarray(char** args, int start, int end) {
     sub[i - start] = (char*) calloc(strlen(args[i]) + 1, sizeof(char));
     strcpy(sub[i - start], args[i]);
   }
-  dprint("Subarray containing : \n");
-  for (int i = 0; sub[i]; i++){
-    fprintf(stderr,"%s\n", sub[i]);
-  }
-  dprint("END subarray\n");
+  //  dprint("Subarray containing : \n");
+  //  for (int i = 0; sub[i]; i++){
+  //    fprintf(stderr,"%s\n", sub[i]);
+  //  }
+  //  dprint("END subarray\n");
   return sub;
 }
 
 void execute(char* command, char* args[]) {
-  fprintf(stderr,"executing command [ %s ] with arguments: \n----------------------\n", command);
+  fprintf(stderr,"%d executing command [ %s ] with arguments: \n----------------------\n", getpid(), command);
   for (int i = 0; args[i]; i++) {
     fprintf(stderr,"%s, ",args[i]);
   }
@@ -88,11 +88,11 @@ void redirect2(char* filename, int fd1, int fd2, int flags,...) {
 
 
 void isolateRun(char** args) {//, int fd[2]) {
-  fprintf(stderr,"isolated args:\n------------------------- %d\n", getpid());
-  for (int j = 0; args[j]; j++) {
-    fprintf(stderr, "%s, ", args[j]);
-  }
-  fprintf(stderr, "\n------------------------- %d\n",getpid());
+  //  fprintf(stderr,"isolated args:\n------------------------- %d\n", getpid());
+  //  for (int j = 0; args[j]; j++) {
+  //    fprintf(stderr, "%s, ", args[j]);
+  //  }
+  //  fprintf(stderr, "\n------------------------- %d\n",getpid());
   //  int pid = fork();
   //  if (pid) {
   //    waitpid(pid, NULL, 0);
@@ -139,48 +139,41 @@ void isolateRun(char** args) {//, int fd[2]) {
        if (newArgs == args) {
 	 newArgs = subarray(args, 0, i);
        }
-       int fd[2] = {-1,-1};
+       int fd[2];// = {-1,-1};
        if (pipe(fd)) {
 	 perror("Problem creating pipe\n");
        }
        //       dprint("redirecting STDOUT to pipe[1]\n");
        //       pipe_output_stdout(fd);
-       int nextpid = fork();
+       int pid1 = fork();
        char** sub = subarray(args, i + 1, arrLen(args));
-       if (1) {
-       
-	 
-	 if (nextpid == 0) { //child
-	   pipe_input_stdin(fd);
-	   execute(sub[0], sub);
-	 } else { //parent
-	   pipe_output_stdout(fd);
-	   if (fork() == 0) {
-	     execute(args[0], newArgs);	   
-	   } else {
-	     wait(0);
-	     wait(0);
-	   }
-	 }
-       }
-       //##################################
+       	 
+       if (pid1 == 0) { //child
+	 pipe_input_stdin(fd);
+	 //execute(sub[0], sub);
+	 isolateRun(sub);
+       } else { //parent
 
-       if (0) { 
-	 if (nextpid == 0) {
+
+
+	 fprintf(stderr, "process %d made process %d\n", getpid(), pid1);
+	 
+	 
+	 pipe_output_stdout(fd);
+	 int pid2 = fork();
+	 if (pid2 == 0) {
+	   execute(args[0], newArgs);	   
+	 } else {
+
+
+	   fprintf(stderr, "process %d made process %d\n", getpid(), pid2);
 	   
-	   execute(args[0], newArgs);
-	   perror("something has gone wrong :( \n");
-	 } else {	 
-	   waitpid(nextpid, NULL, 0);
-	   fprintf(stderr,"args has %d args? \n", arrLen(args));
-	   dprint("redirecting pip[0] to STDIN in parent process\n");
-	   pipe_input_stdin(fd);
-	   //	   char** sub = subarray(args, i + 1, arrLen(args));
-	   execute(sub[0], sub);
-	   //       	 isolateRun(sub);
+	   waitpid(pid2, NULL, 0);
+	   close(fd[1]);
+	   waitpid(pid1, NULL, 0);
 	   return;
 	 }
-       }
+       }       
      }
    }
    execute(args[0], newArgs);
@@ -188,12 +181,17 @@ void isolateRun(char** args) {//, int fd[2]) {
 }
 
 void forknRun(char** args) {
-  fprintf(stderr, "Creating a new forked process\n");
+  //  fprintf(stderr, "Creating a new forked process\n");
   int pid = fork();
   if (pid == 0) {
     int fd[2] = {-1,-1};
     isolateRun(args);//, fd);
   } else {
+
+    
+    fprintf(stderr, "process %d made process %d\n", getpid(), pid);
+
+	    
     waitpid(pid, NULL, 0);
   }
 }
@@ -206,6 +204,12 @@ main()
     char homeDirectory[100];
     getcwd(homeDirectory, sizeof(homeDirectory));
     while (1) {
+
+      //DELETE MEEE
+      printf("big daddy %d \n", getpid());
+
+    
+
 	printf ("Command ('exit' to quit): ");
 	args = get_args();
 	
