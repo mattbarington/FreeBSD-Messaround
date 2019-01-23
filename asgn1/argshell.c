@@ -42,13 +42,13 @@ char** subarray(char** args, int start, int end) {
 }
 
 void execute(char* command, char* args[]) {
-  fprintf(stderr,"%d executing command [ %s ] with arguments: \n----------------------\n", getpid(), command);
-  for (int i = 0; args[i]; i++) {
-    fprintf(stderr,"%s, ",args[i]);
-  }
-  fprintf(stderr,"\n-------------------\n");
+  //  fprintf(stderr,"%d executing command [ %s ] with arguments: \n----------------------\n", getpid(), command);
+  //  for (int i = 0; args[i]; i++) {
+  //    fprintf(stderr,"%s, ",args[i]);
+  //  }
+  //  fprintf(stderr,"\n-------------------\n");
   int s = execvp(command, args);
-  fprintf(stderr,"%d: Something has gone wrong!: %d\n", getpid(), errno);
+  perror("Something has gone wrong while trying to execute a command\n");
 }
 
 void pipe_output_stdout(int fd[]) {
@@ -103,37 +103,37 @@ void isolateRun(char** args) {//, int fd[2]) {
      if (!strcmp(args[i], "<")) {
        newArgs = subarray(args, 0, i);
        //       printf("------Subarray----\n");
-       for (int a = 0; a < i; a++) {
-	 printf("%s\n", newArgs[a]);
-       }
+       //       for (int a = 0; a < i; a++) {
+       //	 printf("%s\n", newArgs[a]);
+       //       }
        //       printf("-----------------\n");
        //       printf("Opening %s\n", args[i+1]);
-       dprint("redirecting STDIN from  file\n");
+       //       dprint("redirecting STDIN from  file\n");
        redirect(args[i+1], STDIN_FILENO, O_RDONLY);
      } else if (!strcmp(args[i], ">")) {	
        if (newArgs == args) {
 	 newArgs = subarray(args, 0, i);
        }
-       dprint("redirecting STDOUT to file\n");
+       //       dprint("redirecting STDOUT to file\n");
        redirect(args[i+1], STDOUT_FILENO, O_RDWR | O_CREAT);
      } else if (!strcmp(args[i], ">>")) {
        if (newArgs == args) {
 	 newArgs = subarray(args, 0, i);
        }
        
-       dprint("redirecting STDOUT to file with append\n");
+       //       dprint("redirecting STDOUT to file with append\n");
        redirect(args[i+1], STDOUT_FILENO, O_RDWR| O_CREAT | O_APPEND);       
      } else if (!strcmp(args[i], ">&")) {
        if (newArgs == args) {
 	 newArgs = subarray(args, 0, i);
        }
-       dprint("redirecting STDOUT and Err to file\n");
+       //       dprint("redirecting STDOUT and Err to file\n");
        redirect2(args[i+1], STDOUT_FILENO, STDERR_FILENO, O_RDWR | O_CREAT);
      } else if (!strcmp(args[i], ">>&")) {
        if (newArgs == args) {
 	 newArgs = subarray(args, 0, i);
        }
-       dprint("redirecting STDOUT and Err to file with append\n");
+       //       dprint("redirecting STDOUT and Err to file with append\n");
        redirect2(args[i+1], STDERR_FILENO, STDOUT_FILENO, O_RDWR | O_CREAT | O_APPEND);
      } else if (!strcmp(args[i], "|")) {
        if (newArgs == args) {
@@ -156,7 +156,7 @@ void isolateRun(char** args) {//, int fd[2]) {
 
 
 
-	 fprintf(stderr, "process %d made process %d\n", getpid(), pid1);
+	 //	 fprintf(stderr, "process %d made process %d\n", getpid(), pid1);
 	 
 	 
 	 pipe_output_stdout(fd);
@@ -166,7 +166,7 @@ void isolateRun(char** args) {//, int fd[2]) {
 	 } else {
 
 
-	   fprintf(stderr, "process %d made process %d\n", getpid(), pid2);
+	   //	   fprintf(stderr, "process %d made process %d\n", getpid(), pid2);
 	   
 	   waitpid(pid2, NULL, 0);
 	   close(fd[1]);
@@ -189,7 +189,7 @@ void forknRun(char** args) {
   } else {
 
     
-    fprintf(stderr, "process %d made process %d\n", getpid(), pid);
+    //    fprintf(stderr, "process %d made process %d\n", getpid(), pid);
 
 	    
     waitpid(pid, NULL, 0);
@@ -206,7 +206,7 @@ main()
     while (1) {
 
       //DELETE MEEE
-      printf("big daddy %d \n", getpid());
+      //      printf("big daddy %d \n", getpid());
 
     
 
@@ -229,28 +229,28 @@ main()
 	      forknRun(args); //isolateRun(args,0);
 	    } else if (!strcmp(args[i], "cd")) {  /* handles cd command  */
 	      if (args[i+1] == NULL) {
-		dprint("There is nothing after cd!\n");
+		//		dprint("There is nothing after cd!\n");
 		chdir(homeDirectory);
 		args = &args[i+1];
 		i = -1;
 	      } else if (!strcmp(args[i+1], ";")) {
-		dprint("There is a semicolon nothing after cd!\n");
+		//		dprint("There is a semicolon nothing after cd!\n");
 		chdir(homeDirectory);
 		args = &args[i+2];
 		i = -1;
 	      } else {		
-		printf("You want me to change the directory to '%s'?\n", args[i+1]);
+		//	printf("You want me to change the directory to '%s'?\n", args[i+1]);
 		chdir(args[i+1]);
 		args = &args[i+2];
 		i = -1;
 		if (args[i+2] != NULL && !strcmp(args[i+2], ";")) {
-		  printf("I've just cahnged the directory to '%s' and now I might need to execute another command after '%s'\n",args[i+1],args[i+2]);
+		  //printf("I've just cahnged the directory to '%s' and now I might need to execute another command after '%s'\n",args[i+1],args[i+2]);
 		  args = &args[i+3];
 		  i = -1;
 		}
 	      }      	
 	    } else if (!strcmp(args[i], ";")) {
-	      dprint("we've encountered a juug semicolon\n");
+	      //	      dprint("we've encountered a juug semicolon\n");
 	      forknRun(subarray(args, 0, i));// isolateRun(subarray(args, 0, i), 0);
 	      args = &args[i+1];
 	      i = -1;
