@@ -74,10 +74,99 @@ Program Description:
 	    which the shell was called.
 
 
-
-
-
-Things you can execute / supported
-
-
 General design / modularity
+ --------------------------------------------------------------------
+ The most significant concept of this program is that of leveraging
+ forks to isolate processes from one another. I refer to this
+ notion of isolating processes from each other 'fork isolation'.
+
+ The first challenge overcome by fork isolation was that of calling
+ execvp, which replaces a process's image, making it impossible to
+ return to the calling position in the code. I resolved this by
+ forking a new process to call execvp.
+
+ Fork isolation is used to isolate the effects of redirection. I
+ created the function 'isolateRun(args)' to implement redirection
+ without impacting the parent process. This is useful to protect
+ commands that are later entered by the user  and commands following
+ a semicolon from buggy redirection. In the case of semicolons, each
+ set of commands are parsed in main() and passed independently as a
+ subarray of args to isolateRun(). In this way, commands separated by
+ semicolons are indistinguishable to isolateRun() from commands that
+ are entered by the user at different times.
+
+ While fork isolation reaped great benefits of isolating all actions
+ from the parent process, this proved to be an obstacle in the
+ implementation of 'cd', which could not be isolated from the parent
+ process and main loop.
+
+ I had to implement chdir in the main loop in a way similar to how I
+ parse through semicolons, and fiddle with the args array and i so
+ that the main for loop that parsed all of the user's input would
+ progress past cd.
+
+ Fork isolation and recursion were frustrating, complex, and
+ absolutely necessary to support piping between processes. I will try
+ to draw out a diagram of piping between processes as it is
+ implemented in my program.
+
+    Time progresses vertically downward. fork names are referred to
+    	 by names in brackets [<fork name>]. 
+
+    Parent process --forks--> isolateRun() [referred to as isoRun]
+    	   isolateRun() parses arguments to set up redirection.
+	   upon reaching '|':
+	   
+	     |
+	     |
+	     |
+   [isoRun] forks
+	     |--------forks [pid 1]----------->|
+	     |				       |
+	     V				       V
+    [isoRun] redirects stdout	      [pid1] redirects stdin
+    [isoRun] redirects stderr	  	       |
+    	     if necessary		       |
+    pipe(stdout->pipe[1])		       |
+	     |				       V
+	     |	     	        [pid1] recurs into isolateRun()
+	     |		   with args being everything after the pipe.
+	     |		      On this line there could be an entire
+	     |		    diagram similar to this one. This diagram
+	     |		     could be a recurrence of other diagrams.
+	     |		       Man, recursion is crazy, huh?
+	     V				       |
+      [isoRun] forks			       |
+   	     |-----forks [pid2]---|	       |
+	     |			  |	       |
+	     |			  V	       |
+	     |		[pid2] executes the    |
+	     |	      command before the pipe, |
+	     |	      redirecting stdout->pipe |
+	     |	        for [pid1] to read     |
+             |		    	  |   	       |
+	     |			  |	       |
+	     V			  |	       |
+   [isoRun] waits for [pid2]	  |	       |
+   	     | <------------------|	       |
+	     V				       |
+   [isoRun] closes writing		       |
+       end of pipe			       |
+       	     |				       |
+	     |				       |	
+	     V				       |
+   [isoRun] waits for [pid1]	     	       |
+   	     | <-------------------------------|
+	     |
+     [isoRun] returns
+
+ Creating the isolateRun() function was advantageous in this instanc
+ because it simplified progressing from a single pipe to multiple
+ pipes. Simply recurring on isolateRun() in a fork isolated later
+ redirections from the earlier pipe redirections. Furthermore, the
+ instance of isolateRun() used the pipe of the parent process for
+ input while isolating its own pipe.
+
+That's my program! I hope it wasn't too boring a read (although I'm
+sure after these submissions are all pretty boring after a while),
+and I hope the diagram isn't too difficult to understand.
