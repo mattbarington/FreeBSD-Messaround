@@ -9,6 +9,15 @@
 
 extern char ** get_args(); 
 
+void printError(char* error, int lineNum) {
+  char buf[100];
+  for (int i = 0; i < sizeof(buf); i++) {
+    buf[i] = 0;
+  }
+  sprintf(buf, "%s on line %d\n", error, lineNum);
+  perror(buf);    
+}
+
 void dprint(char* str) {
   fprintf(stderr, "%s", str);
 }
@@ -32,30 +41,39 @@ char** subarray(char** args, int start, int end) {
 
 void execute(char* command, char* args[]) {
   int s = execvp(command, args);
-  perror("Something has gone wrong while trying to execute a command\n");
+  printError("Error executing command", __LINE__);
 }
 
 void pipe_output_stdout(int fd[]) {
   close(fd[0]);
   close(STDOUT_FILENO);
-  dup2(fd[1], STDOUT_FILENO);
+  int ret = dup2(fd[1], STDOUT_FILENO);
+  if (ret < 0) {
+    printError("Error", __LINE__);
+  }
   close(fd[1]);
 }
 
 void pipe_input_stdin(int fd[]) {
   close(fd[1]);
   close(STDIN_FILENO);
-  dup2(fd[0], STDIN_FILENO);
+  int ret = dup2(fd[0], STDIN_FILENO);
+  if (ret < 0) {
+    printError("Error", __LINE__);
+  }
   close(fd[0]);
 }
 
 void redirect(char*filename, int fd, int flags,...) {
   int nfd = open(filename, flags);
   if (nfd < 0) {
-    fprintf(stderr, "There was a problem opening file '%s' in redirect\nExiting...\n", filename);
-    exit(1);
+    fprintf(stderr, "There was a problem opening file '%s' in fnct redirect on line %d\nExiting...\n", filename, __LINE__);
+    exit(errno);
   }
-  dup2(nfd, fd);
+  int ret = dup2(nfd, fd);
+  if (ret < 0) {
+    printError("Error", __LINE__);
+  }
   close(nfd);
 }
 
@@ -130,7 +148,6 @@ void isolateRun(char** args) {
 }
 
 void forknRun(char** args) {
-  //  fprintf(stderr, "Creating a new forked process\n");
   int pid = fork();
   if (pid == 0) {
     int fd[2] = {-1,-1};
