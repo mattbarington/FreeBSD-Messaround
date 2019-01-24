@@ -205,7 +205,7 @@ void isolateRun(char** args) {
 	   waitpid(pid2, NULL, 0);
 	   close(fd[1]);
 	   waitpid(pid1, NULL, 0);
-	   return;
+	   exit(0);
 	 } // if pid2
        } // if pid1
      } // if '|'
