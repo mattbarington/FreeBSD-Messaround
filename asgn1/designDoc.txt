@@ -4,7 +4,7 @@
 Files:
  --------------------------------------------------------------------
 
-	argshell.c	shell.l		Makefile	README	
+    designDoc.txt    argshell.c    shell.l    Makefile    README
 
 
 
@@ -173,7 +173,7 @@ General design / modularity
  input while isolating its own pipe.
 
 That's my program! I hope it wasn't too boring a read (although I'm
-sure after these submissions are all pretty boring after a while),
+sure all of these submissions become pretty boring to read after a while),
 and I hope the diagram isn't too difficult to understand.
 
   

@@ -234,7 +234,7 @@ main()
     int         i;
     char **     args;
     char homeDirectory[100];
-    getcwd(homeDirectory, sizeof(homeDirectory));
+    getcwd(homeDirectory, sizeof(homeDirectory)); // used to 'cd' back to the home directory
     while (1) {
 
 	printf ("Command ('exit' to quit): ");
@@ -252,7 +252,7 @@ main()
 	} else {
 	  for (i = 0; args[i]; i++) {
 	    if (args[i] == NULL) {
-	      forknRun(args); 
+	      forknRun(args);
 	    } else if (!strcmp(args[i], "cd")) {  /* handles cd command  */
 	      if (args[i+1] == NULL) { //There is nothing after cd!
 		chdir(homeDirectory);
