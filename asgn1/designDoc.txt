@@ -76,6 +76,11 @@ Program Description:
 
 General design / modularity
  --------------------------------------------------------------------
+ Disclaimer: This is a high-level view of the programs design. For
+ documentation on each function see code base. Every function has a
+ documentation block, and code is moderately commented inside of the
+ function.
+ 
  The most significant concept of this program is that of leveraging
  forks to isolate processes from one another. I refer to this
  notion of isolating processes from each other 'fork isolation'.
@@ -170,3 +175,5 @@ General design / modularity
 That's my program! I hope it wasn't too boring a read (although I'm
 sure after these submissions are all pretty boring after a while),
 and I hope the diagram isn't too difficult to understand.
+
+  
