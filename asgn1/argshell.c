@@ -9,6 +9,10 @@
 
 extern char ** get_args(); 
 
+
+/**
+ * Prints '<error> on line <lineNum> to perror, providing information about a failure that occured as a result of a system call, and on what line of code that error occured.
+ */
 void printError(char* error, int lineNum) {
   char buf[100];
   for (int i = 0; i < sizeof(buf); i++) {
@@ -18,10 +22,12 @@ void printError(char* error, int lineNum) {
   perror(buf);    
 }
 
-void dprint(char* str) {
-  fprintf(stderr, "%s", str);
-}
 
+/**
+ * Used to find the length of a NULL terminated char** array.
+ * @param A - A NULL terminated array of char*.
+ * @return - the length of the A.
+ */
 int arrLen(char** A) {
   int count = 0;
   while (A[count]) {
@@ -30,6 +36,13 @@ int arrLen(char** A) {
   return count;
 }
 
+/**
+ * Returns a heap-allocated deep copy array of given array args from indicies [start, end).
+ * @param args - the parents array, a subarray of which will be returned.
+ * @param start - The first index in the subarray. Inclusively bounded.
+ * @param end - The lsat index in the subarray. Exclusively bounded.
+ * @return subarray allocated on the heap.
+ */
 char** subarray(char** args, int start, int end) {
   char** sub = (char**) calloc(end-start + 1, sizeof(char*));
   for (int i = start; i < end; i++) {    
@@ -39,11 +52,19 @@ char** subarray(char** args, int start, int end) {
   return sub;
 }
 
+/**
+ * wrapper function for execvp() system call. Upon failure of execvp(), error will be printed.
+ */
 void execute(char* command, char* args[]) {
   int s = execvp(command, args);
   printError("Error executing command", __LINE__);
 }
 
+/**
+ * Redirects standard output to the write end of the provided pipe.
+ * @param fd[] - the file descriptor array that acts as a pipe.
+ * reference source - https://stackoverflow.com/questions/20187734/c-pipe-to-stdin-of-another-program
+ */
 void pipe_output_stdout(int fd[]) {
   close(fd[0]);
   close(STDOUT_FILENO);
@@ -54,6 +75,28 @@ void pipe_output_stdout(int fd[]) {
   close(fd[1]);
 }
 
+/**
+ * Redirects standard output and standard error to the write end of the provided pipe.
+ * @param fd[] - the file descriptor array that acts as a pipe.
+ * reference source - https://stackoverflow.com/questions/20187734/c-pipe-to-stdin-of-another-program
+ */
+void pipe_output_stdout_and_stderr(int fd[]) {
+  close(fd[0]);
+  close(STDOUT_FILENO);
+  close(STDERR_FILENO);
+  int ret = dup2(fd[1], STDOUT_FILENO);
+  ret |= dup2(fd[1], STDERR_FILENO);
+  if (ret < 0) {
+    printError("Error", __LINE__);
+  }
+  close(fd[1]);
+}
+
+/**
+ * Redirects standard input to the read end of the provided pipe.
+ * @param fd[] - the file descriptor array that acts as a pipe.
+ * reference source - https://stackoverflow.com/questions/20187734/c-pipe-to-stdin-of-another-program
+ */
 void pipe_input_stdin(int fd[]) {
   close(fd[1]);
   close(STDIN_FILENO);
@@ -64,6 +107,13 @@ void pipe_input_stdin(int fd[]) {
   close(fd[0]);
 }
 
+/**
+ * Redirects the given file descriptor to the given filename. The intent is to redirect stdin, stdout, and stderr from or to a file.
+ * @param filename - the name of the file which input or output will be redirected from or to.
+ * @param fd - the file descriptor to be redirected.
+ * @param flags - the flags to be passed into open().
+ * reference source - https://stackoverflow.com/questions/14543443/in-c-how-do-you-redirect-stdin-stdout-stderr-to-files-when-making-an-execvp-or
+ */
 void redirect(char*filename, int fd, int flags,...) {
   int nfd = open(filename, flags);
   if (nfd < 0) {
@@ -77,18 +127,31 @@ void redirect(char*filename, int fd, int flags,...) {
   close(nfd);
 }
 
+/**
+ * Redirects the given file descriptor to the given filename. The intent is to redirect stdin, stdout, and stderr from or to a file. * This function comes in handy when redirecting two file descriptors to the same file, e.g. STDER & STDOUT --> file.
+ * @param filename - the name of the file which input or output will be redirected from or to.
+ * @param fd1 - the file descriptor to be redirected.
+ * @param fd2 - another  descriptor to be redirected.
+ * @param flags - the flags to be passed into open().
+ * reference source - https://stackoverflow.com/questions/14543443/in-c-how-do-you-redirect-stdin-stdout-stderr-to-files-when-making-an-execvp-or
+ */
 void redirect2(char* filename, int fd1, int fd2, int flags,...) {
   int nfd = open(filename, flags);
   if (nfd < 0) {
-    fprintf(stderr, "There was a problem opening file '%s' in redirect\nExiting...\n", filename);
-    exit(1);
+    fprintf(stderr, "There was a problem opening file '%s' in fnct redirect on line %d\nExiting...\n", filename, __LINE__);
+    exit(errno);
   }
-  dup2(nfd, fd1);
-  dup2(nfd, fd2);
+  if (dup2(nfd, fd1) < 0 ||  dup2(nfd, fd2) < 0) {
+    printError("Error", __LINE__);
+  }  
   close(nfd);
 }
 
-
+/**
+ * Modularized to setup redirection between processes and execute commands.
+ * It is intended that args passed into isolateRun represent one cohesive command or multiple commands that use redirection to communicate with eachother. It is assumed that there will be no semicolons representing commands that ought to run in isolation from one-another, as that is handled in the main loop.
+ * @param args - the commands and redirectives to be processes and executed.
+ */
 void isolateRun(char** args) {
    char** newArgs = args;
    for (int i = 0; args[i]; i++) {
@@ -115,7 +178,7 @@ void isolateRun(char** args) {
 	 newArgs = subarray(args, 0, i);
        }
        redirect2(args[i+1], STDERR_FILENO, STDOUT_FILENO, O_RDWR | O_CREAT | O_APPEND); // redirecting STDOUT and Err to file with append\n
-     } else if (!strcmp(args[i], "|")) {
+     } else if (!strcmp(args[i], "|") || !strcmp(args[i], "|&")) {
        if (newArgs == args) {
 	 newArgs = subarray(args, 0, i);
        }
@@ -129,8 +192,12 @@ void isolateRun(char** args) {
        if (pid1 == 0) { //child
 	 pipe_input_stdin(fd);	
 	 isolateRun(sub);
-       } else { //parent	 
-	 pipe_output_stdout(fd);
+       } else { //parent
+	 if (!strcmp(args[i], "|&")) {
+	   pipe_output_stdout_and_stderr(fd);
+	 } else {
+	   pipe_output_stdout(fd);
+	 }
 	 int pid2 = fork();
 	 if (pid2 == 0) {
 	   execute(args[0], newArgs);	   
@@ -139,14 +206,17 @@ void isolateRun(char** args) {
 	   close(fd[1]);
 	   waitpid(pid1, NULL, 0);
 	   return;
-	 }
-       }       
-     }
-   }
+	 } // if pid2
+       } // if pid1
+     } // if '|'
+   } // for args
    execute(args[0], newArgs);
-   //  } //if child
 }
 
+/**
+ * Creates a new process to run a set of commands in a isolated environment.
+ * @param args - the argument array to pass into isolateRun() and 'pretend' that it's the only command running
+ */
 void forknRun(char** args) {
   int pid = fork();
   if (pid == 0) {

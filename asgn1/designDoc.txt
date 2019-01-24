@@ -1,0 +1,83 @@
+
+	Design Doc Assignment 1 -- CMPS 111 -- 2019
+
+Files:
+ --------------------------------------------------------------------
+
+	argshell.c	shell.l		Makefile	README	
+
+
+
+Sources:
+ --------------------------------------------------------------------
+ Many parts of this program are common methods, such as open(),
+ close(), execvp() and so forth. The man pages were consulted but
+ proved difficult to decipher. geeksforgeeks.com and stackoverflow
+ were extensively utilized as resources to resolve syntactical issues
+ and common functionalities like how to open a file. Sections of my
+ code that non-trivial and relied on resources like stackoverflow are
+ marked with the URL to the appropriate post. There are few instances
+ of this. All other code sections are of my own design or considered
+ too general to bother directing the reader to a specific post on
+ geeksforgeeks that explains it (i.e., how to read from a pipe).
+
+ 
+
+Program Description:
+ --------------------------------------------------------------------
+ This program immitates a typical shell. The following functionality
+ is supported:
+ 
+ - exit : exits the shell.
+ 
+ - command with argumens:
+   	   ex. ls -l -a.
+
+ - command with stdin  redirection from a file:
+   	   ex. sort < filename
+
+ - command with stdout redirection to a file.
+   	   ex. ls > outfile redirectes stdout to outfile, overwriting
+	       the file if it exists, and creating the file if it
+	       does not.
+	   ex. ls >> outfile redirects stdout to outfile, appending
+	       to the file if it exists, and creating the file if it
+	       does not.
+
+ - command with stderr redirection to a file.
+   	   ex. ./program >& outfile redirects stdout and stderr to
+	       outfile, overwriting the file if it exists, and
+	       creating the file if it does not.
+	   ex. ./program >>& outfile redirects stdout and stderr to
+	       outfile, appending to the file if it exists, and
+	       creating the file if it does not.
+
+ - pipe commands together:
+   	ex. cat shakespeare.txt | head -9
+
+ - several commands piped together:
+   	ex. sort < file | more | head -10
+
+ - pipe commands with stderr:
+   	ex: ./program |& grep ERROR
+
+ - separate commands with semicolon:
+   	ex. ls > file; sort < file > sorted
+
+ - change working directory with cd. Omitting a directory will change
+   the working directory to the directory in which the shell was
+   launched.
+	ex: cd dir changes the working directory to dir. 
+      	ex: cd ..  changes the working directory to the current
+	    directories parent directory.
+	ex: cd     changes the working directory to the directory in
+	    which the shell was called.
+
+
+
+
+
+Things you can execute / supported
+
+
+General design / modularity
