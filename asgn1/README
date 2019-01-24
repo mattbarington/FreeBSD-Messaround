@@ -2,17 +2,30 @@ Hi, thanks for taking the time to look at this project. I hope you
 enjoy grading this as much as I enjoyed building it.
 
 Files:
- - Makefile:   used for building the executable 'argshell', cleaning
-   	       up the directory of excess files, and jumping straigh
-	       into execution after making.
+ -------------------------------------------------------------------
+ - Makefile:	  used for building the executable 'argshell',
+   		  cleaning up the directory of excess files, and
+		  jumping straight into execution after making.
 
- - argshell.c: The main codebase for the shell. Everything in
-   	       'argshell.c' is built by myself alone.
+ - argshell.c: 	  The main codebase for the shell. Everything in
+   	       	  'argshell.c' is built by myself alone.
 
- - shell.l:    File provided at the beginning of the project. It is
-   	       used to read input into the shell using yylex().
+ - shell.l:    	  File provided at the beginning of the project. It 
+   	       	  is used to read input into the shell using
+		  yylex().
+
+ - designDoc.txt: High level design and organization of the program.
+   		  For a closer look at how each function works check
+		  the code base; each function has a documentation
+		  block, and larger functions have inline comments.
+
+ - README: 	  Some pleasant reading material describing how to
+   		  compile and run this shell imitation.
+		  
+
 
 How to compile and run:
+ -------------------------------------------------------------------
  - compiling: The Makefile should do all of the heavy lifting. Just
    	      type 'make' to compile the codebase into an executable
 	      called 'argshell'.
