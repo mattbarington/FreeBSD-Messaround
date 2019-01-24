@@ -156,7 +156,8 @@ void isolateRun(char** args) {
    char** newArgs = args;
    for (int i = 0; args[i]; i++) {
      if (!strcmp(args[i], "<")) {
-       newArgs = subarray(args, 0, i);
+       newArgs = subarray(args, 0, i); /* newArgs is going to be used as arguments to the actual execvp call.
+					  ex: args = ["ls", ">", "file"]. newArgs will be ["ls"]. */
        redirect(args[i+1], STDIN_FILENO, O_RDONLY);
      } else if (!strcmp(args[i], ">")) {	
        if (newArgs == args) {
@@ -178,7 +179,7 @@ void isolateRun(char** args) {
 	 newArgs = subarray(args, 0, i);
        }
        redirect2(args[i+1], STDERR_FILENO, STDOUT_FILENO, O_RDWR | O_CREAT | O_APPEND); // redirecting STDOUT and Err to file with append\n
-     } else if (!strcmp(args[i], "|") || !strcmp(args[i], "|&")) {
+     } else if (!strcmp(args[i], "|") || !strcmp(args[i], "|&")) { //piping stdout or stderr AND stdout.
        if (newArgs == args) {
 	 newArgs = subarray(args, 0, i);
        }
@@ -193,9 +194,9 @@ void isolateRun(char** args) {
 	 pipe_input_stdin(fd);	
 	 isolateRun(sub);
        } else { //parent
-	 if (!strcmp(args[i], "|&")) {
+	 if (!strcmp(args[i], "|&")) { //  piping stderr too
 	   pipe_output_stdout_and_stderr(fd);
-	 } else {
+	 } else {           // just piping stdout
 	   pipe_output_stdout(fd);
 	 }
 	 int pid2 = fork();
