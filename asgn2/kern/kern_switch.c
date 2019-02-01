@@ -475,7 +475,17 @@ runq_choose(struct runq *rq)
 
 	while ((pri = runq_findbit(rq)) != -1) {
 		rqh = &rq->rq_queues[pri];
-		td = TAILQ_FIRST(rqh);
+		int totalTix = 0;
+		TAILQ_FOREACH(td, rqh, td_runq) {
+		  totalTix += td->p_nice;
+		}
+		int r = rand() % totalTix;
+		TAILQ_FOREACH(td, rqh, td_runq) {
+		  r -= td->p_nice;
+		  if (r < 0)
+		    break;
+		}
+		//		td = TAILQ_FIRST(rqh);
 		KASSERT(td != NULL, ("runq_choose: no thread on busy queue"));
 		CTR3(KTR_RUNQ,
 		    "runq_choose: pri=%d thread=%p rqh=%p", pri, td, rqh);
