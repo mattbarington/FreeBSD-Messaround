@@ -43,8 +43,10 @@ __FBSDID("$FreeBSD: releng/11.2/sys/kern/kern_switch.c 327481 2018-01-02 00:14:4
 #include <sys/smp.h>
 #include <sys/sysctl.h>
 
+#include <sys/cdefs.h>
+#include <sys/libkern.h>
+
 #include <machine/cpu.h>
-//#include </usr/src/include/stdlib.h>
 
 /* Uncomment this to enable logging of critical_enter/exit. */
 #if 0
@@ -477,15 +479,21 @@ runq_choose(struct runq *rq)
 	while ((pri = runq_findbit(rq)) != -1) {
 		rqh = &rq->rq_queues[pri];
 		int totalTix = 0;
+		//		int numP = 0;
 		TAILQ_FOREACH(td, rqh, td_runq) {
 		  totalTix += td->td_user_pri;
-		}
-		int r = 69; // lmao rand() % totalTix;
+		  numP++;
+		}		
+		int r = random() % totalTix;
+		//		printf("MATT in KERN_SWITCH. numP in pri %d: %d\n", pri, numP);
+		//		printf("MATT in KERN_SWITCH ln 485: r = %d\n", r);
 		TAILQ_FOREACH(td, rqh, td_runq) {
 		  r -= td->td_user_pri;
-		  if (r < 0)
+		  //		  printf("MATT in KERN_SWITCH ln 489: usr_pri: %d\n", td->td_user_pri);
+		  if (r < 0) {
 		    break;
-		}
+		  }
+		}		
 		//		td = TAILQ_FIRST(rqh);
 		KASSERT(td != NULL, ("runq_choose: no thread on busy queue"));
 		CTR3(KTR_RUNQ,
