@@ -247,6 +247,7 @@ struct tdq {
 	u_char		tdq_ridx;		/* Current removal index. */
 	struct runq	tdq_realtime;		/* real-time run queue. */
 	struct runq	tdq_timeshare;		/* timeshare run queue. */
+        int             totalTix;               /* timeshare run queue ticket count */
 	struct runq	tdq_idle;		/* Queue of IDLE threads. */
 	char		tdq_name[TDQ_NAME_LEN];
 #ifdef KTR
@@ -471,8 +472,14 @@ tdq_runq_add(struct tdq *tdq, struct thread *td, int flags)
 		ts->ts_flags |= TSF_XFERABLE;
 	}
 	if (pri < PRI_MIN_BATCH) {
-		ts->ts_runq = &tdq->tdq_realtime;
+		ts->ts_runq = &tdq->tdq_realtime;		
 	} else if (pri <= PRI_MAX_BATCH) {
+	  
+	  
+	  
+	  printf("MATT Adding timeshare thread with priority %d\n", td->td_priority);
+	  
+
 		ts->ts_runq = &tdq->tdq_timeshare;
 		KASSERT(pri <= PRI_MAX_BATCH && pri >= PRI_MIN_BATCH,
 			("Invalid priority %d on timeshare runq", pri));
@@ -493,10 +500,27 @@ tdq_runq_add(struct tdq *tdq, struct thread *td, int flags)
 				pri = (unsigned char)(pri - 1) % RQ_NQS;
 		} else
 			pri = tdq->tdq_ridx;
-		runq_add_pri(ts->ts_runq, td, pri, flags);
+		
+
+
+		/* do some nasty q shit lol */
+		/* here's a basic outline ok */
+		// if it all belongs in 1 queue, then just put it at the front
+		struct rqhead *rqh;
+		struct runq *rq = ts->ts_runq;
+		rqh = &rq->rq_queues[0];
+		if (flags & SRQ_PREEMPTED) {
+		  TAILQ_INSERT_HEAD(rqh, td, td_runq);
+		} else {
+		  TAILQ_INSERT_TAIL(rqh, td, td_runq);
+		}
+		
+		
+		
+		//		runq_add_pri(ts->ts_runq, td, pri, flags);
 		return;
 	} else
-		ts->ts_runq = &tdq->tdq_idle;
+	  ts->ts_runq = &tdq->tdq_idle;
 	runq_add(ts->ts_runq, td, flags);
 }
 
