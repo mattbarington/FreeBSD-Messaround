@@ -505,7 +505,7 @@ tdq_runq_add(struct tdq *tdq, struct thread *td, int flags)
 
 		/* do some nasty q shit lol */
 		/* here's a basic outline ok */
-		// if it all belongs in 1 queue, then just put it at the front
+		// if it all belongs in 1 queue, then just put it at the front of the runq set
 		struct rqhead *rqh;
 		struct runq *rq = ts->ts_runq;
 		rqh = &rq->rq_queues[0];
