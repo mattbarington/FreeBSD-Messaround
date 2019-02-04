@@ -259,6 +259,12 @@ critical_exit(void)
 /************************************************************************
  * SYSTEM RUN QUEUE manipulations and tests				*
  ************************************************************************/
+
+//void
+//lotteryq_init(struct rqhead *rqh) {
+//  TAILQ_INIT(rqh);
+//}
+
 /*
  * Initialize a run structure.
  */
@@ -375,6 +381,9 @@ runq_add(struct runq *rq, struct thread *td, int flags)
 	//	if (PRI_MIN_TIMESHARE < pri && pri <= PRI_MAX_TIMESHARE) {
 	//	  pri = TSQ_STRT;
 	//	}
+	if (pri < 29 || pri > 56) {
+	  printf("adding priority %d to queue slot %d\n", td->td_priority, pri);
+	}
 	td->td_rqindex = pri;
 	runq_setbit(rq, pri);
 	rqh = &rq->rq_queues[pri];
@@ -404,6 +413,19 @@ runq_add_pri(struct runq *rq, struct thread *td, u_char pri, int flags)
 		TAILQ_INSERT_TAIL(rqh, td, td_runq);
 	}
 }
+
+/*
+  
+
+ */
+//void
+//lotteryq_add(struct rqhead *rqh, struct thread *td) {
+//  int count = 0;
+//  count += td->td_proc->p_nice;
+//  TAILQ_INSERT(rqh, td, td_runq);
+//}
+
+
 /*
  * Return true if there are runnable processes of any priority on the run
  * queue, false otherwise.  Has no side effects, does not modify the run
@@ -468,6 +490,13 @@ runq_choose_fuzz(struct runq *rq, int fuzz)
 
 	return (NULL);
 }
+
+//struct thread *
+//lotteryq_choose(struct rqhead *rq) {
+//
+//  return (NULL);
+//}
+  
 
 /*
  * Find the highest priority process on the run queue.
