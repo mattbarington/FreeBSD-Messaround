@@ -247,6 +247,7 @@ struct tdq {
 	u_char		tdq_ridx;		/* Current removal index. */
 	struct runq	tdq_realtime;		/* real-time run queue. */
 	struct runq	tdq_timeshare;		/* timeshare run queue. */
+        struct rqhead   tdq_lottery;            /* lottery scheduled process queue */
         int             totalTix;               /* timeshare run queue ticket count */
 	struct runq	tdq_idle;		/* Queue of IDLE threads. */
 	char		tdq_name[TDQ_NAME_LEN];
