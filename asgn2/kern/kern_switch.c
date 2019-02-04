@@ -43,9 +43,6 @@ __FBSDID("$FreeBSD: releng/11.2/sys/kern/kern_switch.c 327481 2018-01-02 00:14:4
 #include <sys/smp.h>
 #include <sys/sysctl.h>
 
-//#include <sys/cdefs.h>
-//#include <sys/libkern.h>
-
 #include <machine/cpu.h>
 
 /* Uncomment this to enable logging of critical_enter/exit. */
@@ -259,12 +256,6 @@ critical_exit(void)
 /************************************************************************
  * SYSTEM RUN QUEUE manipulations and tests				*
  ************************************************************************/
-
-//void
-//lotteryq_init(struct rqhead *rqh) {
-//  TAILQ_INIT(rqh);
-//}
-
 /*
  * Initialize a run structure.
  */
@@ -378,12 +369,6 @@ runq_add(struct runq *rq, struct thread *td, int flags)
 	int pri;
 
 	pri = td->td_priority / RQ_PPQ;
-	//	if (PRI_MIN_TIMESHARE < pri && pri <= PRI_MAX_TIMESHARE) {
-	//	  pri = TSQ_STRT;
-	//	}
-	if (pri < 29 || pri > 56) {
-	  printf("adding priority %d to queue slot %d\n", td->td_priority, pri);
-	}
 	td->td_rqindex = pri;
 	runq_setbit(rq, pri);
 	rqh = &rq->rq_queues[pri];
@@ -413,19 +398,6 @@ runq_add_pri(struct runq *rq, struct thread *td, u_char pri, int flags)
 		TAILQ_INSERT_TAIL(rqh, td, td_runq);
 	}
 }
-
-/*
-  
-
- */
-//void
-//lotteryq_add(struct rqhead *rqh, struct thread *td) {
-//  int count = 0;
-//  count += td->td_proc->p_nice;
-//  TAILQ_INSERT(rqh, td, td_runq);
-//}
-
-
 /*
  * Return true if there are runnable processes of any priority on the run
  * queue, false otherwise.  Has no side effects, does not modify the run
@@ -491,13 +463,6 @@ runq_choose_fuzz(struct runq *rq, int fuzz)
 	return (NULL);
 }
 
-//struct thread *
-//lotteryq_choose(struct rqhead *rq) {
-//
-//  return (NULL);
-//}
-  
-
 /*
  * Find the highest priority process on the run queue.
  */
@@ -510,38 +475,6 @@ runq_choose(struct runq *rq)
 
 	while ((pri = runq_findbit(rq)) != -1) {
 		rqh = &rq->rq_queues[pri];
-
-		if (1) {
-		  //TAILQ_FOREACH(td, rqh, td_runq) {
-		    //printf("process in q %d: priority %d. nice: %d\n", pri, td->priority, td->td_proc->p_nice);
-		  // printf("td_base_pri; %d\n", td->td_base_pri);
-		  //		    printf("td_priority; %d\n", td->td_priority);
-		  //		    printf("td_pri_class; %d\n", td->td_pri_class);
-		  //		    printf("td_user_pri; %d\n", td->td_user_pri);
-		  //		    printf("td_base_user_pri; %d\n", td->td_base_user_pri);
-		  //		    printf("td_proc->p_nice %d\n", td->td_proc->p_nice);
-		  //		  }	       
-  
-		} else {
-		
-		int totalTix = 0;
-		int numP = 0;
-		TAILQ_FOREACH(td, rqh, td_runq) {
-		  totalTix += td->td_user_pri;
-		  numP++;
-		}		
-		int r = random() % totalTix;
-		//		printf("MATT in KERN_SWITCH. numP in pri %d: %d\n", pri, numP);
-		//		printf("MATT in KERN_SWITCH ln 485: r = %d\n", r);
-		TAILQ_FOREACH(td, rqh, td_runq) {
-		  r -= td->td_user_pri;
-		  //		  printf("MATT in KERN_SWITCH ln 489: usr_pri: %d\n", td->td_user_pri);
-		  if (r < 0) {
-		    break;
-		  }
-		}
-
-		}
 		td = TAILQ_FIRST(rqh);
 		KASSERT(td != NULL, ("runq_choose: no thread on busy queue"));
 		CTR3(KTR_RUNQ,
