@@ -62,6 +62,7 @@ struct runq {
 	struct	rqhead rq_queues[RQ_NQS];
 };
 
+void    lottery_q_add(struct runq *, struct thread *);
 void	runq_add(struct runq *, struct thread *, int);
 void	runq_add_pri(struct runq *, struct thread *, u_char, int);
 int	runq_check(struct runq *);

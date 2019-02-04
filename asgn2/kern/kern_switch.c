@@ -363,6 +363,14 @@ runq_setbit(struct runq *rq, int pri)
  * corresponding status bit.
  */
 void
+lottery_q_add(struct runq *rq, struct thread *td)
+{
+  return;
+}
+  
+
+
+void
 runq_add(struct runq *rq, struct thread *td, int flags)
 {
 	struct rqhead *rqh;
