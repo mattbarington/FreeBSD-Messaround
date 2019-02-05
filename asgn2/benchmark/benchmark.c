@@ -13,6 +13,12 @@
 #define TST_LGNTH 1
 #define NUM_PROCS 20
 
+struct result {
+    int proc;
+    int pri;
+    unsigned long time;
+};
+
 void long_func() {
     int tmp, j, k;
     for(j = 0; j < TST_LGNTH; ++j) {
@@ -30,7 +36,7 @@ int main() {
 
     int parent_pid;
     int child_pid;
-    int pid, pid_start;
+    int pid, my_pid, pid_start;
 
     int pri;
     int which;
@@ -40,69 +46,22 @@ int main() {
 
     struct timeval stop, start;
 
-    /*
-       FILE* syslog;
-       int file_pos;
+    FILE* test_results;
+    char filename[] = "test_results";
+    char filename2[100];
 
-       char rec1[100];
-       char rec2[100];
-
-       char msg1[] = "This is the first message\n";
-       char msg2[] = "This is the second message\n";
-
-       printf("Attempting to open syslog...\n");
-       syslog = fopen("/var/log/console.log", "r");
-       if(syslog) {
-       printf("Success\n");
-       fseek(syslog, 0, SEEK_END);
-       file_pos = ftell(syslog);
-       printf("file_pos: %d\n", file_pos);
-       fclose(syslog);
-       } else {
-       printf("Failed to open system log\n");
-       return 1;
-       }
-
-       syslog = fopen("/var/log/console.log", "a");
-       fputs(msg1, syslog);
-       fputs(msg2, syslog);
-       fclose(syslog);
-
-       syslog = fopen("/var/log/console.log", "r");
-       fseek(syslog, file_pos, SEEK_SET);
-       fgets(rec1, sizeof(rec1), (FILE*)syslog);
-       fgets(rec2, sizeof(rec2), (FILE*)syslog);
-       fclose(syslog);
-
-       printf("msg1: %s\n", rec1);
-       printf("msg2: %s\n", rec2);
-
-       return 0;
-     */
-
-
+    char result_msg[400];
+    unsigned long time_delta;
+    
     proc_num = NUM_PROCS;
 
-    /*
-
-    parent_pid = getpid();
-    printf("My pid is %d\n", parent_pid);
-
-    printf("Attempting to get my priority...\n");
-    pri = getpriority(PRIO_PROCESS, parent_pid);
-
-    printf("My priority is %d\n", pri);
-
-    printf("Attempting to set my priority...\n");
-    if(setpriority(PRIO_PROCESS, parent_pid, 5)) {
-        printf("Priority Set was unsuccessful\n");
-    } else {
-        printf("Success. Attempting to get my priority...\n");
-        pri = getpriority(PRIO_PROCESS, parent_pid);
-
-        printf("My priority is %d\n", pri);
-    }
-    */
+    //create a test file
+    /*test_results = open(filename, O_RDWR | O_CREAT);
+    if(!test_results) {
+        printf("Error: Could not open/create %s\n", filename);
+        return 1;
+    } else { close(test_results); }
+*/
 
     pid_start = fork();
     if(pid_start == 0) {
@@ -121,19 +80,52 @@ int main() {
                 printf("I am child: %d\n", getpid());
                 proc_num--;
             } else {
+                my_pid = getpid();
                 setpriority(PRIO_PROCESS, getpid(), proc_num);
                 pri = getpriority(PRIO_PROCESS, getpid());
-                proc_num = 0;
                 //printf("I am %d and my priority is %d\n", getpid(), pri);
-                waitpid(pid_start, &st, 0);
+                //waitpid(pid_start, &st, 0);
                 gettimeofday(&start, NULL);
                 long_func();
                 gettimeofday(&stop, NULL);
-                printf("Process: %d Priority: %d Total time: %lu\n", getpid(), pri, stop.tv_usec - start.tv_usec);
+                time_delta =  stop.tv_usec - start.tv_usec;
+                sprintf(result_msg, "%d %d %lu\n", my_pid, pri, time_delta);
+                sprintf(filename2, "%s%d", filename, proc_num);
+                test_results = fopen(filename2, "w");
+                if(!test_results) {
+                    printf("Error %d: Could not open/create %s\n", my_pid, filename);
+                } else {
+                    printf("%s", result_msg);
+                    fprintf(test_results, "%s", result_msg);
+                    fclose(test_results); 
+                }
+
+                proc_num = 0;
                 //printf("waiting for pid: %d\n", pid);
                 waitpid(pid, &st, 0);
             }
         } while(proc_num > 0);
+    }
+
+    //process the results
+    int i;
+    struct result all_res[NUM_PROCS];
+
+    for(i = 1; i <= 20; ++i) {
+        sprintf(filename2, "%s%d", filename, i);
+        test_results = fopen(filename2, "r");
+        if(test_results) {
+            fscanf(test_results, "%d %d %lu", &(all_res[i-1].proc), &(all_res[i-1].pri), &(all_res[i-1].time));
+            fclose(test_results);
+            remove(filename2);
+            
+        } else {
+            printf("Can't open result file %d\n", i);
+        }
+    }
+
+    for(i = 0; i < 20; ++i) {
+        printf("p: %d p: %d t: %lu\n", all_res[i].proc, all_res[i].pri, all_res[i].time);
     }
 
     return 0;
