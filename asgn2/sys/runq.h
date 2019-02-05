@@ -66,10 +66,12 @@ void    lottery_q_add(struct runq *, struct thread *);
 void	runq_add(struct runq *, struct thread *, int);
 void	runq_add_pri(struct runq *, struct thread *, u_char, int);
 int	runq_check(struct runq *);
+struct  thread *lottery_q_choose(struct runq *);
 struct	thread *runq_choose(struct runq *);
 struct	thread *runq_choose_from(struct runq *, u_char);
 struct	thread *runq_choose_fuzz(struct runq *, int);
 void	runq_init(struct runq *);
+void    lottery_q_remove(struct runq *, struct thread *);
 void	runq_remove(struct runq *, struct thread *);
 void	runq_remove_idx(struct runq *, struct thread *, u_char *);
 

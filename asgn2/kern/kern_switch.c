@@ -365,6 +365,14 @@ runq_setbit(struct runq *rq, int pri)
 void
 lottery_q_add(struct runq *rq, struct thread *td)
 {
+  struct rqhead *rqh;
+  int queue_idx = 0;
+  runq_setbit(rq, queue_idx);
+  rqh = &rq->rq_queues[queue_idx];
+  CTR4(KTR_RUNQ, "lottery_q_add: td=%p pri=%d %d rqh=%p",
+	    td, td->td_priority, queue_idx, rqh);
+  TAILQ_INSERT_HEAD(rqh, td, td_runq);
+ 
   return;
 }
   
@@ -427,6 +435,16 @@ runq_check(struct runq *rq)
 	CTR0(KTR_RUNQ, "runq_check: empty");
 
 	return (0);
+}
+
+/*
+ * Find the highest priority process on the run queue.
+ */
+struct thread *
+lottery_q_choose(struct runq *rq) {
+  //  struct rqhead * rqh;
+  //  struct thread * td;
+  return (NULL);
 }
 
 /*
@@ -514,6 +532,16 @@ runq_choose_from(struct runq *rq, u_char idx)
 
 	return (NULL);
 }
+
+/*
+ * Unsure if remove function is needed for lottery q
+ *
+ */
+void lottery_q_remove(struct runq *rq, struct thread *td) {
+  
+}
+
+
 /*
  * Remove the thread from the queue specified by its priority, and clear the
  * corresponding status bit if the queue becomes empty.
@@ -525,6 +553,7 @@ runq_remove(struct runq *rq, struct thread *td)
 
 	runq_remove_idx(rq, td, NULL);
 }
+
 
 void
 runq_remove_idx(struct runq *rq, struct thread *td, u_char *idx)
