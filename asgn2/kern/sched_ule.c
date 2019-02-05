@@ -247,8 +247,6 @@ struct tdq {
 	u_char		tdq_ridx;		/* Current removal index. */
 	struct runq	tdq_realtime;		/* real-time run queue. */
 	struct runq	tdq_timeshare;		/* timeshare run queue. */
-        struct rqhead   tdq_lottery;            /* lottery scheduled process queue */
-        int             tck_tot;                /* timeshare run queue ticket count */
 	struct runq	tdq_idle;		/* Queue of IDLE threads. */
 	char		tdq_name[TDQ_NAME_LEN];
 #ifdef KTR
@@ -473,14 +471,8 @@ tdq_runq_add(struct tdq *tdq, struct thread *td, int flags)
 		ts->ts_flags |= TSF_XFERABLE;
 	}
 	if (pri < PRI_MIN_BATCH) {
-		ts->ts_runq = &tdq->tdq_realtime;		
+		ts->ts_runq = &tdq->tdq_realtime;
 	} else if (pri <= PRI_MAX_BATCH) {
-	  
-	  
-	  
-	  printf("MATT Adding timeshare thread with priority %d to slot %d\n", td->td_priority, td->td_priority/4);
-	  
-
 		ts->ts_runq = &tdq->tdq_timeshare;
 		KASSERT(pri <= PRI_MAX_BATCH && pri >= PRI_MIN_BATCH,
 			("Invalid priority %d on timeshare runq", pri));
@@ -498,13 +490,13 @@ tdq_runq_add(struct tdq *tdq, struct thread *td, int flags)
 			 */
 			if (tdq->tdq_ridx != tdq->tdq_idx &&
 			    pri == tdq->tdq_ridx)
-			  pri = (unsigned char)(pri - 1) % RQ_NQS;
+				pri = (unsigned char)(pri - 1) % RQ_NQS;
 		} else
-		  pri = tdq->tdq_ridx;		
+			pri = tdq->tdq_ridx;
 		runq_add_pri(ts->ts_runq, td, pri, flags);
 		return;
 	} else
-	  ts->ts_runq = &tdq->tdq_idle;
+		ts->ts_runq = &tdq->tdq_idle;
 	runq_add(ts->ts_runq, td, flags);
 }
 
