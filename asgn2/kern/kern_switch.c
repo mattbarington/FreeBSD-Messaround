@@ -447,7 +447,7 @@ runq_check(struct runq *rq)
  * Find the highest priority process on the run queue.
  */
 struct thread *
-lottery_q_choose(struct runq *rq) {
+lottery_q_choose(struct runq *rq, int print) {
   struct rqhead * rqh;
   struct thread * td;
   int tck_tot = 0;
@@ -469,12 +469,10 @@ lottery_q_choose(struct runq *rq) {
 	break;
     }
     
-    
-    
-    //    int nice = td->td_proc->p_nice;
-    //    printf("lottery_q_choose: usr=%d p_nice=%d, tdtx=%d, totaltx=%d\n",td->td_ucred->cr_uid,nice, nice + 21, tck_tot);
-    
-    
+    if (print) {
+      int nice = td->td_proc->p_nice;
+      printf("lottery_q_choose:total_tckts = %d \t\tprocess_tckts = %d\n", tck_tot, nice + 21);
+    }
     
     return td;
   }
