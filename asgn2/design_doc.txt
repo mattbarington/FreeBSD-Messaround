@@ -1,0 +1,38 @@
+File: design_doc.txt
+Author(s): Matt Ovenden, Ryan Blelloch
+
+ASSIGNMENT 2 DESIGN DOCUMENT
+--------------------------------------
+Brief Description: Yo what's up everyone. We are back to bring y'all
+another FANTASTIC assignment for CMPS 111. Enclosed are the steps we
+took to come up with a brilliant lottery system for processes and a
+way to test for it. Read on to FIND OUT MORE
+
+
+------------------------------------
+All files in REPO:
+README                  -
+design_doc.txt          -
+benchmark/benchmark.c   -
+kern/kern_switch.c      -
+kern/sched_ule.c        -
+
+
+-----------------------------------
+Source Files changed/explanation
+
+<Matt go wild here>
+
+
+-----------------------------------
+Benchmark:
+
+Build:
+$ benchmark/make
+Run:
+$ benchmark/test <small positive integer (ex. 2)>
+
+How it works:
+
+-----------------------------------
+Benchmark results:
