@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define TST_LGNTH 5
+#define TST_LGNTH 10
 #define NUM_PROCS 40
 
 struct result {
@@ -20,7 +20,7 @@ struct result {
 };
 
 int compare(const void *s1, const void *s2) {
-    
+
     struct result *r1 = (struct result *)s1;
     struct result *r2 = (struct result *)s2;
     if(r1->time < r2->time) {
@@ -39,9 +39,11 @@ void print_results(struct result all[], int size) {
     printf("-----------------------------------------\n");
     printf("---Process--------Priority----Time(s)----\n");
     for(iter = 0; iter < size; ++iter) {
-        printf("%10d", all[iter].proc);
-        printf("%10d", all[iter].pri);
-        printf("%14lu\n", all[iter].time);
+        if(iter < 10 || iter > 30) {
+            printf("%10d", all[iter].proc);
+            printf("%10d", all[iter].pri);
+            printf("%14lu\n", all[iter].time);
+        }
     }
     printf("-----------------------------------------\n");
 }
@@ -79,20 +81,20 @@ int main() {
 
     char result_msg[400];
     unsigned long time_delta;
-    
+
     proc_num = NUM_PROCS;
 
     //create a test file
     /*test_results = open(filename, O_RDWR | O_CREAT);
-    if(!test_results) {
-        printf("Error: Could not open/create %s\n", filename);
-        return 1;
-    } else { close(test_results); }
-*/
+      if(!test_results) {
+      printf("Error: Could not open/create %s\n", filename);
+      return 1;
+      } else { close(test_results); }
+     */
 
     pid_start = fork();
     if(pid_start == 0) {
-         //create 20 processes
+        //create 20 processes
         do {
             pid = fork();
             if(pid == 0) {
@@ -124,7 +126,7 @@ int main() {
             }
         } while(proc_num > 0);
         exit(0);
-       
+
     } else {
         int wpid;
         while((wpid = wait(&st)) > 0);
@@ -141,21 +143,21 @@ int main() {
             fscanf(test_results, "%d %d %lu", &(all_res[i-1].proc), &(all_res[i-1].pri), &(all_res[i-1].time));
             fclose(test_results);
             remove(filename2);
-            
+
         } else {
             printf("Can't open result file %d\n", i);
         }
     }
 
     /*
-    for(i = 0; i < NUM_PROCS; ++i) {
-        printf("p: %d p: %d t: %lu\n", all_res[i].proc, all_res[i].pri, all_res[i].time);
-    }*/
+       for(i = 0; i < NUM_PROCS; ++i) {
+       printf("p: %d p: %d t: %lu\n", all_res[i].proc, all_res[i].pri, all_res[i].time);
+       }*/
 
     qsort((void*)all_res, NUM_PROCS, sizeof(all_res[0]), compare);
     /*for(i = 0; i < NUM_PROCS; ++i) {
-        printf("p: %d p: %d t: %lu\n", all_res[i].proc, all_res[i].pri, all_res[i].time);
-    }*/
+      printf("p: %d p: %d t: %lu\n", all_res[i].proc, all_res[i].pri, all_res[i].time);
+      }*/
 
     print_results(all_res, NUM_PROCS);
 
