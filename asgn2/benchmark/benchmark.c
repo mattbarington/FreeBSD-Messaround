@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <limits.h>
 #include <fcntl.h>
+#include <time.h>
+#include <sys/time.h>
 
 #include <sys/resource.h>
 #include <sys/types.h>
@@ -35,6 +37,9 @@ int main() {
 
     int proc_num;
     int st;
+
+    struct timeval stop, start;
+
     /*
        FILE* syslog;
        int file_pos;
@@ -78,6 +83,8 @@ int main() {
 
     proc_num = NUM_PROCS;
 
+    /*
+
     parent_pid = getpid();
     printf("My pid is %d\n", parent_pid);
 
@@ -95,7 +102,7 @@ int main() {
 
         printf("My priority is %d\n", pri);
     }
-
+    */
 
     pid_start = fork();
     if(pid_start == 0) {
@@ -114,13 +121,16 @@ int main() {
                 printf("I am child: %d\n", getpid());
                 proc_num--;
             } else {
+                setpriority(PRIO_PROCESS, getpid(), proc_num);
+                pri = getpriority(PRIO_PROCESS, getpid());
                 proc_num = 0;
-                //setpriority(PRIO_PROCESS, getpid(), proc_num);
-                //pri = getpriority(PRIO_PROCESS, getpid());
                 //printf("I am %d and my priority is %d\n", getpid(), pri);
                 waitpid(pid_start, &st, 0);
+                gettimeofday(&start, NULL);
                 long_func();
-                printf("waiting for pid: %d\n", pid);
+                gettimeofday(&stop, NULL);
+                printf("Process: %d Priority: %d Total time: %lu\n", getpid(), pri, stop.tv_usec - start.tv_usec);
+                //printf("waiting for pid: %d\n", pid);
                 waitpid(pid, &st, 0);
             }
         } while(proc_num > 0);
