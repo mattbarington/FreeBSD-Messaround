@@ -452,12 +452,13 @@ lottery_q_choose(struct runq *rq) {
   struct thread * td;
   int tck_tot = 0;
   int queue_idx = 0;
-  int idx;
-  if ((idx = runq_findbit(rq)) == queue_idx) {
-    rqh = &rq->rq_queues[idx];
+  rqh = &rq->rq_queues[queue_idx];
+  if (TAILQ_EMPTY(rqh))
+    return (NULL);
+  else {
     KASSERT(TAILQ_FIRST(rqh) != NULL, ("lottery_q_choose: no thread on busy queue"));
     CTR3(KTR_RUNQ,
-		    "lottery_q_choose: idx=%d thread=%p rqh=%p", idx, td, rqh);
+	 "lottery_q_choose: idx=%d thread=%p rqh=%p", idx, td, rqh);
     TAILQ_FOREACH(td, rqh, td_runq) {
       tck_tot += (td->td_proc->p_nice + 21);
     }
@@ -467,17 +468,16 @@ lottery_q_choose(struct runq *rq) {
       if (r < 0)
 	break;
     }
-
-
+    
+    
     
     int nice = td->td_proc->p_nice;
-    printf("lottery_q_choose: p_nice=%d, tdtx=%d, totaltx=%d\n",nice, nice + 21, tck_tot)'
-
-
-      
+    printf("lottery_q_choose: usr=%d p_nice=%d, tdtx=%d, totaltx=%d\n",td->td_ucred->cr_uid,nice, nice + 21, tck_tot);
+    
+    
+    
     return td;
-  } else 
-    return (NULL);
+  }
 }
 
 /*

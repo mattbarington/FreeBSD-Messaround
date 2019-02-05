@@ -487,7 +487,8 @@ tdq_runq_add(struct tdq *tdq, struct thread *td, int flags)
 	if (pri < PRI_MIN_BATCH) {
 		ts->ts_runq = &tdq->tdq_realtime;
 	} else if (pri <= PRI_MAX_BATCH) {
-	  if (!isRoot(td)){
+	  if (!isRoot(td)) {
+	    printf("thread with cr_uid %d is not root\n",td->td_ucred->cr_ruid);
 	    lottery_q_add(&tdq->tdq_lottery, td);
 	    ts->ts_runq = &tdq->tdq_lottery;
 	    return;
@@ -543,6 +544,9 @@ tdq_runq_rem(struct tdq *tdq, struct thread *td)
 	  else
 	    runq_remove_idx(ts->ts_runq, td, NULL);	  
 	} else if (ts->ts_runq == &tdq->tdq_lottery) {
+	  if (!isRoot(td)) {
+	    printf("in runq_remove->lottery. I shouldn't be here!");
+	  }
 	  lottery_q_remove(ts->ts_runq, td);
 	} else
 		runq_remove(ts->ts_runq, td);
