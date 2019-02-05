@@ -361,6 +361,17 @@ SDT_PROBE_DEFINE(sched, , , remain__cpu);
 SDT_PROBE_DEFINE2(sched, , , surrender, "struct thread *", 
     "struct proc *");
 
+
+/*
+ * returns 0 if thread's user credential is non-root.
+ */
+static int
+isRoot(struct thread *td)
+{
+  return (td->td_ucred->cr_uid == 0);
+}
+
+
 /*
  * Print the threads waiting on a run-queue.
  */
@@ -415,6 +426,8 @@ tdq_print(int cpu)
 	runq_print(&tdq->tdq_timeshare);
 	printf("\tidle runq:\n");
 	runq_print(&tdq->tdq_idle);
+	printf("\tlottery runq:\n");
+	runq_print(&tdq->tdq_lottery);
 }
 
 static inline int
@@ -474,7 +487,12 @@ tdq_runq_add(struct tdq *tdq, struct thread *td, int flags)
 	if (pri < PRI_MIN_BATCH) {
 		ts->ts_runq = &tdq->tdq_realtime;
 	} else if (pri <= PRI_MAX_BATCH) {
-		ts->ts_runq = &tdq->tdq_timeshare;
+	  if (!isRoot(td)){
+	    lottery_q_add(&tdq->tdq_lottery, td);
+	    ts->ts_runq = &tdq->tdq_lottery;
+	    return;
+	  }
+	  ts->ts_runq = &tdq->tdq_timeshare;
 		KASSERT(pri <= PRI_MAX_BATCH && pri >= PRI_MIN_BATCH,
 			("Invalid priority %d on timeshare runq", pri));
 		/*
@@ -494,8 +512,7 @@ tdq_runq_add(struct tdq *tdq, struct thread *td, int flags)
 				pri = (unsigned char)(pri - 1) % RQ_NQS;
 		} else
 			pri = tdq->tdq_ridx;
-		lottery_q_add(ts->ts_runq, td);
-		//		runq_add_pri(ts->ts_runq, td, pri, flags);
+		runq_add_pri(ts->ts_runq, td, pri, flags);
 		return;
 	} else
 		ts->ts_runq = &tdq->tdq_idle;
@@ -520,12 +537,13 @@ tdq_runq_rem(struct tdq *tdq, struct thread *td)
 		tdq->tdq_transferable--;
 		ts->ts_flags &= ~TSF_XFERABLE;
 	}
-	if (ts->ts_runq == &tdq->tdq_timeshare) {
+	if (ts->ts_runq == &tdq->tdq_timeshare) {	  
+	  if (tdq->tdq_idx != tdq->tdq_ridx)
+	    runq_remove_idx(ts->ts_runq, td, &tdq->tdq_ridx);
+	  else
+	    runq_remove_idx(ts->ts_runq, td, NULL);	  
+	} else if (ts->ts_runq == &tdq->tdq_lottery) {
 	  lottery_q_remove(ts->ts_runq, td);
-	  //		if (tdq->tdq_idx != tdq->tdq_ridx)
-	  //			runq_remove_idx(ts->ts_runq, td, &tdq->tdq_ridx);
-	  //		else
-	  //			runq_remove_idx(ts->ts_runq, td, NULL);
 	} else
 		runq_remove(ts->ts_runq, td);
 }
@@ -1350,16 +1368,22 @@ static struct thread *
 tdq_choose(struct tdq *tdq)
 {
 	struct thread *td;
-
+	
 	TDQ_LOCK_ASSERT(tdq, MA_OWNED);
 	td = runq_choose(&tdq->tdq_realtime);
 	if (td != NULL)
 		return (td);
-	//td = runq_choose_from(&tdq->tdq_timeshare, tdq->tdq_ridx);
-	td = lottery_q_choose(&tdq->tdq_lottery);
+	td = runq_choose_from(&tdq->tdq_timeshare, tdq->tdq_ridx);	
 	if (td != NULL) {
 		KASSERT(td->td_priority >= PRI_MIN_BATCH,
 		    ("tdq_choose: Invalid priority on timeshare queue %d",
+		    td->td_priority));
+		return (td);
+	}
+	td = lottery_q_choose(&tdq->tdq_lottery);
+	if (td != NULL) {
+	KASSERT(td->td_priority >= PRI_MIN_BATCH,
+		    ("tdq_choose: Invalid priority on lottery queue %d",
 		    td->td_priority));
 		return (td);
 	}
