@@ -20,7 +20,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define NUM_PROCS 40
+#define NUM_PROCS 20
 
 //Result structure for a single process
 struct result {
@@ -51,7 +51,7 @@ void print_results(struct result all[], int size) {
     printf("-----------------------------------------\n");
     printf("---Process--------Priority----Time(s)----\n");
     for(iter = 0; iter < size; ++iter) {
-        if(iter < 10 || iter > 30) {
+      if(iter >=0) {
             printf("%10d", all[iter].proc);
             printf("%10d", all[iter].pri);
             printf("%14lu\n", all[iter].time);
@@ -64,7 +64,7 @@ void print_results(struct result all[], int size) {
 void long_func(const int len) {
     int tmp, j, k;
     for(j = 0; j < len; ++j) {
-        for(k = 0; k < INT_MAX; ++k) {
+        for(k = 0; k < INT_MAX/15; ++k) {
             if(j % 2 == 0) {
                 tmp++;
             } else {
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
                 //get process ID for printing
                 my_pid = getpid();
                 //set priority of process and get to ensure it worked
-                setpriority(PRIO_PROCESS, getpid(), proc_num-20);
+                setpriority(PRIO_PROCESS, getpid(), proc_num);
                 pri = getpriority(PRIO_PROCESS, getpid());
                 //start timer
                 gettimeofday(&start, NULL);
