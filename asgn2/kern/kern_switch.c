@@ -381,9 +381,9 @@ runq_add(struct runq *rq, struct thread *td, int flags)
 	//	if (PRI_MIN_TIMESHARE < pri && pri <= PRI_MAX_TIMESHARE) {
 	//	  pri = TSQ_STRT;
 	//	}
-	if (pri < 29 || pri > 56) {
-	  printf("adding priority %d to queue slot %d\n", td->td_priority, pri);
-	}
+	//if (pri < 29 || pri > 56) {
+	  //printf("adding priority %d to queue slot %d\n", td->td_priority, pri);
+	//}
 	td->td_rqindex = pri;
 	runq_setbit(rq, pri);
 	rqh = &rq->rq_queues[pri];
