@@ -455,11 +455,11 @@ lottery_q_choose(struct runq *rq) {
     CTR3(KTR_RUNQ,
 		    "lottery_q_choose: idx=%d thread=%p rqh=%p", idx, td, rqh);
     TAILQ_FOREACH(td, rqh, td_runq) {
-      tck_tot += td->td_proc->p_nice;
+      tck_tot += (td->td_proc->p_nice + 21);
     }
     int r = random() % tck_tot;
     TAILQ_FOREACH(td, rqh, td_runq) {
-      r -= td->td_proc->p_nice;
+      r -= (td->td_proc->p_nice + 21);
       if (r < 0)
 	break;
     }
@@ -559,7 +559,15 @@ runq_choose_from(struct runq *rq, u_char idx)
  *
  */
 void lottery_q_remove(struct runq *rq, struct thread *td) {
+  int queue_idx = 0;
+  struct rqhead *rqh = &rq->rq_queues[queue_idx];
+  CTR2(KTR_RUNQ, "lottery_q_remove: td=%p rqh=%p",td, rqh);
+  TAILQ_REMOVE(rqh, td, td_runq);
   
+  if (TAILQ_EMPTY(rqh)) {
+    CTR0(KTR_RUNQ, "lottery_q_remove: now empty");
+    runq_clrbit(rq, queue_idx);
+  }
 }
 
 

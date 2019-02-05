@@ -494,7 +494,8 @@ tdq_runq_add(struct tdq *tdq, struct thread *td, int flags)
 				pri = (unsigned char)(pri - 1) % RQ_NQS;
 		} else
 			pri = tdq->tdq_ridx;
-		runq_add_pri(ts->ts_runq, td, pri, flags);
+		lottery_q_add(ts->ts_runq, td);
+		//		runq_add_pri(ts->ts_runq, td, pri, flags);
 		return;
 	} else
 		ts->ts_runq = &tdq->tdq_idle;
@@ -520,10 +521,11 @@ tdq_runq_rem(struct tdq *tdq, struct thread *td)
 		ts->ts_flags &= ~TSF_XFERABLE;
 	}
 	if (ts->ts_runq == &tdq->tdq_timeshare) {
-		if (tdq->tdq_idx != tdq->tdq_ridx)
-			runq_remove_idx(ts->ts_runq, td, &tdq->tdq_ridx);
-		else
-			runq_remove_idx(ts->ts_runq, td, NULL);
+	  lottery_q_remove(ts->ts_runq, td);
+	  //		if (tdq->tdq_idx != tdq->tdq_ridx)
+	  //			runq_remove_idx(ts->ts_runq, td, &tdq->tdq_ridx);
+	  //		else
+	  //			runq_remove_idx(ts->ts_runq, td, NULL);
 	} else
 		runq_remove(ts->ts_runq, td);
 }
@@ -1353,7 +1355,8 @@ tdq_choose(struct tdq *tdq)
 	td = runq_choose(&tdq->tdq_realtime);
 	if (td != NULL)
 		return (td);
-	td = runq_choose_from(&tdq->tdq_timeshare, tdq->tdq_ridx);
+	//td = runq_choose_from(&tdq->tdq_timeshare, tdq->tdq_ridx);
+	td = lottery_q_choose(&tdq->tdq_lottery);
 	if (td != NULL) {
 		KASSERT(td->td_priority >= PRI_MIN_BATCH,
 		    ("tdq_choose: Invalid priority on timeshare queue %d",
