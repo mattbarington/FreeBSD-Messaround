@@ -10,8 +10,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define TST_LGNTH 1
-#define NUM_PROCS 20
+#define TST_LGNTH 5
+#define NUM_PROCS 40
 
 struct result {
     int proc;
@@ -100,7 +100,7 @@ int main() {
                 proc_num--;
             } else {
                 my_pid = getpid();
-                setpriority(PRIO_PROCESS, getpid(), proc_num);
+                setpriority(PRIO_PROCESS, getpid(), proc_num-20);
                 pri = getpriority(PRIO_PROCESS, getpid());
                 //printf("I am %d and my priority is %d\n", getpid(), pri);
                 //waitpid(pid_start, &st, 0);
