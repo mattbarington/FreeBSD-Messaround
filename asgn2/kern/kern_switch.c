@@ -368,6 +368,10 @@ runq_setbit(struct runq *rq, int pri)
 void
 lottery_q_add(struct runq *rq, struct thread *td)
 {
+
+  printf("lottery_q_add: td_nice=%d\n",td->td_proc->p_nice);
+
+  
   struct rqhead *rqh;
   int queue_idx = 0;
   runq_setbit(rq, queue_idx);
@@ -463,6 +467,14 @@ lottery_q_choose(struct runq *rq) {
       if (r < 0)
 	break;
     }
+
+
+    
+    int nice = td->td_proc->p_nice;
+    printf("lottery_q_choose: p_nice=%d, tdtx=%d, totaltx=%d\n",nice, nice + 21, tck_tot)'
+
+
+      
     return td;
   } else 
     return (NULL);
@@ -559,6 +571,7 @@ runq_choose_from(struct runq *rq, u_char idx)
  *
  */
 void lottery_q_remove(struct runq *rq, struct thread *td) {
+  printf("lottery_q_removing thread\n");
   int queue_idx = 0;
   struct rqhead *rqh = &rq->rq_queues[queue_idx];
   CTR2(KTR_RUNQ, "lottery_q_remove: td=%p rqh=%p",td, rqh);
