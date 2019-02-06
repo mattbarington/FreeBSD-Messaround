@@ -6,7 +6,7 @@
  * be a valid positive integer to define the test length. Forty
  * processes will be run simultaneously, each with a unique priority
  * value. Results of the extremes are printed at the end.
-*/
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,7 +61,7 @@ void print_results(struct result all[], int size) {
     printf("--------------------------------\n");
     printf("---pro---pri---tim---\n");
     for(iter = 0; iter < size; ++iter) {
-      if(iter >=0) {
+        if(iter >=0) {
             printf("%6d%6d %5lu.%lu\n", all[iter].proc, all[iter].pri, all[iter].time_s, all[iter].time_ms);
         }
     }
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     //fork and wait for child tests to build, run, and finish
     printf("Creating processes: ");
     fflush(stdout);
-    
+
     pid_start = fork();
     if(pid_start == 0) {
         //create 20 processes
@@ -198,6 +198,49 @@ int main(int argc, char* argv[]) {
         } else {
             printf("Can't open result file %d\n", i);
         }
+    }
+
+    //get all useful syslog lines into file
+    char command[] = "dmesg | grep \"lottery_q_choose:\" > all_lottery_results.dat";
+    int error = system(command);
+
+    //attempt to open file
+    FILE* lot_res_file;
+    char buffer[100];
+    int occur[5] = {0,0,0,0,0};
+    double expected[5] = {((double)1/55), ((double)6/55), ((double)11/55), ((double)16/55), ((double)21/55)};
+    double actual[5];
+    int lot_proc, lot_pri, lot_tot, lot_sum = 0;
+    lot_res_file = fopen("all_lottery_results.dat", "r");
+    if(!lot_res_file) {
+        printf("Couldn't open lottery result file\n");
+    } else {
+
+        int index;
+        while(fscanf(lot_res_file, "%s %d %d %d", buffer, &lot_proc, &lot_pri, &lot_tot) == 4) {
+            printf("%s %d %d %d\n", buffer, lot_proc, lot_pri, lot_tot);
+            if(lot_tot == (1+6+11+16+21)) {
+
+                occur[lot_pri/5]++;
+                lot_sum++;
+            }
+        }
+
+        if(lot_sum > 0) {
+
+            for(i = 0; i < 5; ++i) {
+                actual[i] = ((double)occur[i])/((double)lot_sum);
+            }
+
+            for(i = 0; i < 5; ++i) {
+                printf("Expected: %lf, Actual %lf\n", expected[i], actual[i]);
+            }
+        } else {
+            printf("No results found from dmesg.\nOmmitting functionality test results.\n");
+        }
+
+        fclose(lot_res_file);
+        remove("all_lottery_results.dat");
     }
 
     //sort result array by time
