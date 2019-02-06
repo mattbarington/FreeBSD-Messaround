@@ -66,7 +66,7 @@ void    lottery_q_add(struct runq *, struct thread *);
 void	runq_add(struct runq *, struct thread *, int);
 void	runq_add_pri(struct runq *, struct thread *, u_char, int);
 int	runq_check(struct runq *);
-struct  thread *lottery_q_choose(struct runq *);
+struct  thread *lottery_q_choose(struct runq *, int);
 struct	thread *runq_choose(struct runq *);
 struct	thread *runq_choose_from(struct runq *, u_char);
 struct	thread *runq_choose_fuzz(struct runq *, int);
