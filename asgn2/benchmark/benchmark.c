@@ -27,6 +27,8 @@ struct result {
     int proc;
     int pri;
     unsigned long time;
+    double per_exp;
+    double per_act;
 };
 
 //Comparison function for struct result in qsort
@@ -48,16 +50,14 @@ void print_results(struct result all[], int size) {
 
     int iter;
 
-    printf("-----------------------------------------\n");
-    printf("---Process--------Priority----Time(s)----\n");
+    printf("--------------------------------\n");
+    printf("---pro---pri---tim---\n");
     for(iter = 0; iter < size; ++iter) {
       if(iter >=0) {
-            printf("%10d", all[iter].proc);
-            printf("%10d", all[iter].pri);
-            printf("%14lu\n", all[iter].time);
+            printf("%6d%6d %5lu\n", all[iter].proc, all[iter].pri, all[iter].time);
         }
     }
-    printf("-----------------------------------------\n");
+    printf("--------------------------------\n");
 }
 
 //long function to test process run at some priority
@@ -185,6 +185,20 @@ int main(int argc, char* argv[]) {
         } else {
             printf("Can't open result file %d\n", i);
         }
+    }
+
+    //get total priorities and time
+    int pri_tot = 0;
+    int time_tot = 0;
+    for(i = 0; i < NUM_PROCS; ++i) {
+        pri_tot += all_res[i].pri + 21;
+        time_tot += all_res[i].time;
+    }
+
+    //set expected and actual percentages
+    for(i = 0; i < NUM_PROCS; ++i) {
+        all_res[i].per_exp = all_res[i].pri / (double)pri_tot;
+        all_res[i].per_act = all_res[i].time / (double)time_tot;
     }
 
     //sort result array by time
