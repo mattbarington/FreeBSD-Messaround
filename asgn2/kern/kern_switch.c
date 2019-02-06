@@ -471,7 +471,8 @@ lottery_q_choose(struct runq *rq, int print) {
     
     if (print) {
       int nice = td->td_proc->p_nice;
-      printf("lottery_q_choose:total_tckts = %d \t\tprocess_tckts = %d\n", tck_tot, nice + 21);
+      int pid = td->td_proc->p_pid;
+      printf("lottery_q_choose: %d %d %d", pid, nice, tck_tot);
     }
     
     return td;

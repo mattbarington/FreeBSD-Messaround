@@ -1385,11 +1385,11 @@ tdq_choose(struct tdq *tdq)
 		    td->td_priority));
 		return (td);
 	}
-	if (tdq->nPrints < 10)
-	 tdq->nPrints ++;
-	else
-	  tdq->nPrints = 1;
-	td = lottery_q_choose(&tdq->tdq_lottery, tdq->nPrints == 1);
+	//	if (tdq->nPrints < 1)
+	//	 tdq->nPrints ++;
+	//	else
+	//	  tdq->nPrints = 1;
+	td = lottery_q_choose(&tdq->tdq_lottery, 1); //tdq->nPrints == 1);
 	if (td != NULL) {
 	KASSERT(td->td_priority >= PRI_MIN_BATCH,
 		    ("tdq_choose: Invalid priority on lottery queue %d",
