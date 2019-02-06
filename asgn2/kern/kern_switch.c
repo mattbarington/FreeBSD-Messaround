@@ -460,18 +460,19 @@ lottery_q_choose(struct runq *rq, int print) {
     CTR3(KTR_RUNQ,
 	 "lottery_q_choose: idx=%d thread=%p rqh=%p", idx, td, rqh);
     TAILQ_FOREACH(td, rqh, td_runq) {
-      tck_tot += (td->td_proc->p_nice + 21);
+      tck_tot += (td->td_proc->p_nice + 1);
     }
     int r = random() % tck_tot;
     TAILQ_FOREACH(td, rqh, td_runq) {
-      r -= (td->td_proc->p_nice + 21);
+      r -= (td->td_proc->p_nice + 1);
       if (r < 0)
 	break;
     }
     
     if (print) {
       int nice = td->td_proc->p_nice;
-      printf("lottery_q_choose:total_tckts = %d \t\tprocess_tckts = %d\n", tck_tot, nice + 21);
+      int pid = td->td_proc->p_pid;
+      printf("lottery_q_choose: %d %d %d", pid, nice, tck_tot);
     }
     
     return td;
