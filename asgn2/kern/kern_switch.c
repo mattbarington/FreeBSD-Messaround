@@ -458,7 +458,7 @@ lottery_q_choose(struct runq *rq, int print) {
   else {
     KASSERT(TAILQ_FIRST(rqh) != NULL, ("lottery_q_choose: no thread on busy queue"));
     CTR3(KTR_RUNQ,
-	 "lottery_q_choose: idx=%d thread=%p rqh=%p", idx, td, rqh);
+	 "lottery_q_choose: idx=%d thread=%p rqh=%p\n", idx, td, rqh);
     TAILQ_FOREACH(td, rqh, td_runq) {
       tck_tot += (td->td_proc->p_nice + 1);
     }
@@ -472,7 +472,7 @@ lottery_q_choose(struct runq *rq, int print) {
     if (print) {
       int nice = td->td_proc->p_nice;
       int pid = td->td_proc->p_pid;
-      printf("lottery_q_choose: %d %d %d", pid, nice, tck_tot);
+      printf("lottery_q_choose: %d %d %d\n", pid, nice + 1, tck_tot);
     }
     
     return td;
