@@ -121,6 +121,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    system("sysctl kern.msgbuf_clear=1");
+
     //get number of procs
     proc_num = 20;
 
@@ -218,7 +220,7 @@ int main(int argc, char* argv[]) {
 
         int index;
         while(fscanf(lot_res_file, "%s %d %d %d", buffer, &lot_proc, &lot_pri, &lot_tot) == 4) {
-            printf("%s %d %d %d\n", buffer, lot_proc, lot_pri, lot_tot);
+	  //printf("%s %d %d %d\n", buffer, lot_proc, lot_pri, lot_tot);
             if(lot_tot == (1+6+11+16+21)) {
 
                 occur[lot_pri/5]++;
@@ -240,7 +242,7 @@ int main(int argc, char* argv[]) {
         }
 
         fclose(lot_res_file);
-        remove("all_lottery_results.dat");
+        //remove("all_lottery_results.dat");
     }
 
     //sort result array by time
