@@ -13,6 +13,8 @@ runq=sys/runq.h
 switch=kern/kern_switch.c
 ule=kern/sched_ule.c
 
+nothing: # in case no make target is specified
+
 benchmark:
 	@cc benchmark.c -o benchmark -lm
 
