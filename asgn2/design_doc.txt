@@ -3,20 +3,18 @@ Author(s): Matt Ovenden, Ryan Blelloch
 
 ASSIGNMENT 2 DESIGN DOCUMENT
 --------------------------------------
-Brief Description: Yo what's up everyone. We are back to bring y'all
-another FANTASTIC assignment for CMPS 111. Enclosed are the steps we
-took to come up with a brilliant lottery system for processes and a
-way to test for it. Read on to FIND OUT MORE
-
+Brief Description: We have modified kernel files to implement
+a ticket lottery system for user timeshare processes. We have
+created a benchmark program to test the result of our ticket
+lottery system.  
 
 ------------------------------------
 All files in REPO:
-README                  -
-design_doc.txt          -
-benchmark/benchmark.c   -
-kern/kern_switch.c      -
-kern/sched_ule.c        -
-
+README                  - Directions for all compilation/running
+design_doc.txt          - Full explanation of asgn2 implementation
+benchmark/benchmark.c   - Benchmark source code
+kern/kern_switch.c      - Modified kern_switch.c kernel source file
+kern/sched_ule.c        - Modified sched_ule.c kernal source file
 
 -----------------------------------
 Source Files changed/explanation
@@ -29,10 +27,43 @@ Benchmark:
 
 Build:
 $ benchmark/make
-Run:
-$ benchmark/test <small positive integer (ex. 2)>
+Run (as User):
+$ benchmark/test <small positive integer (ex. 10)>
 
 How it works:
+The benchmark program runs five processes at roughly the same time,
+forcing them to compete in the ticket lottery system queue.  
+
+Results:
+
+The Functionality Result proves the correct implementation of the 
+ticket lottery system for User Timeshare processes.
+
+The Time Result proves the trend of processes of higher ticket counts
+being executed faster than processes of lower ticket counts.
+
+Functionality Result: 
+1. All User Timeshare processes print their process number, ticket 
+number, and total number of tickets on the user timeshare queue 
+when they are chosen from the queue. 
+2. After the test, the system log is parsed using (dmesg) and (grep)
+to find all of the user timeshare print statements. 
+3. All system messages with total number of tickets equal to sum of
+all test processes are considered. (This is done to avoid choices
+made after one or more of the test processes have finished).
+4. Each process gets the sum of the times it was chosen, and divides
+it by the total number of choices, to give it a percentage.
+5. This actual percentage is compared with the expected percentage 
+of process priority / total priority.
+
+Time Results:
+1. At the end of every test process, it writes a time delta to a
+file. 
+2. All the time delta files are read and stored.
+3. The results are printed sorted by the time taken. They are 
+expected to be ordered by their priorities, giving a trend from
+(large priority/small time delta) to (small priority/large time
+delta)
 
 -----------------------------------
 Benchmark results:
