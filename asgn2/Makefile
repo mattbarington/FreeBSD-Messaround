@@ -13,18 +13,19 @@ runq=sys/runq.h
 switch=kern/kern_switch.c
 ule=kern/sched_ule.c
 
-build:
-	@./copyFiles
-	cd /usr/src/; make buildkernel -DKERNFAST -j$(CORES)
-#	cp $(runq) $(SYS)/$(runq)#
-#	cp $(switch) $(SYS)/$(switch)
-#	cp $(ule) $(SYS)/$(ule)
+benchmark:
+	@cc benchmark.c -o benchmark -lm
+
+build: copyFiles
+	@cd /usr/src/; make buildkernel -DKERNFAST -j$(CORES)
+
+copyFiles:
+	@cp $(runq) $(SYS)/$(runq)
+	@cp $(switch) $(SYS)/$(switch)
+	@cp $(ule) $(SYS)/$(ule)
 
 install:
 	@cd /usr/src/; make installkernel
 
-benchmark:
-	@cc benchmark.c -o benchmark -lm
-
 clean:
-	@rm benchmark test_results* \#* *~ build install
+	@rm benchmark test_results* \#* *~

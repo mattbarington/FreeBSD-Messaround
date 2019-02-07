@@ -6,6 +6,10 @@
  * be a valid positive integer to define the test length. Forty
  * processes will be run simultaneously, each with a unique priority
  * value. Results of the extremes are printed at the end.
+ *
+ *  Copyright (C) 2018  Matt Ovenden, Ryan Blelloch. All rights reserved.
+ *  You may note use, distribute, publish, or modify this code without
+ *  the express permission of the copyright holder(s).
  */
 
 #include <stdio.h>
@@ -242,7 +246,7 @@ int main(int argc, char* argv[]) {
         }
 
         fclose(lot_res_file);
-        //remove("all_lottery_results.dat");
+        remove("all_lottery_results.dat");
     }
 
     //sort result array by time
