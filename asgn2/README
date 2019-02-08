@@ -1,3 +1,21 @@
-This is the README and will contain instructions on how to recompile the kernel and reproduce the benchmarks
 
-Here is a modification
+Makefile Description:
+    The makefile provides some intuitive services for the user. 
+    The syntax and result of each are listed below.
+    
+ - `make`           - does nothing
+ - make benchmark   - compiles benchmark.c to executable benchmark
+ - make build       - copies all kernel files from kern/ and sys/ 
+                      to the corresponding files in the kernel.
+                      make build also support multicore compilation.
+ - make build CORES=X   - compile the kernel using X cores. 
+                          If omitted CORES defaults to 1.
+ - make copyFiles   - copies all kernel files from kern/ and sys/ 
+                      to the corresponding files in the kernel.
+                      Does not build kernel.
+ - make install     - installs the compiled kernel.
+ 
+ 
+ How to install:
+ - Compile - If you have allocated more than 1 CPU to your VM you can
+            compile kernel faster with 
