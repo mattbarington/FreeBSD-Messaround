@@ -42,11 +42,11 @@
  - `make install`   - installs the compiled kernel.
  
  
- ##How to install
- - Root    - Make sure to `su -` into the root user, otherwise you won't 
+ ## How to install
+ - **Root**    - Make sure to `su -` into the root user, otherwise you won't 
             have adequate file permissions to do anything useful.
             
- - Compile - If you have allocated more than 1 CPU to your VM you can
+ - **Compile** - If you have allocated more than 1 CPU to your VM you can
             compile kernel faster with `make build CORES=X` where X is
             the number of CPUs available.
             - If you want to or must use 1 CPU you can compile with
@@ -55,23 +55,18 @@
             It's there for you convenience, but files are copied into 
             the kernel with `make build` (it actually calls `copyFiles`).
 
- - Install - To install the now compiled kernel go ahead and type 
+ - **Install** - To install the now compiled kernel go ahead and type 
             `make install` to install 
             
- - Reboot  - Go ahead and type `reboot` and your VM should reboot into
+ - **Reboot**  - Go ahead and type `reboot` and your VM should reboot into
             the new kernel with lottery scheduling.
             
-##How to run benchmark
- - Install  - If you haven't already installed the new kernel and
-            rebooted, go back to the previous section before running
-            benchmark.
+## How to run benchmark
+ - **Install**  - If you haven't already installed the new kernel and rebooted, go back to the previous section before running benchmark.
             
- - Compile  - `make benchmark` will compile the benchmark.c into an 
-            the executable `benchmark`.
+ - **Compile**  - `make benchmark` will compile the benchmark.c into an the executable `benchmark`.
             
- - To root,
-  or not to root?
-            - This is important!! The scheduler only puts root 
+ - **To root, or not to root?** - This is important!! The scheduler only puts root 
             timeshare processes into the lottery queue. If you're 
             hoping for absolutely no apparent change from the regular
             FreeBSD scheduling, and no benchmark statistics go ahead
@@ -79,18 +74,17 @@
             If you want the lottery scheduler to do anything at all
             go ahead and EXIT from ROOT.
             
- - Run Benchmark - benchmark runs a cpu intensive loop INT_MAX/15 times, and 
+ - **Run Benchmark** - benchmark runs a cpu intensive loop INT_MAX/15 times, and 
                    takes a single integer argument indicating how many times
                    that loop should be run. Obviously, a higher input will
                    result in processes taking longer to execute.
                    The default is 2 if the argument is omitted.
 
- - Wait     - 5 processes are created, with priorities 0, 5, 10, 15, and 20.
+ - **Wait**     - 5 processes are created, with priorities 0, 5, 10, 15, and 20.
               Each will run as many times as indicated from the command line 
               argument (or twice is an argument was omitted). Each prints
               how many iterations of the cpu intensive loop it has completed.
- - Observeve 
-    results - Below many `Complete x of y` will be the expected and actual
+ - **Observeve results** - Below many `Complete x of y` will be the expected and actual
                 probability that any process was selected to run. Hopefully
                 the expected and actual values are comparable.
             
