@@ -1,4 +1,4 @@
-Important note:
+# Important note:
     Our our scheduler puts ONLY NON-ROOT timeshare threads into the
     lottery queue. All other threads will be processed normally by the
     FreeBSD scheduler. Due to this, the benchmark MUST NOT be run by
