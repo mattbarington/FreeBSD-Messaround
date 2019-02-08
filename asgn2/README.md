@@ -7,7 +7,7 @@
 ## How to lottery schedule: the fast version:
   * `su -` then enter password.
     
-  * `git clone https://gitlab.soe.ucsc.edu/gitlab/cmps111/winter19-01/movenden.git`. You've probably already done that
+  * `git clone https://gitlab.soe.ucsc.edu/gitlab/cmps111/winter19-01/movenden.git`. You've probably already done that.
     
   * `make build` or `make build CORES=<CPUs you want to use>`
     
@@ -27,9 +27,9 @@
 ## Makefile Description
   The makefile provides some intuitive services for the user. The syntax and result of each are listed below.
     
- - `make`           - does nothing
+ - `make`           - does nothing.
  
- - `make benchmark` - compiles benchmark.c to executable benchmark
+ - `make benchmark` - compiles benchmark.c to executable benchmark.
  
  - `make build`     - copies all kernel files from kern/ and sys/ 
                       to the corresponding files in the kernel.
@@ -56,7 +56,7 @@
             the kernel with `make build` (it actually calls `copyFiles`).
 
  - **Install** - To install the now compiled kernel go ahead and type 
-            `make install` to install 
+            `make install`. 
             
  - **Reboot**  - Go ahead and type `reboot` and your VM should reboot into
             the new kernel with lottery scheduling.
