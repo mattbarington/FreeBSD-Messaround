@@ -124,3 +124,34 @@ delta)
 
 -----------------------------------
 Benchmark results:
+    First we will display our benchmark results under root user (no lottery 
+    scheduling), and then results under User (lottery scheduling).
+    Note: there are no statistics indicating how often a thread was chosen
+    from a queue outside of lottery scheduling.
+    
+ - Benchmark as Root (FreeBSD scheduling):
+--------------------------------
+   --pro----pri-----tim---
+     756    20    10.181
+     757    15     9.401
+     758    10     8.591
+     759     5     7.660
+     760     0     5.876
+--------------------------------
+
+ - Benchmark as User (lottery scheduling):
+ 
+ Expected: 0.018182, Actual 0.017042
+ Expected: 0.109091, Actual 0.100886
+ Expected: 0.200000, Actual 0.207907
+ Expected: 0.290909, Actual 0.282890
+ Expected: 0.381818, Actual 0.391275
+ --------------------------------
+  --pro----pri-----tim---
+    716     0     6.431
+    715     5     5.438
+    714    10     4.837
+    713    15     4.338
+    712    20     3.599
+ --------------------------------
+
