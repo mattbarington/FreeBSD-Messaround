@@ -4,6 +4,21 @@
     FreeBSD scheduler. Due to this, the benchmark MUST NOT be run by
     root user.
 
+How to lottery schedule: the fast version:
+    `su -` then enter password.
+    `git clone https://gitlab.soe.ucsc.edu/gitlab/cmps111/winter19-01/movenden.git`.
+    You've probably already done that
+    `make build` or `make build CORES=<CPUs you want to use>`
+    `make install`
+    `make benchmark`
+    `mv benchmark <somewhere outside of repo`. On our computers the file 
+                permissions were all wonky, and `benchmark` couldn't run
+                properly within the repo.
+    `reboot`
+    `cd <that place where you put benchmark`
+    `./benchmark <some small int, or nothing` This determines the test length.
+                If an integer is omitted it will default to 2.
+                
 Makefile Description:
     The makefile provides some intuitive services for the user. 
     The syntax and result of each are listed below.
