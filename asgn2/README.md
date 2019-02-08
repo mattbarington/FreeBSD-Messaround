@@ -4,24 +4,28 @@
     FreeBSD scheduler. Due to this, the benchmark MUST NOT be run by
     root user.
 
-How to lottery schedule: the fast version:
-    `su -` then enter password.
-    `git clone https://gitlab.soe.ucsc.edu/gitlab/cmps111/winter19-01/movenden.git`.
-    You've probably already done that
-    `make build` or `make build CORES=<CPUs you want to use>`
-    `make install`
-    `make benchmark`
-    `mv benchmark <somewhere outside of repo`. On our computers the file 
-                permissions were all wonky, and `benchmark` couldn't run
-                properly within the repo.
-    `reboot`
-    `cd <that place where you put benchmark`
-    `./benchmark <some small int, or nothing` This determines the test length.
+## How to lottery schedule: the fast version:
+  * `su -` then enter password.
+    
+  * `git clone https://gitlab.soe.ucsc.edu/gitlab/cmps111/winter19-01/movenden.git`. You've probably already done that
+    
+  * `make build` or `make build CORES=<CPUs you want to use>`
+    
+  * `make install`
+    
+  * `make benchmark`
+    
+  * `mv benchmark <somewhere outside of repo`. On our computers the file permissions were all wonky, and `benchmark` couldn't run properly within the repo.
+                
+  * `reboot`
+    
+  * `cd <that place where you put benchmark`
+    
+  * `./benchmark <some small int, or nothing` This determines the test length.
                 If an integer is omitted it will default to 2.
                 
-Makefile Description:
-    The makefile provides some intuitive services for the user. 
-    The syntax and result of each are listed below.
+## Makefile Description
+  The makefile provides some intuitive services for the user. The syntax and result of each are listed below.
     
  - `make`           - does nothing
  
@@ -33,15 +37,12 @@ Makefile Description:
                       
  - `make build CORES=X` - compile the kernel using X cores. 
                           If omitted CORES defaults to 1.
- - `make copyFiles` - copies all kernel files from kern/ and sys/ 
- 
-                      to the corresponding files in the kernel.
-                      Does not build kernel.
+ - `make copyFiles` - copies all kernel files from kern/ and sys/ to the corresponding files in the kernel. Does not build kernel.
                       
  - `make install`   - installs the compiled kernel.
  
  
- How to install:
+ ##How to install
  - Root    - Make sure to `su -` into the root user, otherwise you won't 
             have adequate file permissions to do anything useful.
             
@@ -60,7 +61,7 @@ Makefile Description:
  - Reboot  - Go ahead and type `reboot` and your VM should reboot into
             the new kernel with lottery scheduling.
             
-How to run benchmark
+##How to run benchmark
  - Install  - If you haven't already installed the new kernel and
             rebooted, go back to the previous section before running
             benchmark.
