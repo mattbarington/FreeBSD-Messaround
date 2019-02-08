@@ -1,91 +1,21 @@
-# ITP
 
-Here is a very breif description of the GOALS of the protocol. Why is it secure? What is a manifest?
-
-### Things
-  * [Obscured Data Storage](#obscured-data-storage)
-  * [Storing a File in a Server](#storing-a-file-in-a-server)
-  * [Manifest Control Block (MCB)](#manifest-control-block-MCB)
-  * [Retrieving a File from Server: Client's View](#retrieving-a-file-from-server-clients-view)
-
-## Third party libraries
-* **Boost**
-  + `brew install boost`
-  + `pip3 install boost`
- 
-  Boost is used for object serialization / deserialization
- 
-* **CryptoPP**
-  + `brew install cryptopp`
-  + `pip install cryptopp`
-  
-  CryptoPP is used for:
-  
-    + Secure vector/block hashing using SHA256
+Makefile Description:
+    The makefile provides some intuitive services for the user. 
+    The syntax and result of each are listed below.
     
-    + Random block generation
-    
-    + XORing two blocks together
-    
-    + `SecByteBlock`; used to represent a block of raw data. It is similar to `vector<byte>`
+ - `make`           - does nothing
+ - make benchmark   - compiles benchmark.c to executable benchmark
+ - make build       - copies all kernel files from kern/ and sys/ 
+                      to the corresponding files in the kernel.
+                      make build also support multicore compilation.
+ - make build CORES=X   - compile the kernel using X cores. 
+                          If omitted CORES defaults to 1.
+ - make copyFiles   - copies all kernel files from kern/ and sys/ 
+                      to the corresponding files in the kernel.
+                      Does not build kernel.
+ - make install     - installs the compiled kernel.
  
-  The necessary `#include<>`s are described in the source files
-  
-### Server Fields
- * `m_c`            number of randomly generated blocks to create during sever spin-up.
- * `m_CHUNKSIZE`    size of fragments to be used in block storage.
- * `m_MCBStore`     list of all Manifest Control Blocks.
- * `m_contentStore` mapping of all block hashes to blocks.
- * `m_blockHashes`  vector of all block hashes.
  
-### Client Fields
- * `m_BlockDict`    mapping of all block hashes to blocks
-
-## Obscured Data Storage
- A file is not stored in the raw, but depends on the existence of pre-existing files. What is stored is instead blocks of data. These blocks of data are either encrypted data, or garbage data. The file must be recreated by XORing together several of blocks are stored on the server. The identity of blocks which need to be XORed together for file recreation is encapsulated in a [MCB] (#manifest-control-block-(MCB)). 
-
-The server stores blocks in a **Content Store** represented by a mapping of block hashes to raw block data.
-
-## Storing a File in a Server
-First a file is read in to a byte vector `allBytes` which represents raw data. `allBytes` is then split up into fragments of equal size specified by `ITP_Server` member field `m_CHUNKSIZE` of (the last fragment of the file may be smaller than `m_CHUNKSIZE` and must be padded with enough trailing `0`s to fill the fragment to match `m_CHUNKSIZE`). 
-
-Each fragment `f_i` is then XORed with a random number `R_i` of randomly selected blocks `b_(1-R_i)` from the server to create a new block `X_i`. `R_i` is chosen randomly for each fragment `f_i`. The record of blocks used to obscure `f_i` is stored in a `vector<vector<string>>` called `manifest`, which doesn't store the actual blocks, but instead stores the SHA256 hash of each block. As each fragment `f_i` is XORed with random blocks `b_(1-R_i)` the resulting block `X_i` is also stored in `f_i`'s segment of the manifest.
-
-Note: As an optimization, we chose to store a hash of every block in a vector to ease the selection of random blocks scattered in the server.
-
-When all fragments have been obscured all fragments `X_i`i are added to ther server's content store. The entire file is then SHA256 hashed and added to the MCB. The fragments are then destroyed, and the MCB is stored in the **MCB Content Store**
-
-## Manifest Control Block (MCB)
-The MCB contains the information necessary to recreate a file.
-
-The MCB is a structure with two fields:
-  + ID: This is a hex-string hash of the entire file represented by the MCB
-  + manifest: The identity and ordering of block sets needed to recreate the file (a serialized vector<vector<string>>)
-  
-## Retrieving a File from Server: Client's View
-The client must retrieve a file by individually requesting blocks from the server, which are then XORed together to recreate the original file. The client must request the manifest of a file from the server. The client must then deserialize the manifest. 
-
-The deserialized manifest is represented as a vector<vector<string>>. Each cell of the outer vectore stores a vector of block hsahes. The corresponding blocks in the cell XORed together will recreate the original fragment. The outer vector preserves order of fragments needed to create the original file. If we requested the blocks in order a listening attacker could recreate the original file without too much trouble. To prevent this we must request the raw blocks in a random order and store the hash-block mapping. The client's algorithm is as follows:
- 
- * deserialize manifest.
- * store all hash strings in the manifest in a new vector: allHashes.
- * shuffle allHashes.
- * for each hash in allHashes:
-   + if hash mapping doesn't already exist in our map
-     - use hash to request corresponding block from server.
-     - test validity of returned block by hashing it and comparing to original hash.
-     - if block is valid store the mapping into our map.
- * create new vector of empty fragments, each of size `m_CHUNKSIZE`.
- * for each of these fragments f:
-   + XOR f with all blocks in the corresponding slot of the manifest.
- * concatenate all fragments together into a byte vector.
- * remove trailing `0` characters (used for padding).
- The resulting byte vector can be output byte-by-byte to a file to recreate the original file.
- 
- Since the client stores many blocks more than the raw data blocks, they could sustain that instance of ITP_Client, maintaining their block hash-block dictionary, and increase the speed of later content requests by checking their own dictionary of blocks. Furthermore, the client could hypothetically serve blocks to other machines in the network.
-
-### Things
-  * [Obscured Data Storage](#obscured-data-storage)
-  * [Storing a File in a Server](#storing-a-file-in-a-server)
-  * [Manifest Control Block (MCB)](#manifest-control-block-MCB)
-  * [Retrieving a File from Server: Client's View](#retrieving-a-file-from-server-clients-view)
+ How to install:
+ - Compile - If you have allocated more than 1 CPU to your VM you can
+            compile kernel faster with 
