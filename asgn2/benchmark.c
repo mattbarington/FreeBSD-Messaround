@@ -237,9 +237,9 @@ int main(int argc, char* argv[]) {
             for(i = 0; i < 5; ++i) {
                 actual[i] = ((double)occur[i])/((double)lot_sum);
             }
-
+            
             for(i = 0; i < 5; ++i) {
-                printf("Expected: %lf, Actual %lf\n", expected[i], actual[i]);
+                printf("%d tickets: Expected: %lf, Actual %lf\n", i * 5, expected[i], actual[i]);
             }
         } else {
             printf("No results found from dmesg.\nOmmitting functionality test results.\n");
