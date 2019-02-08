@@ -141,17 +141,34 @@ Benchmark results:
 
  - Benchmark as User (lottery scheduling):
  
- Expected: 0.018182, Actual 0.017042
- Expected: 0.109091, Actual 0.100886
- Expected: 0.200000, Actual 0.207907
- Expected: 0.290909, Actual 0.282890
- Expected: 0.381818, Actual 0.391275
- --------------------------------
-  --pro----pri-----tim---
-    716     0     6.431
-    715     5     5.438
-    714    10     4.837
-    713    15     4.338
-    712    20     3.599
- --------------------------------
+0  tickets: Expected: 0.018182, Actual 0.020658
+5  tickets: Expected: 0.109091, Actual 0.114002
+10 tickets: Expected: 0.200000, Actual 0.208493
+15 tickets: Expected: 0.290909, Actual 0.287299
+20 tickets: Expected: 0.381818, Actual 0.369549
+--------------------------------
+  --pro---pri-----tim---
+   776     0     6.397
+   775     5     5.619
+   774    10     4.957
+   773    15     4.185
+   772    20     3.731
+--------------------------------
 
+As we can see, processes with more tickets finish quicker. This is
+because ther are more likely to be chosen to run on the CPU. The difference
+becomes more apparent as we increase the total loops from 2 to 10:
+
+0  tickets: Expected: 0.018182, Actual 0.019797
+5  tickets: Expected: 0.109091, Actual 0.099492
+10 tickets: Expected: 0.200000, Actual 0.195431
+15 tickets: Expected: 0.290909, Actual 0.313706
+20 tickets: Expected: 0.381818, Actual 0.371574
+--------------------------------
+ --pro----pri-----tim---
+   787     0    33.46
+   786     5    28.123
+   785    10    24.256
+   784    15    20.973
+   783    20    18.57
+--------------------------------
