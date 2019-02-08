@@ -30,4 +30,4 @@ install:
 	@cd /usr/src/; make installkernel
 
 clean:
-	@rm benchmark test_results* \#* *~
+	@rm benchmark
