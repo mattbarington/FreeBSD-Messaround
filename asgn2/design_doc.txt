@@ -124,10 +124,11 @@ delta)
 
 -----------------------------------
 Benchmark results:
-    First we will display our benchmark results under root user (no lottery 
-    scheduling), and then results under User (lottery scheduling).
-    Note: there are no statistics indicating how often a thread was chosen
-    from a queue outside of lottery scheduling.
+    First we will display our benchmark results under root user 
+    (no lottery scheduling), and then results under User (lottery 
+    scheduling).
+    Note: there are no statistics indicating how often a thread was 
+    chosen from a queue outside of lottery scheduling.
     
  - Benchmark as Root (FreeBSD scheduling):
 --------------------------------
@@ -156,8 +157,9 @@ Benchmark results:
 --------------------------------
 
 As we can see, processes with more tickets finish quicker. This is
-because ther are more likely to be chosen to run on the CPU. The difference
-becomes more apparent as we increase the total loops from 2 to 10:
+because ther are more likely to be chosen to run on the CPU. The 
+difference becomes more apparent as we increase the total loops 
+from 2 to 10:
 
 0  tickets: Expected: 0.018182, Actual 0.019797
 5  tickets: Expected: 0.109091, Actual 0.099492
