@@ -205,11 +205,9 @@ struct vm_page {
 
 #define	PQ_NONE		255
 #define	PQ_INACTIVE	0
-#define	PQ_ACTIVE		1
+#define	PQ_ACTIVE	1
 #define	PQ_LAUNDRY	2
-#define PQ_FIFO			3
-#define	PQ_COUNT		4 // 3
-
+#define	PQ_COUNT	3
 
 #ifndef VM_PAGE_HAVE_PGLIST
 TAILQ_HEAD(pglist, vm_page);
@@ -658,7 +656,7 @@ vm_page_aflag_set(vm_page_t m, uint8_t bits)
 	val <<= 24;
 #endif
 	atomic_set_32(addr, val);
-}
+} 
 
 /*
  *	vm_page_dirty:

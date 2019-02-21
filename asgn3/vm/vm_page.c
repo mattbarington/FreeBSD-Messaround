@@ -400,10 +400,6 @@ vm_page_domain_init(struct vm_domain *vmd)
 	    "vm active pagequeue";
 	*__DECONST(u_int **, &vmd->vmd_pagequeues[PQ_ACTIVE].pq_vcnt) =
 	    &vm_cnt.v_active_count;
-	*__DECONST(char **, &vmd->vmd_pagequeues[PQ_FIFO].pq_name) =
-	    "vm active pagequeue";
-	*__DECONST(u_int **, &vmd->vmd_pagequeues[PQ_FIFO].pq_vcnt) =
-	    &vm_cnt.v_active_count;
 	*__DECONST(char **, &vmd->vmd_pagequeues[PQ_LAUNDRY].pq_name) =
 	    "vm laundry pagequeue";
 	*__DECONST(int **, &vmd->vmd_pagequeues[PQ_LAUNDRY].pq_vcnt) =
@@ -3885,13 +3881,12 @@ DB_SHOW_COMMAND(pageq, vm_page_print_pageq_info)
 	db_printf("pq_free %d\n", vm_cnt.v_free_count);
 	for (dom = 0; dom < vm_ndomains; dom++) {
 		db_printf(
-	    "dom %d page_cnt %d free %d pq_act %d pq_inact %d pq_fifo %d pq_laund %d\n",
+	    "dom %d page_cnt %d free %d pq_act %d pq_inact %d pq_laund %d\n",
 		    dom,
 		    vm_dom[dom].vmd_page_count,
 		    vm_dom[dom].vmd_free_count,
 		    vm_dom[dom].vmd_pagequeues[PQ_ACTIVE].pq_cnt,
 		    vm_dom[dom].vmd_pagequeues[PQ_INACTIVE].pq_cnt,
-	            vm_dom[dom].vmd_pagequeues[PQ_FIFO].pq_cnt,
 		    vm_dom[dom].vmd_pagequeues[PQ_LAUNDRY].pq_cnt);
 	}
 }
