@@ -1375,7 +1375,7 @@ free_page:
 	//       m != NULL && maxscan-- > 0 && page_shortage > 0;
 	//      m = next) {
 
-	if (!TAILQ_EMPTY(&pq->pq+pl)) {
+	if (!TAILQ_EMPTY(&pq->pq_pl)) {
 	  printf("There are things in the active queue!\n");
 	}
 	
