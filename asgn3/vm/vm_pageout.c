@@ -1230,29 +1230,29 @@ unlock_page:
 			KASSERT(!pmap_page_is_mapped(m),
 			    ("vm_pageout_scan: page %p is mapped", m));
 		}
-		if (act_delta != 0) {
-			if (object->ref_count != 0) {
-				PCPU_INC(cnt.v_reactivated);
-				vm_page_activate(m);
-
-				/*
-				 * Increase the activation count if the page
-				 * was referenced while in the inactive queue.
-				 * This makes it less likely that the page will
-				 * be returned prematurely to the inactive
-				 * queue.
- 				 */
-				m->act_count += act_delta + ACT_ADVANCE;
-				goto drop_page;
-			} else if ((object->flags & OBJ_DEAD) == 0) {
-				vm_pagequeue_lock(pq);
-				queue_locked = TRUE;
-				m->queue = PQ_INACTIVE;
-				TAILQ_INSERT_TAIL(&pq->pq_pl, m, plinks.q);
-				vm_pagequeue_cnt_inc(pq);
-				goto drop_page;
-			}
-		}
+		// if (act_delta != 0) {
+		// 	if (object->ref_count != 0) {
+		// 		PCPU_INC(cnt.v_reactivated);
+		// 		vm_page_activate(m);
+    //
+		// 		/*
+		// 		 * Increase the activation count if the page
+		// 		 * was referenced while in the inactive queue.
+		// 		 * This makes it less likely that the page will
+		// 		 * be returned prematurely to the inactive
+		// 		 * queue.
+ 		// 		 */
+		// 		m->act_count += act_delta + ACT_ADVANCE;
+		// 		goto drop_page;
+		// 	} else if ((object->flags & OBJ_DEAD) == 0) {
+		// 		vm_pagequeue_lock(pq);
+		// 		queue_locked = TRUE;
+		// 		m->queue = PQ_INACTIVE;
+		// 		TAILQ_INSERT_TAIL(&pq->pq_pl, m, plinks.q);
+		// 		vm_pagequeue_cnt_inc(pq);
+		// 		goto drop_page;
+		// 	}
+		// }
 
 		/*
 		 * If the page appears to be clean at the machine-independent
@@ -1388,6 +1388,9 @@ drop_page:
 		 * the page for eligibility.
 		 */
 		PCPU_INC(cnt.v_pdpages);
+//------------------------------------------------------------------------------
+//              This is our change
+//--------                              ----------------------------------------
 
     /*
      * Move this page to the tail of the inactive queue.
@@ -1396,6 +1399,11 @@ drop_page:
     vm_page_deactivate(m);
     vm_page_unlock(m);
     vm_pagequeue_unlock(pq);
+
+
+//------------------------------------------------------------------------------
+
+
 
 		// /*
 		//  * Check to see "how much" the page has been used.
