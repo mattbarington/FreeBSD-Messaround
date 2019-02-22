@@ -1,7 +1,7 @@
 CC=cc
-EXE=benchmark
+EXE=da_benchmark
 
-benchmark: benchmark.c
+${EXE}: benchmark.c
 	@${CC} -o ${EXE} benchmark.c
 
 clean:
