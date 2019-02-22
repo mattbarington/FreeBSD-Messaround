@@ -68,6 +68,7 @@
 #define	_VM_PAGE_
 
 #include <vm/pmap.h>
+#include <sys/time.h>
 
 /*
  *	Management of resident (logical) pages.
@@ -152,7 +153,9 @@ struct vm_page {
 	int8_t psind;			/* pagesizes[] index (O) */
 	int8_t segind;
 	uint8_t	order;			/* index of the buddy queue */
-	uint8_t pool;
+	//struct timeval tp;
+    unsigned long id;
+    uint8_t pool;
 	u_char	act_count;		/* page usage count (P) */
 	/* NOTE that these must support one bit per DEV_BSIZE in a page */
 	/* so, on normal X86 kernels, they must be at least 8 bits wide */
