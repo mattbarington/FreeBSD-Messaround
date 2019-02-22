@@ -71,7 +71,7 @@ int main() {
   //  std::cout << "How many times would you like to run the thing?: ";
   //  std::cin >> repetitions;
   size = 125000 * MBs;
-  printf("size: %lu\n",size*8);
+  printf("size: %lu bytes\n",size*8);
   //  const unsigned long size = 1139600000;
   //  const int repetitions = 100;
   printf("Setting up\n");
