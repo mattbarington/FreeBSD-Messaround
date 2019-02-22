@@ -2729,8 +2729,8 @@ vm_page_enqueue(uint8_t queue, vm_page_t m)
 	KASSERT(queue < PQ_COUNT,
 	    ("vm_page_enqueue: invalid queue %u request for page %p",
 	    queue, m));
-	if (queue == PQ_INACTIVE || queue == PQ_ACTIVE) // Funnel all pages into FIFO
-	        queue = PQ_FIFO;
+	if (queue == PQ_INACTIVE)  // Funnel all pages into active queue
+	        queue = PQ_ACTIVE;
 	if (queue == PQ_LAUNDRY)
 		pq = &vm_dom[0].vmd_pagequeues[queue];
 	else
