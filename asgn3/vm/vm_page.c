@@ -400,10 +400,10 @@ vm_page_domain_init(struct vm_domain *vmd)
 	    "vm active pagequeue";
 	*__DECONST(u_int **, &vmd->vmd_pagequeues[PQ_ACTIVE].pq_vcnt) =
 	    &vm_cnt.v_active_count;
-	*__DECONST(char **, &vmd->vmd_pagequeues[PQ_FIFO].pq_name) =
-	    "vm active pagequeue";
-	*__DECONST(u_int **, &vmd->vmd_pagequeues[PQ_FIFO].pq_vcnt) =
-	    &vm_cnt.v_active_count;
+  *__DECONST(char **, &vmd->vmd_pagequeues[PQ_FIFO].pq_name) =
+      "vm active pagequeue";
+  *__DECONST(u_int **, &vmd->vmd_pagequeues[PQ_FIFO].pq_vcnt) =
+      &vm_cnt.v_active_count;
 	*__DECONST(char **, &vmd->vmd_pagequeues[PQ_LAUNDRY].pq_name) =
 	    "vm laundry pagequeue";
 	*__DECONST(int **, &vmd->vmd_pagequeues[PQ_LAUNDRY].pq_vcnt) =
@@ -549,7 +549,7 @@ vm_page_startup(vm_offset_t vaddr)
 #if defined(__aarch64__) || defined(__amd64__) || defined(__mips__)
 	/*
 	 * Include the UMA bootstrap pages and vm_page_dump in a crash dump.
-	 * When pmap_map() uses the direct map, they are not automatically 
+	 * When pmap_map() uses the direct map, they are not automatically
 	 * included.
 	 */
 	for (pa = new_end; pa < end; pa += PAGE_SIZE)
@@ -574,8 +574,8 @@ vm_page_startup(vm_offset_t vaddr)
 	 * use, taking into account the overhead of a page structure per page.
 	 * In other words, solve
 	 *	"available physical memory" - round_page(page_range *
-	 *	    sizeof(struct vm_page)) = page_range * PAGE_SIZE 
-	 * for page_range.  
+	 *	    sizeof(struct vm_page)) = page_range * PAGE_SIZE
+	 * for page_range.
 	 */
 	low_avail = phys_avail[0];
 	high_avail = phys_avail[1];
@@ -2628,10 +2628,10 @@ vm_page_alloc_fail(vm_object_t object, int req)
 	atomic_add_int(&vm_pageout_deficit,
 	    max((u_int)req >> VM_ALLOC_COUNT_SHIFT, 1));
 	if (req & (VM_ALLOC_WAITOK | VM_ALLOC_WAITFAIL)) {
-		if (object != NULL) 
+		if (object != NULL)
 			VM_OBJECT_WUNLOCK(object);
 		_vm_wait();
-		if (object != NULL) 
+		if (object != NULL)
 			VM_OBJECT_WLOCK(object);
 		if (req & VM_ALLOC_WAITOK)
 			return (EAGAIN);
@@ -2729,13 +2729,13 @@ vm_page_enqueue(uint8_t queue, vm_page_t m)
 	KASSERT(queue < PQ_COUNT,
 	    ("vm_page_enqueue: invalid queue %u request for page %p",
 	    queue, m));
-	if (queue == PQ_INACTIVE)      // Funnel all inactive pages into active queue.
-	        queue = PQ_ACTIVE;
+	if (queue == PQ_INACTIVE || queue == PQ_ACTIVE) // Funnel all pages into FIFO
+	        queue = PQ_FIFO;
 	if (queue == PQ_LAUNDRY)
 		pq = &vm_dom[0].vmd_pagequeues[queue];
-	else 
+	else
 		pq = &vm_phys_domain(m)->vmd_pagequeues[queue];
-	
+
 	vm_pagequeue_lock(pq);
 	m->queue = queue;
 	TAILQ_INSERT_TAIL(&pq->pq_pl, m, plinks.q);
@@ -3891,7 +3891,7 @@ DB_SHOW_COMMAND(pageq, vm_page_print_pageq_info)
 		    vm_dom[dom].vmd_free_count,
 		    vm_dom[dom].vmd_pagequeues[PQ_ACTIVE].pq_cnt,
 		    vm_dom[dom].vmd_pagequeues[PQ_INACTIVE].pq_cnt,
-	            vm_dom[dom].vmd_pagequeues[PQ_FIFO].pq_cnt,
+        vm_dom]dom].vmd_pagequeues[PQ_FIFO].pq_cnt,
 		    vm_dom[dom].vmd_pagequeues[PQ_LAUNDRY].pq_cnt);
 	}
 }
