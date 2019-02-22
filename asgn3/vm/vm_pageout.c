@@ -1322,7 +1322,7 @@ free_page:
 	 * pages.
 	 */
 	if (page_shortage > 0)
-		vm_swapout_run();
+		vm_swapout_run();	  
 
 	/*
 	 * If the inactive queue scan fails repeatedly to meet its
@@ -1375,9 +1375,10 @@ free_page:
 	//       m != NULL && maxscan-- > 0 && page_shortage > 0;
 	//      m = next) {
 
-	if (!TAILQ_EMPTY(&pq->pq_pl)) {
+	if (!TAILQ_EMPTY(&pq->pq_pl))
 	  printf("There are things in the active queue!\n");
-	}
+	else
+	  printf("Active Queue is empyt\n");
 	
 	for (m = TAILQ_FIRST(&pq->pq_pl), scanned = 0; m != NULL && (scanned <
 	  	    min_scan || (inactq_shortage > 0 && scanned < maxscan)); m = next,
