@@ -1371,12 +1371,17 @@ free_page:
 	 * the per-page activity counter and use it to identify deactivation
 	 * candidates.  Held pages may be deactivated.
 	 */
-	for (m = TAILQ_FIRST(&pq->pq_pl);
-	       m != NULL && maxscan-- > 0 && page_shortage > 0;
-	       m = next) {
-	  //	 for (m = TAILQ_FIRST(&pq->pq_pl), scanned = 0; m != NULL && (scanned <
-	  //	    min_scan || (inactq_shortage > 0 && scanned < maxscan)); m = next,
-	  //	    scanned++) {
+	//for (m = TAILQ_FIRST(&pq->pq_pl);
+	//       m != NULL && maxscan-- > 0 && page_shortage > 0;
+	//      m = next) {
+
+	if (!TAILQ_EMPTY(&pq->pq+pl)) {
+	  printf("There are things in the active queue!\n");
+	}
+	
+	for (m = TAILQ_FIRST(&pq->pq_pl), scanned = 0; m != NULL && (scanned <
+	  	    min_scan || (inactq_shortage > 0 && scanned < maxscan)); m = next,
+	  	    scanned++) {
 		KASSERT(m->queue == PQ_ACTIVE,
 		    ("vm_pageout_scan: page %p isn't active", m));
 		next = TAILQ_NEXT(m, plinks.q);

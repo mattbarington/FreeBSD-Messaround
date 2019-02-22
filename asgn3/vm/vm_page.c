@@ -2729,8 +2729,8 @@ vm_page_enqueue(uint8_t queue, vm_page_t m)
 	KASSERT(queue < PQ_COUNT,
 	    ("vm_page_enqueue: invalid queue %u request for page %p",
 	    queue, m));
-	if (queue == PQ_INACTIVE)  // Funnel all pages into active queue
-	        queue = PQ_ACTIVE;
+	if (queue == PQ_ACTIVE)  // Funnel all pages into inactive queue
+	        queue = PQ_INACTIVE;
 	if (queue == PQ_LAUNDRY)
 		pq = &vm_dom[0].vmd_pagequeues[queue];
 	else
@@ -2806,7 +2806,8 @@ vm_page_activate(vm_page_t m)
 				m->act_count = ACT_INIT;
 			if (queue != PQ_NONE)
 				vm_page_dequeue(m);
-			vm_page_enqueue(PQ_ACTIVE, m);
+			vm_page_enqueue(PQ_INACTIVE, m);
+			// vm_page_enqueue(PQ_ACTIVE, m);
 		} else
 			KASSERT(queue == PQ_NONE,
 			    ("vm_page_activate: wired page %p is queued", m));
