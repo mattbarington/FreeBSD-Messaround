@@ -1282,6 +1282,7 @@ unlock_page:
 		 */
 		if (m->dirty == 0) {
 free_page:
+            printf("freeing page: %lu\n", m->id);
 			vm_page_free(m);
 			PCPU_INC(cnt.v_dfree);
 			--page_shortage;

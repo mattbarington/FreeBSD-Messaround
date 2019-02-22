@@ -153,7 +153,8 @@ struct vm_page {
 	int8_t psind;			/* pagesizes[] index (O) */
 	int8_t segind;
 	uint8_t	order;			/* index of the buddy queue */
-	struct timeval tp;
+	//struct timeval tp;
+    unsigned long id;
     uint8_t pool;
 	u_char	act_count;		/* page usage count (P) */
 	/* NOTE that these must support one bit per DEV_BSIZE in a page */

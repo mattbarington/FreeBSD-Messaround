@@ -2714,6 +2714,8 @@ vm_page_dequeue_locked(vm_page_t m)
 	vm_pagequeue_cnt_dec(pq);
 }
 
+static unsigned long pg_cnt = 0;
+
 /*
  *	vm_page_enqueue:
  *
@@ -2725,8 +2727,7 @@ static void
 vm_page_enqueue(uint8_t queue, vm_page_t m)
 {
 	struct vm_pagequeue *pq;
-    struct timeval tp;
-    struct timezone tpz;
+    //struct timeval tp;
 
 	vm_page_lock_assert(m, MA_OWNED);
 	KASSERT(queue < PQ_COUNT,
@@ -2740,8 +2741,9 @@ vm_page_enqueue(uint8_t queue, vm_page_t m)
 		pq = &vm_phys_domain(m)->vmd_pagequeues[queue];
 
     if(queue == PQ_INACTIVE) {
-        int err = gettimeofday(&tp, &tpz);
-        m->tp = tp;
+        //gettimeofday(&tp, NULL);
+        m->id = pg_cnt++;
+        printf("Adding to inactive queue: %lu\n", m->id);
     }
 
 	vm_pagequeue_lock(pq);
