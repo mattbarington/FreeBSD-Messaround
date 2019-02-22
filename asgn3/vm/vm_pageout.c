@@ -1214,45 +1214,51 @@ unlock_page:
 		if (m->valid == 0)
 			goto free_page;
 
+
+		/* It really doesn't matter whether the page has been referenced or not.
+		 * Either way, we want to launder it.
+		 */
+
+		
 		/*
 		 * If the page has been referenced and the object is not dead,
 		 * reactivate or requeue the page depending on whether the
 		 * object is mapped.
 		 */
-		if ((m->aflags & PGA_REFERENCED) != 0) {
-			vm_page_aflag_clear(m, PGA_REFERENCED);
-			act_delta = 1;
-		} else
-			act_delta = 0;
-		if (object->ref_count != 0) {
-			act_delta += pmap_ts_referenced(m);
-		} else {
-			KASSERT(!pmap_page_is_mapped(m),
-			    ("vm_pageout_scan: page %p is mapped", m));
-		}
-		if (act_delta != 0) {
-		  if (object->ref_count != 0) {
-		    PCPU_INC(cnt.v_reactivated);
-		    //vm_page_activate(m);
-		    
-		    /*
-		     * Increase the activation count if the page
-		     * was referenced while in the inactive queue.
-		     * This makes it less likely that the page will
-		     * be returned prematurely to the inactive
-		     * queue.
-		     */
-		    m->act_count += act_delta + ACT_ADVANCE;
-		    goto drop_page;
-		  } else if ((object->flags & OBJ_DEAD) == 0) {
-		    vm_pagequeue_lock(pq);
-		    queue_locked = TRUE;
-		    m->queue = PQ_INACTIVE;
-		    TAILQ_INSERT_TAIL(&pq->pq_pl, m, plinks.q);
-		    vm_pagequeue_cnt_inc(pq);
-		    goto drop_page;
-		  }
-		}
+		//		if ((m->aflags & PGA_REFERENCED) != 0) {
+		//			vm_page_aflag_clear(m, PGA_REFERENCED);
+		//			act_delta = 1;
+		//		} else
+		//			act_delta = 0;
+		//		if (object->ref_count != 0) {
+		//			act_delta += pmap_ts_referenced(m);
+		//		} else {
+		//			KASSERT(!pmap_page_is_mapped(m),
+		//			    ("vm_pageout_scan: page %p is mapped", m));
+		//		}
+		// if (act_delta != 0) {
+		// 	if (object->ref_count != 0) {
+		// 		PCPU_INC(cnt.v_reactivated);
+		// 		//vm_page_activate(m);
+    // 
+		// 		/*
+		// 		 * Increase the activation count if the page
+		// 		 * was referenced while in the inactive queue.
+		// 		 * This makes it less likely that the page will
+		// 		 * be returned prematurely to the inactive
+		// 		 * queue.
+ 		// 		 */
+		// 		m->act_count += act_delta + ACT_ADVANCE;
+		// 		goto drop_page;
+		// 	} else if ((object->flags & OBJ_DEAD) == 0) {
+		// 		vm_pagequeue_lock(pq);
+		// 		queue_locked = TRUE;
+		// 		m->queue = PQ_INACTIVE;
+		// 		TAILQ_INSERT_TAIL(&pq->pq_pl, m, plinks.q);
+		// 		vm_pagequeue_cnt_inc(pq);
+		// 		goto drop_page;
+		// 	}
+		// }
 
 		/*
 		 * If the page appears to be clean at the machine-independent
@@ -1281,7 +1287,7 @@ free_page:
 			--page_shortage;
 		} else if ((object->flags & OBJ_DEAD) == 0)
 			vm_page_launder(m);
-drop_page:
+		//drop_page:
 		vm_page_unlock(m);
 		VM_OBJECT_WUNLOCK(object);
 		if (!queue_locked) {
@@ -1359,14 +1365,18 @@ drop_page:
 	if (min_scan > 0 || (inactq_shortage > 0 && maxscan > 0))
 		vmd->vmd_last_active_scan = scan_tick;
 
+	
 	/*
 	 * Scan the active queue for pages that can be deactivated.  Update
 	 * the per-page activity counter and use it to identify deactivation
 	 * candidates.  Held pages may be deactivated.
 	 */
-	for (m = TAILQ_FIRST(&pq->pq_pl), scanned = 0; m != NULL && (scanned <
-	    min_scan || (inactq_shortage > 0 && scanned < maxscan)); m = next,
-	    scanned++) {
+	for (m = TAILQ_FIRST(&pq->pq_pl);
+	       m != NULL && maxscan-- > 0 && page_shortage > 0;
+	       m = next) {
+	  //	 for (m = TAILQ_FIRST(&pq->pq_pl), scanned = 0; m != NULL && (scanned <
+	  //	    min_scan || (inactq_shortage > 0 && scanned < maxscan)); m = next,
+	  //	    scanned++) {
 		KASSERT(m->queue == PQ_ACTIVE,
 		    ("vm_pageout_scan: page %p isn't active", m));
 		next = TAILQ_NEXT(m, plinks.q);
@@ -1399,6 +1409,7 @@ drop_page:
     // vm_page_deactivate(m);
     // vm_page_unlock(m);
     // vm_pagequeue_unlock(pq);
+		//inactq_shortage--;		
 
 
 //------------------------------------------------------------------------------
