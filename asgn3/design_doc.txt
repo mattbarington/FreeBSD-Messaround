@@ -3,8 +3,9 @@ Author(s): Matt Ovenden, Ryan Blelloch
 
 ASSIGNMENT 3 DESIGN DOCUMENT
 --------------------------------------
-Brief Description:
-
+Brief Description: We have changed kernel source files to implement
+a FIFO memory queue for all paging. This means on page faults the
+oldest page will be removed.
 
 ------------------------------------
 All files in REPO:
