@@ -119,20 +119,15 @@ int main() {
   std::cin >> MBs;
   
   //write start timestamp to file
-  FILE* slog = fopen("/var/log/messages", "a");
-  srand(0);
+  srand(time(0));
   int unique_id = (rand() % 999999) + 1000000;
-  int file_start;
+  FILE* slog = fopen("/var/log/messages", "a");
   if(!slog) {
     printf("ERROR: Could not open system log\n");
     return 1;
   } else {
-    slog = fopen("/var/log/messages", "r");
-    fseek(slog, 0, SEEK_END);
-    file_start = ftell(slog);
-    fclose(slog);
-    sprintf(startstamp, "Starting Benchmark %d\n", unique_id);
-    fprintf(slog, "%s", startstamp);
+    sprintf(startstamp, "Starting Benchmark %d", unique_id);
+    fprintf(slog, "%s\n", startstamp);
     fclose(slog); 
   }
 
@@ -217,19 +212,31 @@ int main() {
     "grep -n \"%s\" /var/log/messages | sed 's/:/ /' | awk '{print $1;}'", 
     startstamp);
   syscall = popen(command, "r");
-  fscanf(syscall, "%d", linenum);
-  pclose(syscall);
+  if(syscall) {
+    fgets(buffer, sizeof(buffer), syscall);
+    sscanf(buffer, "%d", &linenum);
+    pclose(syscall);
+  } else {
+    printf("ERROR: Couldn't find startstamp. Reading entire log.\n");
+    linenum = 1;
+  }
   
   //search for all NEWPAGE lines after starting line number
   sprintf(command, "sed -n \"%d,$ p\" /var/log/messages | grep -o \"NEWPAGE.*\"", linenum);
   syscall = popen(command, "r");
+  if(!syscall) {
+    printf("ERROR: Couldn't grep NEWPAGE lines.\n");
+  } else {
   
-  //read all NEWPAGE lines, storing num, front, and back values
-  while(fgets(buffer, sizeof(buffer), syscall) != NULL) {
-    sscanf(buffer, "%s %ld %ld %ld", buf, &rstv.n, &rstv.f, &rstv.b);
-    vec.push_back(rstv);
+    //read all NEWPAGE lines, storing num, front, and back values
+    while(fgets(buffer, sizeof(buffer), syscall) != NULL) {
+      sscanf(buffer, "%s %ld %ld %ld", buf, &rstv.n, &rstv.f, &rstv.b);
+      vec.push_back(rstv);
+    }
+    pclose(syscall);
   }
-  pclose(syscall);
+  
+  printf("# queue messages: %d\n", vec.size());
 
   //find any times the queue wasn't perfectly balanced
   for(auto iter = vec.begin(); iter != vec.end(); ++iter) {
