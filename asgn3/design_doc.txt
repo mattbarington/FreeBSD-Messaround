@@ -1,0 +1,27 @@
+File: design_doc.txt
+Author(s): Matt Ovenden, Ryan Blelloch
+
+ASSIGNMENT 3 DESIGN DOCUMENT
+--------------------------------------
+Brief Description:
+
+
+------------------------------------
+All files in REPO:
+README                  - Directions for all compilation/running
+design_doc.txt          - Full explanation of asgn2 implementation
+Makefile                - Makefile with options to build and install 
+                          kernel, and build benchmark
+
+-----------------------------------
+Source Files changed/explanation
+
+
+
+-----------------------------------
+Benchmark:
+
+Build:
+$ make benchmark
+Run (as User):
+$ ./benchmark <small positive integer (ex. 10)>
