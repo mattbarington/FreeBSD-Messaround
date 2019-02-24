@@ -1376,6 +1376,12 @@ free_page:
 	//       m != NULL && maxscan-- > 0 && page_shortage > 0;
 	//      m = next) {
 
+
+
+	return (page_shortage <= 0);
+	
+	
+	
 	if (!TAILQ_EMPTY(&pq->pq_pl))
 	  printf("There are things in the active queue!\n");
 	else
@@ -1398,7 +1404,7 @@ free_page:
 			continue;
 		}
 
-
+		
 
 		/*
 		 * The count for page daemon pages is updated after checking
