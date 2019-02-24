@@ -3115,6 +3115,7 @@ _vm_page_deactivate(vm_page_t m, boolean_t noreuse)
 			vm_pagequeue_lock(pq);
 		}
 		m->queue = PQ_INACTIVE;
+		m->id = pg_cnt++;
 		TAILQ_INSERT_TAIL(&pq->pq_pl, m, plinks.q);
 		//		if (noreuse){
 		//		  printf("\n\n\nInserting page with count %lu into queue\n\n\n\n", m->id);
