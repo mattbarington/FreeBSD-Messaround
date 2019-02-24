@@ -17,6 +17,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <stdlib.h>
+#include <string.h>
 
 //Number of values to read from dmesg (true maximum of dmesg ~4500)
 #define SAMPLE_SIZE 10000
@@ -70,6 +71,10 @@ void printTime(struct timeval tv) {
   printf ("%ld.%06ld\n", tv.tv_sec, tv.tv_usec);
 }
 
+typedef struct result {
+  long f, b, n;
+} rst;
+
 int main() {
   
   //size of memory to allocate
@@ -105,11 +110,32 @@ int main() {
 
   //stores the start, end, and time delta for printing
   struct timeval start, end, diff;
-  
+
+  //timestamp for beginning of test  
+  char startstamp[25];
+
   //prompt user for number of MBs to allocate
   std::cout << "how many MBs do you want your vector to span? ";
   std::cin >> MBs;
   
+  //write start timestamp to file
+  FILE* slog = fopen("/var/log/messages", "a");
+  srand(0);
+  int unique_id = (rand() % 999999) + 1000000;
+  int file_start;
+  if(!slog) {
+    printf("ERROR: Could not open system log\n");
+    return 1;
+  } else {
+    slog = fopen("/var/log/messages", "r");
+    fseek(slog, 0, SEEK_END);
+    file_start = ftell(slog);
+    fclose(slog);
+    sprintf(startstamp, "Starting Benchmark %d\n", unique_id);
+    fprintf(slog, "%s", startstamp);
+    fclose(slog); 
+  }
+
   //convert megabytes to bytes
   size = 125000 * MBs;
   printf("size: %lu bytes\n",size*8);
@@ -117,7 +143,6 @@ int main() {
   //allocate memory
   printf("Setting up\n");
   std::vector<long> V(size);
-  srand(0);
   printf("Set up finished\n");
 
   //test memory with similar pages (no page faults)
@@ -178,4 +203,79 @@ int main() {
   fclose(fdmesg);
   remove("dmesg.dat");
 
+  //grep system log for starting line number
+  char command[400];
+  char buffer[200];
+  char buf[20];
+  int linenum;
+  std::vector<rst> vec;
+  rst rstv;
+  FILE* syscall;
+  
+  //find line number of startstamp
+  sprintf(command, 
+    "grep -n \"%s\" /var/log/messages | sed 's/:/ /' | awk '{print $1;}'", 
+    startstamp);
+  syscall = popen(command, "r");
+  fscanf(syscall, "%d", linenum);
+  pclose(syscall);
+  
+  //search for all NEWPAGE lines after starting line number
+  sprintf(command, "sed -n \"%d,$ p\" /var/log/messages | grep -o \"NEWPAGE.*\"", linenum);
+  syscall = popen(command, "r");
+  
+  //read all NEWPAGE lines, storing num, front, and back values
+  while(fgets(buffer, sizeof(buffer), syscall) != NULL) {
+    sscanf(buffer, "%s %ld %ld %ld", buf, &rstv.n, &rstv.f, &rstv.b);
+    vec.push_back(rstv);
+  }
+  pclose(syscall);
+
+  //find any times the queue wasn't perfectly balanced
+  for(auto iter = vec.begin(); iter != vec.end(); ++iter) {
+    long diff = (*iter).b - (*iter).f;
+    if(diff != (*iter).n) {
+      printf("ruh roh: %ld\n", diff);
+    }
+  }
+
+/*
+  char buffer[200];
+  char b[200];
+  char keyword[] = "NEWPAGE";
+
+  std::vector<unsigned long> frt_vec, bck_vec, num_vec;
+
+  unsigned long frt, bck, num;
+
+  slog = fopen("/var/log/messages", "r");
+  if(!slog) {
+    printf("shit\n");
+  }
+
+  while(fgets(buffer, sizeof(buffer), slog) != NULL) {
+    if(strstr(buffer, keyword)) {
+      printf("Hey! %s\n", buffer);
+        num, frt, bck);
+        printf("Here!\n");
+        frt_vec.push_back(frt);
+        bck_vec.push_back(bck);
+        num_vec.push_back(num);
+    }
+
+  }
+
+  for(i=0; i < frt_vec.size(); ++i) {
+    long diff = (long)bck_vec[i] - (long)frt_vec[i];
+    if(diff != num_vec[i]) {
+      printf("Ruh roh the difference is off: %lu %lu %lu %ld",
+        frt_vec[i], bck_vec[i], num_vec[i], diff);
+    }
+  }
+  fclose(slog);
+*/
+
+  return 0;
 }
+
+
