@@ -2743,7 +2743,7 @@ vm_page_enqueue(uint8_t queue, vm_page_t m)
     if(queue == PQ_INACTIVE) {
         //gettimeofday(&tp, NULL);
         m->id = pg_cnt++;
-        printf("Adding to inactive queue: %lu\n", m->id);
+        //printf("Adding to inactive queue: %lu\n", m->id);
     }
 
 	vm_pagequeue_lock(pq);
