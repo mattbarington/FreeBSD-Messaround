@@ -12,11 +12,14 @@ README                  - Directions for all compilation/running
 design_doc.txt          - Full explanation of asgn2 implementation
 Makefile                - Makefile with options to build and install 
                           kernel, and build benchmark
+vm/vm_page.c		- Modified vm_page.c kernel source file
+vm/vm_pageout.c		- Modified vm_pageout.c kernel source file
 
 -----------------------------------
 Source Files changed/explanation
 
-
+vm/vm_pageout.c
+  - Majority of the changes take place in the function vm_pageout_scan().
 
 -----------------------------------
 Benchmark:
