@@ -9,11 +9,12 @@ Brief Description:
 ------------------------------------
 All files in REPO:
 README                  - Directions for all compilation/running
-design_doc.txt          - Full explanation of asgn2 implementation
+design_doc.txt          - Full explanation of asgn3 implementation
 Makefile                - Makefile with options to build and install 
                           kernel, and build benchmark
 vm/vm_page.c		- Modified vm_page.c kernel source file
 vm/vm_pageout.c		- Modified vm_pageout.c kernel source file
+big.cc                  - C++ source file for benchmark
 
 -----------------------------------
 Source Files changed/explanation
@@ -53,7 +54,19 @@ vm/vm_page.c
 -----------------------------------
 Benchmark:
 
-Build:
-$ make benchmark
-Run (as User):
-$ ./benchmark <small positive integer (ex. 10)>
+  Build:
+    $ make benchmark
+  Run (as Root):
+    $ ./benchmark
+
+  Description:
+    Allocates a large amount of memory to force virtual memory.
+    Then accesses the memory three different ways. The third way will
+    thrash and cause many page faults. 
+  Results:
+    Following the completion of
+    the thrashing run, pageout queue messages printed to the system
+    log will be analyzed to ensure FIFO queue. Any discrepencies will
+    be reported and assumed to be special pages. For the most part, 
+    the end page minus the starting page will be the number of pages
+    in the queue.
