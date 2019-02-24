@@ -74,7 +74,7 @@ int main() {
   //  const int repetitions = 100;
   printf("Setting up\n");
   //std::vector<long> V(size);
-  long* V = malloc(size*sizeof(long));
+  long* V = (long*) calloc(size,sizeof(long));
   srand(0);
   struct timeval start, end, diff;
   printf("Set up finished\n");

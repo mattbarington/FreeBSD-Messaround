@@ -1202,7 +1202,7 @@ unlock_page:
 		 * vm_page_free(), or vm_page_launder() is called.  Use a
 		 * marker to remember our place in the inactive queue.
 		 */
-		TAILQ_INSERT_AFTER(&pq->pq_pl, m, &vmd->vmd_marker, plinks.q);
+		//		TAILQ_INSERT_AFTER(&pq->pq_pl, m, &vmd->vmd_marker, plinks.q);
 		vm_page_dequeue_locked(m);
 		vm_pagequeue_unlock(pq);
 		queue_locked = FALSE;
