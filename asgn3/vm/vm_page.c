@@ -127,6 +127,8 @@ __FBSDID("$FreeBSD: releng/11.2/sys/vm/vm_page.c 332935 2018-04-24 14:35:39Z mar
  *	page structure.
  */
 
+
+static unsigned long pg_cnt = 0;
 struct vm_domain vm_dom[MAXMEMDOM];
 struct mtx_padalign __exclusive_cache_line vm_page_queue_free_mtx;
 
@@ -2714,8 +2716,6 @@ vm_page_dequeue_locked(vm_page_t m)
 	vm_pagequeue_cnt_dec(pq);
 }
 
-static unsigned long pg_cnt = 0;
-
 /*
  *	vm_page_enqueue:
  *
@@ -3932,5 +3932,5 @@ DB_SHOW_COMMAND(pginfo, vm_page_print_pginfo)
 	    m, m->object, (uintmax_t)m->pindex, (uintmax_t)m->phys_addr,
 	    m->queue, m->hold_count, m->wire_count, m->aflags, m->oflags,
 	    m->flags, m->act_count, m->busy_lock, m->valid, m->dirty);
-}
+	102;60M}
 #endif /* DDB */

@@ -76,7 +76,7 @@ kern/sched_ule.c
        priority over lottery_q. We recognized that lottery_q_choose
        had to be chosen immediately before or immediately after 
        runq_choose(&tdq_timeshare). Since tdq_timeshare now holds only
-       root timeshare processes we elected to select a process from
+-       root timeshare processes we elected to select a process from
        the lotter only if runq_choose(&tdq_timeshare) returned NULL.
 
 -----------------------------------

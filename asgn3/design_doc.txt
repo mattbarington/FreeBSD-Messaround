@@ -19,8 +19,37 @@ vm/vm_pageout.c		- Modified vm_pageout.c kernel source file
 Source Files changed/explanation
 
 vm/vm_pageout.c
-  - Majority of the changes take place in the function vm_pageout_scan().
+  - Majority of the changes take place in function vm_pageout_scan().
 
+    - vm_pageout_scan() iterates through the inactive queue, placing
+      pages into the laundry queue one-by-one until the page deficit is
+      supplemented.
+
+    - Marker pages, held pages, and busy pages are skipped over. This
+      design decision was suggested by Professor Nawab. Through the
+      majority of our tests, this has caused no irregularities to FIFO
+      page ordering, but, in rare cases, cause incontinuities.
+
+    - Removed all functionality that scans the active page queue, since
+      it will always be empty.
+
+    - Removed functionality of transferring referenced pages into
+      the active queue.
+      
+  - Changes outside of vm_pageout_scan are meant to funnel pages into
+    the inactive queue that would be placed in the active queue
+    otherwise.
+    
+vm/vm_page.c
+  - All changes in this file are meant to serve one of two purposes:
+    - Redirect pages from the active queue to the inactive queue.
+    - update an incoming page's page count. 
+
+  - variable static unsigned long pg_cnt is a global monotinically
+    increasing counter that tracks the number of pages that have
+    entered the FIFO page queue. This variable tracks page order within
+    the queue, and is the key mechanism for displaying proper FIFO
+    functionality.
 -----------------------------------
 Benchmark:
 
