@@ -6,6 +6,8 @@
 #include <sys/time.h>
 #include <stdlib.h>
 
+#define SAMPLE_SIZE 10000
+
 void start(long* A, long lenA) {
   A[0] ++;
 }
@@ -101,5 +103,48 @@ int main() {
   gettimeofday(&end, 0);
   timersub(&end, &start, &diff);
   printTime(diff);
+
+  FILE* fdmesg;
+  int error, iter;
+  char read_dmesg[] = "dmesg | grep \"freeing pages\" > dmesg.dat";
+  char buf1[30];
+  char buf2[30];
+  unsigned long page_val;
+
+  int cnt1 = 0, cnt2 = 0;
+  
+  //write results to file
+  error = system(read_dmesg);
+  unsigned long sample[SAMPLE_SIZE];
+
+  //attempt to open file
+  fdmesg = fopen("dmesg.dat", "r");
+  iter = 0;
+  int ss;
+  unsigned long prev;
+  if(fdmesg) {
+    while((iter < SAMPLE_SIZE) && fscanf(fdmesg, "%s %s %lu", buf1, buf2, &page_val) != EOF) {
+      sample[iter] = page_val;
+      ++iter;
+    }
+  } else {
+    printf("ERROR: dmesg.dat could not be opened.\n");
+  }
+  ss = iter;
+
+  prev = sample[0];
+  for(iter = 1; iter < ss; ++iter) {
+    if(prev == (sample[iter] - 1)) {
+      cnt1++;
+    } else {
+      cnt2++;
+    }
+    prev = sample[iter];
+  }
+
+  printf("consecutive: %d, other: %d\n", cnt1, cnt2);
+
+  fclose(fdmesg);
+  remove("dmesg.dat");
 
 }

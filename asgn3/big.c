@@ -1,8 +1,9 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
+
+#define SAMPLE_SIZE 10000
 
 void start(long* A, long lenA) {
   A[0] ++;
@@ -61,20 +62,24 @@ void printTime(struct timeval tv) {
 
 int main() {
   unsigned long size = 1139600000;
-  int MBs, i;
+  int MBs, i, error;
   int repetitions = 1;
   double div;
+
+  int iter;
+
+  char read_dmesg[] = "dmesg | grep \"freeing\" > dmesg.dat";
+  FILE* fdmesg;
+  unsigned long page_val;
+  char buf1[30];
+  char buf2[30];
+
   printf("how many MBs do you want your vector to span? ");
   scanf("%d", &MBs);
-  //  std::cout << "How many times would you like to run the thing?: ";
-  //  std::cin >> repetitions;
   size = 125000 * MBs;
   printf("size: %lu bytes\n",size*8);
-  //  const unsigned long size = 1139600000;
-  //  const int repetitions = 100;
   printf("Setting up\n");
-  //std::vector<long> V(size);
-  long* V = (long*) calloc(size,sizeof(long));
+  long* V = malloc(size*sizeof(long));
   srand(0);
   struct timeval start, end, diff;
   printf("Set up finished\n");
@@ -101,5 +106,40 @@ int main() {
   timersub(&end, &start, &diff);
   printTime(diff);
 
+  //write results to file
+  error = system(read_dmesg);
+  unsigned long sample[SAMPLE_SIZE];
+
+  //attempt to open file
+  fdmesg = fopen("dmesg.dat", "r");
+  iter = 0;
+  int ss;
+  unsigned long prev;
+  if(fdmesg) {
+    while((iter < SAMPLE_SIZE) && fscanf(fdmesg, "%s %s %lu", buf1, buf2, &page_val) != EOF) {
+      sample[iter] = page_val;
+      ++iter;
+    }
+  } else {
+    printf("ERROR: dmesg.dat could not be opened.\n");
+  }
+  ss = iter;
+  int cnt1 = 0, cnt2 = 0;  
+
+  prev = sample[0];
+  for(iter = 1; iter < ss; ++iter) {
+    if(prev == (sample[iter] - 1)) {
+      cnt1++;
+    } else {
+      cnt2++;
+    }
+    prev = sample[iter];
+  }
+
+  printf("consecutive: %d, other: %d\n", cnt1, cnt2);
+
+  fclose(fdmesg);
+  remove("dmesg.dat");
   free(V);
+
 }
