@@ -268,7 +268,7 @@ vm_pageout_fallback_object_lock(vm_page_t m, vm_page_t *next)
 	pq = vm_page_pagequeue(m);
 	object = m->object;
   if (queue == PQ_INACTIVE)
-    vm_page_enqueue(PQ_INACTIVE, m);
+    vm_page_deactivate(m);
   else
 	 TAILQ_INSERT_AFTER(&pq->pq_pl, m, &marker, plinks.q);
 	vm_pagequeue_unlock(pq);
@@ -321,7 +321,7 @@ vm_pageout_page_lock(vm_page_t m, vm_page_t *next)
 	vm_pageout_init_marker(&marker, queue);
 	pq = vm_page_pagequeue(m);
   if (queue == PQ_INACTIVE)
-    vm_page_enqueue(PQ_INACTIVE);
+    vm_page_deactivate(m);
   else
 	 TAILQ_INSERT_AFTER(&pq->pq_pl, m, &marker, plinks.q);
 	vm_pagequeue_unlock(pq);
