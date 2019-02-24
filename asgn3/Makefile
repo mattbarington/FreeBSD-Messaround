@@ -16,7 +16,7 @@ benchmark:
 	@cc benchmark.c -o benchmark -lm
 
 build: copyFiles
-	@cd /usr/src/; make buildkernel -j$(CORES) #-DKERNFAST
+	@cd /usr/src/; make buildkernel -j$(CORES) -DKERNFAST
 
 copyFiles:
 	@./copyFiles.sh
