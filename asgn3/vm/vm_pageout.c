@@ -1331,40 +1331,42 @@ free_page:
 	 */
 	vm_pageout_mightbe_oom(vmd, page_shortage, starting_page_shortage);
 
-	/*
-	 * Compute the number of pages we want to try to move from the
-	 * active queue to either the inactive or laundry queue.
-	 *
-	 * When scanning active pages, we make clean pages count more heavily
-	 * towards the page shortage than dirty pages.  This is because dirty
-	 * pages must be laundered before they can be reused and thus have less
-	 * utility when attempting to quickly alleviate a shortage.  However,
-	 * this weighting also causes the scan to deactivate dirty pages more
-	 * more aggressively, improving the effectiveness of clustering and
-	 * ensuring that they can eventually be reused.
-	 */
-	inactq_shortage = vm_cnt.v_inactive_target - (vm_cnt.v_inactive_count +
-	    vm_cnt.v_laundry_count / act_scan_laundry_weight) +
-	    vm_paging_target() + deficit + addl_page_shortage;
-	inactq_shortage *= act_scan_laundry_weight;
-
-	pq = &vmd->vmd_pagequeues[PQ_ACTIVE];
-	vm_pagequeue_lock(pq);
-	maxscan = pq->pq_cnt;
-
-	/*
-	 * If we're just idle polling attempt to visit every
-	 * active page within 'update_period' seconds.
-	 */
-	scan_tick = ticks;
-	if (vm_pageout_update_period != 0) {
-		min_scan = pq->pq_cnt;
-		min_scan *= scan_tick - vmd->vmd_last_active_scan;
-		min_scan /= hz * vm_pageout_update_period;
-	} else
-		min_scan = 0;
-	if (min_scan > 0 || (inactq_shortage > 0 && maxscan > 0))
-		vmd->vmd_last_active_scan = scan_tick;
+	return (page_shortage <= 0);
+  // 
+	// /*
+	//  * Compute the number of pages we want to try to move from the
+	//  * active queue to either the inactive or laundry queue.
+	//  *
+	//  * When scanning active pages, we make clean pages count more heavily
+	//  * towards the page shortage than dirty pages.  This is because dirty
+	//  * pages must be laundered before they can be reused and thus have less
+	//  * utility when attempting to quickly alleviate a shortage.  However,
+	//  * this weighting also causes the scan to deactivate dirty pages more
+	//  * more aggressively, improving the effectiveness of clustering and
+	//  * ensuring that they can eventually be reused.
+	//  */
+	// inactq_shortage = vm_cnt.v_inactive_target - (vm_cnt.v_inactive_count +
+	//     vm_cnt.v_laundry_count / act_scan_laundry_weight) +
+	//     vm_paging_target() + deficit + addl_page_shortage;
+	// inactq_shortage *= act_scan_laundry_weight;
+  //
+	// pq = &vmd->vmd_pagequeues[PQ_ACTIVE];
+	// vm_pagequeue_lock(pq);
+	// maxscan = pq->pq_cnt;
+  //
+	// /*
+	//  * If we're just idle polling attempt to visit every
+	//  * active page within 'update_period' seconds.
+	//  */
+	// scan_tick = ticks;
+	// if (vm_pageout_update_period != 0) {
+	// 	min_scan = pq->pq_cnt;
+	// 	min_scan *= scan_tick - vmd->vmd_last_active_scan;
+	// 	min_scan /= hz * vm_pageout_update_period;
+	// } else
+	// 	min_scan = 0;
+	// if (min_scan > 0 || (inactq_shortage > 0 && maxscan > 0))
+	// 	vmd->vmd_last_active_scan = scan_tick;
 
 
 	/*
@@ -1372,15 +1374,6 @@ free_page:
 	 * the per-page activity counter and use it to identify deactivation
 	 * candidates.  Held pages may be deactivated.
 	 */
-	//for (m = TAILQ_FIRST(&pq->pq_pl);
-	//       m != NULL && maxscan-- > 0 && page_shortage > 0;
-	//      m = next) {
-
-
-
-	return (page_shortage <= 0);
-
-//
 //
 // 	if (!TAILQ_EMPTY(&pq->pq_pl))
 // 	  printf("There are things in the active queue!\n");
