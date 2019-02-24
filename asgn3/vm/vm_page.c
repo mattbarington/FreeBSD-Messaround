@@ -3115,11 +3115,14 @@ _vm_page_deactivate(vm_page_t m, boolean_t noreuse)
 			vm_pagequeue_lock(pq);
 		}
 		m->queue = PQ_INACTIVE;
-		if (noreuse)
-			TAILQ_INSERT_BEFORE(&vm_phys_domain(m)->vmd_inacthead,
-			    m, plinks.q);
-		else
-			TAILQ_INSERT_TAIL(&pq->pq_pl, m, plinks.q);
+		TAILQ_INSERT_TAIL(&pq->pq_pl, m, plinks.q);
+		//		if (noreuse){
+		//		  printf("\n\n\nInserting page with count %lu into queue\n\n\n\n", m->id);
+		//			TAILQ_INSERT_BEFORE(&vm_phys_domain(m)->vmd_inacthead,
+		//			    m, plinks.q);
+		//		}
+		//		else
+		//			TAILQ_INSERT_TAIL(&pq->pq_pl, m, plinks.q);
 		vm_pagequeue_cnt_inc(pq);
 		vm_pagequeue_unlock(pq);
 	}
