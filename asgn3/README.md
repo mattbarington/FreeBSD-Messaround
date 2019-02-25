@@ -4,7 +4,7 @@
     
   * `git clone https://gitlab.soe.ucsc.edu/gitlab/cmps111/winter19-01/movenden.git`. You've probably already done that.
   
-  * `cd asgn3`.
+  * `cd movenden/asgn3`.
     
   * `make build` or `make build CORES=<CPUs you want to use>`
     
@@ -65,7 +65,7 @@
  - **Install Kernel**  - If you haven't already installed the new kernel and rebooted, go back 
                    to the previous section before running benchmark.
  
- - **Install C++** - The benchmark file is a C++ file, so it's important to be able to compile it on 
+ - **Install C++** - The benchmark file is a C++ file, so it's important that it be able to compile it on 
                your machine.
                
    This can be accomplished with `pkg install gcc`, and following the instructions. You likely have to
