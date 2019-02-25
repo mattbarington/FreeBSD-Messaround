@@ -1328,10 +1328,6 @@ unlock_page:
 	// if (min_scan > 0 || (inactq_shortage > 0 && maxscan > 0))
 	// 	vmd->vmd_last_active_scan = scan_tick;
 
-<<<<<<< HEAD
-	return (page_shortage <= 0);
-=======
-
 	/*
 	 * Scan the active queue for pages that can be deactivated.  Update
 	 * the per-page activity counter and use it to identify deactivation
@@ -1469,7 +1465,6 @@ unlock_page:
 // 	if (pass > 0)
 // 		vm_swapout_run_idle();
 // 	return (page_shortage <= 0);
->>>>>>> 407ffe0d822e9401134b817e87eda58834583ebd
 }
 
 static int vm_pageout_oom_vote;
