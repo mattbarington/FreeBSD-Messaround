@@ -1,4 +1,4 @@
-File: design_doc.txt
+
 Author(s): Matt Ovenden, Ryan Blelloch
 
 # Assignment 3 Design Document

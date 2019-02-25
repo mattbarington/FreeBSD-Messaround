@@ -12,12 +12,12 @@
   * `make install`
   
   * `pkg install gcc`- if you don't have C++ installed.
-                
+    
+  * `make benchmark`
+      
   * `reboot`
     
   * `cd back to <repo>/asgn3`.
-    
-  * `make benchmark`
       
   * `./benchmark`.
   
