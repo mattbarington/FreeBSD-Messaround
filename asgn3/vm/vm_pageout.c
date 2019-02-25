@@ -1174,7 +1174,6 @@ vm_pageout_scan(struct vm_domain *vmd, int pass)
 		 * skip marker pages
 		 */
 		if (m->flags & PG_MARKER) {
-		  printf("page %lu is marked\n", m->id);
 		  continue;
 		}
 
