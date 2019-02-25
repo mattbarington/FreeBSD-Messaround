@@ -1138,17 +1138,20 @@ vm_pageout_scan(struct vm_domain *vmd, int pass)
 	     m = next) {
 	  next = TAILQ_NEXT(m, plinks.q);
 	  if (m->flags & PG_MARKER) {
+	    //	    printf("%lu is marked\n", m->id);
 	    continue;
 	  }
 	  if (m->hold_count != 0) {
+	    //	    printf("%lu is headl \n", m->id);
 	    continue;
 	  }
-	  if vm_page_busied(m) {
-	      continue;
-	    } 
+	  if (vm_page_busied(m)) {
+	    //	    printf("%lu is busy\n", m->id);
+	    continue;
+	  } 
 	  if (!front)
 	    front = m;
-	  if (TAILQ_NEXT(m, plinks.q) == NULL){
+	  if (TAILQ_NEXT(m, plinks.q) == NULL) {
 	    back = m;
 	  }
 	  num_pgs++;
