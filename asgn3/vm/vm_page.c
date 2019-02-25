@@ -155,7 +155,7 @@ SYSCTL_PROC(_vm, OID_AUTO, page_blacklist, CTLTYPE_STRING | CTLFLAG_RD |
 static int vm_pageout_pages_needed;
 
 static uma_zone_t fakepg_zone;
-
+static unsigned long pg_cnt = 0;
 static void vm_page_alloc_check(vm_page_t m);
 static void vm_page_clear_dirty_mask(vm_page_t m, vm_page_bits_t pagebits);
 //static void print_stats(struct vm_pagequeue* queue);
@@ -2715,25 +2715,6 @@ vm_page_dequeue_locked(vm_page_t m)
 	vm_pagequeue_cnt_dec(pq);
 }
 
-static unsigned long pg_cnt = 0;
-
-//static void
-//print_stats(struct vm_pagequeue* pq){
-//  return;
-    //  struct vm_pagequeue* pq = &vm_dom[0].vmd_pagequeues[queue];
-  //  struct vm_page* front = TAILQ_FIRST(&pq->pq_pl);
-  //  struct vm_page* back;// = TAILQ_LAST(&pq->pq_pl, listq);
-  //  vm_page_t m;
-  //  unsigned long num_pgs = 0;
-  //  TAILQ_FOREACH(m, &pq->pq_pl, listq) {
-  //    num_pgs++;
-  //    if (TAILQ_NEXT(m, plinks.q) == NULL)
-  //      back = m;
-  //  }
-  //  printf("NEWPAGE %lu %lu %lu\n", num_pgs, front->id, back->id);
-//}
-
-
 /*
  *	vm_page_enqueue:
  *
@@ -2745,7 +2726,6 @@ static void
 vm_page_enqueue(uint8_t queue, vm_page_t m)
 {
 	struct vm_pagequeue *pq;
-    //struct timeval tp;
 
 	vm_page_lock_assert(m, MA_OWNED);
 	KASSERT(queue < PQ_COUNT,
@@ -2759,15 +2739,8 @@ vm_page_enqueue(uint8_t queue, vm_page_t m)
 		pq = &vm_phys_domain(m)->vmd_pagequeues[queue];
 
     if(queue == PQ_INACTIVE) {
-        //gettimeofday(&tp, NULL);
-
-      //      struct vm_page* front = TAILQ_FIRST(&pq->pq_pl);
-      //      printf("Front(enqueue): %lu\n", front->id);
-      //      print_stats(pq);
       m->id = pg_cnt++;
-      //printf("Adding to inactive queue: %lu\n", m->id);
     }
-
 	vm_pagequeue_lock(pq);
 	m->queue = queue;
 	TAILQ_INSERT_TAIL(&pq->pq_pl, m, plinks.q);
