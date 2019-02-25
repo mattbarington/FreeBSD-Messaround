@@ -1151,7 +1151,7 @@ vm_pageout_scan(struct vm_domain *vmd, int pass)
 	  } 
 	  if (!front)
 	    front = m;
-	  if (TAILQ_NEXT(m, plinks.q) == NULL) {
+	  if (next == NULL) {
 	    back = m;
 	  }
 	  num_pgs++;
