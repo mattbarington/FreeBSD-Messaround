@@ -1129,6 +1129,34 @@ vm_pageout_scan(struct vm_domain *vmd, int pass)
 	maxscan = pq->pq_cnt;
 	vm_pagequeue_lock(pq);
 	queue_locked = TRUE;
+
+	struct vm_page* front = NULL;
+	struct vm_page* back;
+	unsigned long num_pgs = 0;
+	for (m = TAILQ_FIRST(&pq->pq_pl);
+	     m != NULL;
+	     m = next) {
+	  next = TAILQ_NEXT(m, plinks.q);
+	  if (m->flags & PG_MARKER) {
+	    continue;
+	  }
+	  if (m->hold_count != 0) {
+	    continue;
+	  }
+	  if vm_page_busied(m) {
+	      continue;
+	    } 
+	  if (!front)
+	    front = m;
+	  if (TAILQ_NEXT(m, plinks.q) == NULL){
+	    back = m;
+	  }
+	  num_pgs++;
+	}
+
+	printf("NEWPAGE %lu %lu %lu\n", num_pgs, front->id, back->id);
+
+	
 	for (m = TAILQ_FIRST(&pq->pq_pl);
 	     m != NULL && maxscan-- > 0 && page_shortage > 0;
 	     m = next) {
@@ -1138,12 +1166,14 @@ vm_pageout_scan(struct vm_domain *vmd, int pass)
 
 		PCPU_INC(cnt.v_pdpages);
 		next = TAILQ_NEXT(m, plinks.q);
-
+		
 		/*
 		 * skip marker pages
 		 */
-		if (m->flags & PG_MARKER)
-			continue;
+		if (m->flags & PG_MARKER) {
+		  printf("page %lu is marked\n", m->id);
+		  continue;
+		}
 
 		KASSERT((m->flags & PG_FICTITIOUS) == 0,
 		    ("Fictitious page %p cannot be in inactive queue", m));
@@ -1159,6 +1189,7 @@ vm_pageout_scan(struct vm_domain *vmd, int pass)
 		if (!vm_pageout_page_lock(m, &next))
 			goto unlock_page;
 		else if (m->hold_count != 0) {
+		  printf("page %lu is held\n", m->id);
 			/*
 			 * Held pages are essentially stuck in the
 			 * queue.  So, they ought to be discounted
@@ -1179,6 +1210,7 @@ vm_pageout_scan(struct vm_domain *vmd, int pass)
 			}
 		}
 		if (vm_page_busied(m)) {
+		   printf("page %lu is busied\n", m->id);
 			/*
 			 * Don't mess with busy pages.  Leave them at
 			 * the front of the queue.  Most likely, they
@@ -1209,6 +1241,7 @@ unlock_page:
 		vm_pagequeue_unlock(pq);
 		queue_locked = FALSE;
 
+		
 		/*
 		 * Invalid pages can be easily freed. They cannot be
 		 * mapped, vm_page_free() asserts this.
@@ -1224,9 +1257,9 @@ unlock_page:
 		 * modified until the last of those mappings are removed.
 		 */
 		if (object->ref_count != 0) {
-			vm_page_test_dirty(m);
-			if (m->dirty == 0)
-				pmap_remove_all(m);
+		  vm_page_test_dirty(m);
+		  if (m->dirty == 0)
+		    pmap_remove_all(m);
 		}
 
 		/*
