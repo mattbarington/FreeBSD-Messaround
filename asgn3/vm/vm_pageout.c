@@ -1191,7 +1191,6 @@ vm_pageout_scan(struct vm_domain *vmd, int pass)
 		if (!vm_pageout_page_lock(m, &next))
 			goto unlock_page;
 		else if (m->hold_count != 0) {
-		  printf("page %lu is held\n", m->id);
 			/*
 			 * Held pages are essentially stuck in the
 			 * queue.  So, they ought to be discounted
@@ -1212,7 +1211,6 @@ vm_pageout_scan(struct vm_domain *vmd, int pass)
 			}
 		}
 		if (vm_page_busied(m)) {
-		   printf("page %lu is busied\n", m->id);
 			/*
 			 * Don't mess with busy pages.  Leave them at
 			 * the front of the queue.  Most likely, they
