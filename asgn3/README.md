@@ -1,5 +1,5 @@
 
-## How to FIFO schedule memory pages: the fast version:
+## How to FIFO schedule memory pages. The fast version:
   * `su -` then enter password.
     
   * `git clone https://gitlab.soe.ucsc.edu/gitlab/cmps111/winter19-01/movenden.git`. You've probably already done that.
