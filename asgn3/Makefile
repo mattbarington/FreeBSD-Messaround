@@ -10,6 +10,7 @@ CORES?=1
 
 SYS=/usr/src/sys
 CC=g++
+CFLAGS=-std=c++11
 EXE=benchmark
 
 PAGEH=vm/vm_page.h
@@ -19,10 +20,10 @@ PAGEOUT=vm/vm_pageout.c
 nothing: # in case no make target is specified
 
 ${EXE}: stress.cpp
-	@$(CC) stress.cpp -o ${EXE}
+	@$(CC) stress.cpp -o ${EXE} $(CFLAGS)
 
 build: copyFiles
-	@cd /usr/src/; make buildkernel -j$(CORES) -DKERNFAST
+	@cd /usr/src/; make buildkernel -j$(CORES) #-DKERNFAST
 
 copyFiles:
 	@cp $(PAGEH) $(SYS)/$(PAGEH)
