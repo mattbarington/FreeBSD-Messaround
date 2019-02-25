@@ -20,6 +20,7 @@ PAGEOUT=vm/vm_pageout.c
 nothing: # in case no make target is specified
 
 ${EXE}: stress.cpp
+	pkg install gcc
 	@$(CC) stress.cpp -o ${EXE} $(CFLAGS)
 
 build: copyFiles
