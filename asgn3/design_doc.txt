@@ -3,9 +3,21 @@ Author(s): Matt Ovenden, Ryan Blelloch
 
 ASSIGNMENT 3 DESIGN DOCUMENT
 --------------------------------------
-Brief Description: We have changed kernel source files to implement
-a FIFO memory queue for all paging. This means on page faults the
-oldest page will be removed.
+Brief Description:
+We have changed kernel source files to implement a FIFO ordered memory
+queue for all paging. This means on page faults the oldest page will be
+removed.
+
+Implemented a single FIFO queue by funneling all incoming pages into the
+inactive queue, rendering the active queue permanently vacant.
+
+FIFO insertion and removal was then applied to the inactive queue,such
+that a page is only ever inserted at the tail and only ever removed from
+the head of the queue.
+
+It is important to note that while iterating through the inactive queue
+all busy, held, and marker pages are left in place, and are discounted
+from page counts and total FIFO ordering.
 
 ------------------------------------
 All files in REPO:
@@ -13,8 +25,9 @@ README                  - Directions for all compilation/running
 design_doc.txt          - Full explanation of asgn3 implementation
 Makefile                - Makefile with options to build and install 
                           kernel, and build benchmark
-vm/vm_page.c		- Modified vm_page.c kernel source file
 vm/vm_pageout.c		- Modified vm_pageout.c kernel source file
+vm/vm_page.c		- Modified vm_page.c kernel source file
+vm/vm_page.h		- Modified vm_page.h kernel source file
 big.cc                  - C++ source file for benchmark
 
 -----------------------------------
@@ -37,6 +50,10 @@ vm/vm_pageout.c
 
     - Removed functionality of transferring referenced pages into
       the active queue.
+
+    - For statistics:
+      Upon every call to vm_pageout_scan the following is printed:
+      queue size, front-page's id, and tail-page's id.
       
   - Changes outside of vm_pageout_scan are meant to funnel pages into
     the inactive queue that would be placed in the active queue
@@ -52,6 +69,11 @@ vm/vm_page.c
     entered the FIFO page queue. This variable tracks page order within
     the queue, and is the key mechanism for displaying proper FIFO
     functionality.
+
+vm/vm_page.h
+  - The only change to this file is an additional field in the vm_page
+    struct. vm_page->id is a monotonically increasing variable, assigned
+    to the page when it enters the FIFO page queue. 
 -----------------------------------
 Benchmark:
 
