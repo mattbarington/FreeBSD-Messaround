@@ -8,21 +8,26 @@
 
 CORES?=1
 
-SYS=/usr/src/sys/vm
+SYS=/usr/src/sys
+CC=g++
+EXE=benchmark
+
+PAGEH=vm/vm_page.h
+PAGEC=vm/vm_page.c
+PAGEOUT=vm/vm_pageout.c
 
 nothing: # in case no make target is specified
 
-benchmark:
-	@cc benchmark.c -o benchmark -lm
+${EXE}: stress.cpp
+	@$(CC) stress.cpp -o ${EXE}
 
 build: copyFiles
 	@cd /usr/src/; make buildkernel -j$(CORES) -DKERNFAST
 
 copyFiles:
-	@./copyFiles.sh
-#	@cp $(runq) $(SYS)/$(runq)
-#	@cp $(switch) $(SYS)/$(switch)
-#	@cp $(ule) $(SYS)/$(ule)
+	@cp $(PAGEH) $(SYS)/$(PAGEH)
+	@cp $(PAGEC) $(SYS)/$(PAGEC)
+	@cp $(PAGEOUT) $(SYS)/$(PAGEOUT)
 
 install:
 	@cd /usr/src/; make installkernel
