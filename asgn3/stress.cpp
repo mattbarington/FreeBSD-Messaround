@@ -1,4 +1,4 @@
-/* File: big.cc
+/* File: stress.cpp
  * File Type: C++ source file
  * Author(s): Matt Ovenden, Ryan Blelloch
  *
@@ -18,6 +18,7 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 //Number of values to read from dmesg (true maximum of dmesg ~4500)
 #define SAMPLE_SIZE 10000
@@ -98,9 +99,6 @@ int main() {
   //stores the page value identifier
   unsigned long   page_val;
 
-  //stores the count of consecutive vs. nonconsecutive page values
-  int             cnt1 = 0, cnt2 = 0;
- 
   //stores page values from dmesg 
   unsigned long   sample[SAMPLE_SIZE];
   //used to store previous page value to compare with
@@ -114,9 +112,18 @@ int main() {
   //timestamp for beginning of test  
   char startstamp[25];
 
+  char command[400];
+  char buffer[200];
+  char buf[20];
+  int linenum;
+  std::vector<rst> vec;
+  std::vector<rst> dscrp;
+  rst rstv;
+  FILE* syscall;
+ 
   //prompt user for number of MBs to allocate
-  std::cout << "how many MBs do you want your vector to span? ";
-  std::cin >> MBs;
+  //std::cout << "how many MBs do you want your vector to span? ";
+  //std::cin >> MBs;
   
   //write start timestamp to file
   srand(time(0));
@@ -132,10 +139,14 @@ int main() {
   }
 
   //convert megabytes to bytes
-  size = 125000 * MBs;
+  //size = 125000 * MBs;
+  long memsize = sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGESIZE);
+  printf("Memory size (bytes): %ld\n", memsize);
+  size = memsize / sizeof(long); 
   printf("size: %lu bytes\n",size*8);
 
   //allocate memory
+  {
   printf("Setting up\n");
   std::vector<long> V(size);
   printf("Set up finished\n");
@@ -166,47 +177,9 @@ int main() {
   timersub(&end, &start, &diff);
   printf("Random pages execution time: ");
   printTime(diff);
-
-
-  //write results to file
-  error = system(read_dmesg);
-  //attempt to open file
-  fdmesg = fopen("dmesg.dat", "r");
-  i = 0;
-  if(fdmesg) {
-    while((i < SAMPLE_SIZE) && 
-          fscanf(fdmesg, "%s %s %lu", buf1, buf2, &page_val) != EOF) {
-      sample[i] = page_val;
-      ++i;
-    }
-  } else {
-    printf("ERROR: dmesg.dat could not be opened.\n");
   }
-  ss = i;
-  prev = sample[0];
-  for(i = 1; i < ss; ++i) {
-    if(prev == (sample[i] - 1)) {
-      cnt1++;
-    } else {
-      cnt2++;
-    }
-    prev = sample[i];
-  }
-
-  printf("consecutive: %d, other: %d\n", cnt1, cnt2);
-
-  fclose(fdmesg);
-  remove("dmesg.dat");
-
   //grep system log for starting line number
-  char command[400];
-  char buffer[200];
-  char buf[20];
-  int linenum;
-  std::vector<rst> vec;
-  rst rstv;
-  FILE* syscall;
-  
+ 
   //find line number of startstamp
   sprintf(command, 
     "grep -n \"%s\" /var/log/messages | sed 's/:/ /' | awk '{print $1;}'", 
@@ -236,51 +209,18 @@ int main() {
     pclose(syscall);
   }
   
-  printf("# queue messages: %d\n", vec.size());
-
-  //find any times the queue wasn't perfectly balanced
+  //find any times the queue front was newer than the queue back
   for(auto iter = vec.begin(); iter != vec.end(); ++iter) {
-    long diff = (*iter).b - (*iter).f;
-    if(diff != (*iter).n) {
-      printf("ruh roh: %ld\n", diff);
+    if((*iter).n > (*iter).b) {
+      dscrp.push_back((*iter));
     }
   }
 
-/*
-  char buffer[200];
-  char b[200];
-  char keyword[] = "NEWPAGE";
-
-  std::vector<unsigned long> frt_vec, bck_vec, num_vec;
-
-  unsigned long frt, bck, num;
-
-  slog = fopen("/var/log/messages", "r");
-  if(!slog) {
-    printf("shit\n");
+  //print number of descrepencies
+  printf("Descrepencies during test: %d\n\n", dscrp.size());
+  for(auto iter = dscrp.begin(); iter != dscrp.end(); ++iter) {
+    printf("Front: %ld\nBack: %ld\nSize: %ld\n", (*iter).f, (*iter).b, (*iter).n);
   }
-
-  while(fgets(buffer, sizeof(buffer), slog) != NULL) {
-    if(strstr(buffer, keyword)) {
-      printf("Hey! %s\n", buffer);
-        num, frt, bck);
-        printf("Here!\n");
-        frt_vec.push_back(frt);
-        bck_vec.push_back(bck);
-        num_vec.push_back(num);
-    }
-
-  }
-
-  for(i=0; i < frt_vec.size(); ++i) {
-    long diff = (long)bck_vec[i] - (long)frt_vec[i];
-    if(diff != num_vec[i]) {
-      printf("Ruh roh the difference is off: %lu %lu %lu %ld",
-        frt_vec[i], bck_vec[i], num_vec[i], diff);
-    }
-  }
-  fclose(slog);
-*/
 
   return 0;
 }
