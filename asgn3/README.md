@@ -4,7 +4,7 @@
     
   * `git clone https://gitlab.soe.ucsc.edu/gitlab/cmps111/winter19-01/movenden.git`. You've probably already done that.
   
-  * `cd asgn3`.
+  * `cd movenden/asgn3`.
     
   * `make build` or `make build CORES=<CPUs you want to use>`
     
