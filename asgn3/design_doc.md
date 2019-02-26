@@ -101,6 +101,13 @@ IMPORTANT NOTE:
   Run (as Root):
     `$ ./benchmark`
 
+  Usage:
+    On start up, specify number of MBs to allocate. Enter 0 to use a 
+    calculated amount based on the size of memory. If the benchmark is
+    overfilling swap space and crashing the system, or is too small
+    and not causing page faults, this can be used to try alternate
+    amounts of memory allocation.
+
   Description:
     Allocates a large amount of memory to force virtual memory.
     Then accesses the memory three different ways. The third way will
@@ -113,3 +120,7 @@ IMPORTANT NOTE:
     be reported and assumed to be special pages. For the most part, 
     the end page minus the starting page will be the number of pages
     in the queue.
+
+    Descrepencies: <number>
+      - This will describe the number of times a back page is older
+        than a front page.
