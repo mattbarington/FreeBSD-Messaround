@@ -1,6 +1,8 @@
 File: design_doc.txt
 Author(s): Matt Ovenden, Ryan Blelloch
 
+IMPORTANT: run tests as root
+
 ASSIGNMENT 3 DESIGN DOCUMENT
 --------------------------------------
 Brief Description:
@@ -28,7 +30,7 @@ Makefile                - Makefile with options to build and install
 vm/vm_pageout.c		- Modified vm_pageout.c kernel source file
 vm/vm_page.c		- Modified vm_page.c kernel source file
 vm/vm_page.h		- Modified vm_page.h kernel source file
-big.cc                  - C++ source file for benchmark
+stress.cpp      - Benchmark C++ source file
 
 -----------------------------------
 Source Files changed/explanation
