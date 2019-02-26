@@ -1157,7 +1157,7 @@ vm_pageout_scan(struct vm_domain *vmd, int pass)
 	  num_pgs++;
 	}
 
-	printf("NEWPAGE %lu %lu %lu\n", num_pgs, front->id, back->id);
+	printf("NEWPAGE num_page= %lu head_page= %lu tail_page= %lu\n", num_pgs, front->id, back->id);
 
 	
 	for (m = TAILQ_FIRST(&pq->pq_pl);
