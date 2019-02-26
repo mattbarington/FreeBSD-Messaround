@@ -209,14 +209,14 @@ int main() {
   prev = -1;
   //find any times the queue front was newer than the queue back
   for(auto iter = vec.begin(); iter != vec.end(); ++iter) {
-    if(prev > (*iter).n) {
+    if(prev > (*iter).f) {
       printf("Observed head discrepency:\n before=%d after=%d\n", 
-        prev, (*iter).n);
+        prev, (*iter).f);
     }
-    if((*iter).n > (*iter).b) {
+    if((*iter).f > (*iter).b) {
       dscrp.push_back((*iter));
     }
-    prev = (*iter).n;
+    prev = (*iter).f;
   }
 
   //print number of descrepencies
