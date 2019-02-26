@@ -29,7 +29,7 @@ build: copyFiles
 copyFiles:
 	@cp $(PAGEC) $(SYS)/$(PAGEC)
 	@cp $(PAGEOUT) $(SYS)/$(PAGEOUT)
-#	@cp $(PAGEH) $(SYS)/$(PAGEH)
+	@cp $(PAGEH) $(SYS)/$(PAGEH)
 
 install:
 	@cd /usr/src/; make installkernel
