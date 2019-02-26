@@ -1,11 +1,9 @@
 File: design_doc.txt
 Author(s): Matt Ovenden, Ryan Blelloch
 
-IMPORTANT: run tests as root
+# Assignment 3 Design Document
 
-ASSIGNMENT 3 DESIGN DOCUMENT
---------------------------------------
-Brief Description:
+## Brief Description
 We have changed kernel source files to implement a FIFO ordered memory
 queue for all paging. This means on page faults the oldest page will be
 removed.
@@ -27,25 +25,33 @@ vm_pageout_scan(). The print message complies with the following format:
 NEWPAGE <FIFO queue size> <page# at queue HEAD> <page# at queue TAIL>
 
 IMPORTANT NOTE:
-	for reasons we are unable to diagnose, the machine has
+
+	For reasons we are unable to diagnose, the machine has
 	infrequently crashed while running the benchmark. There has not
 	yet been an occurrence of two crash failures in a row.
 	
-------------------------------------
-All files in REPO:
-README                  - Directions for all compilation/running
-design_doc.txt          - Full explanation of asgn3 implementation
-Makefile                - Makefile with options to build and install 
+
+## All files in REPO:
+
+* README                - Directions for all compilation/running
+
+* design_doc.txt        - Full explanation of asgn3 implementation
+
+* Makefile              - Makefile with options to build and install 
                           kernel, and build benchmark
-vm/vm_pageout.c		- Modified vm_pageout.c kernel source file
-vm/vm_page.c		- Modified vm_page.c kernel source file
-vm/vm_page.h		- Modified vm_page.h kernel source file
-stress.cpp      - Benchmark C++ source file
+			  
+* vm/vm_pageout.c	- Modified vm_pageout.c kernel source file 
 
------------------------------------
-Source Files changed/explanation
+* vm/vm_page.c		- Modified vm_page.c kernel source file
 
-vm/vm_pageout.c
+* vm/vm_page.h		- Modified vm_page.h kernel source file
+
+* stress.cpp    	- Benchmark C++ source file
+
+
+## Source Files changed/explanation
+
+### vm/vm_pageout.c
   - Majority of the changes take place in function vm_pageout_scan().
 
     - vm_pageout_scan() iterates through the inactive queue, placing
@@ -71,7 +77,7 @@ vm/vm_pageout.c
     the inactive queue that would be placed in the active queue
     otherwise.
     
-vm/vm_page.c
+### vm/vm_page.c
   - All changes in this file are meant to serve one of two purposes:
     - Redirect pages from the active queue to the inactive queue.
     - update an incoming page's page count. 
@@ -82,22 +88,24 @@ vm/vm_page.c
     the queue, and is the key mechanism for displaying proper FIFO
     functionality.
 
-vm/vm_page.h
+### vm/vm_page.h
   - The only change to this file is an additional field in the vm_page
     struct. vm_page->id is a monotonically increasing variable, assigned
     to the page when it enters the FIFO page queue. 
------------------------------------
-Benchmark:
+
+## Benchmark:
 
   Build:
-    $ make benchmark
+    `$ make benchmark`
+    
   Run (as Root):
-    $ ./benchmark
+    `$ ./benchmark`
 
   Description:
     Allocates a large amount of memory to force virtual memory.
     Then accesses the memory three different ways. The third way will
     thrash and cause many page faults. 
+    
   Results:
     Following the completion of
     the thrashing run, pageout queue messages printed to the system
