@@ -18,6 +18,7 @@ PAGEC=vm/vm_page.c
 PAGEOUT=vm/vm_pageout.c
 
 nothing: # in case no make target is specified
+	@echo No target specified
 
 ${EXE}: stress.cpp
 	pkg install gcc

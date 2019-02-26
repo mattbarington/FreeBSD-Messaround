@@ -91,9 +91,6 @@ int main() {
   FILE*           fdmesg;
   //error from system call
   int             error;
-  //system call to write free page messages to file
-  char            read_dmesg[] = 
-                    "dmesg | grep \"freeing page:\" > dmesg.dat";
   //read and ignore strings in dmesg.dat
   char            buf1[30], buf2[30];
   //stores the page value identifier
@@ -122,8 +119,8 @@ int main() {
   FILE* syscall;
  
   //prompt user for number of MBs to allocate
-  //std::cout << "how many MBs do you want your vector to span? ";
-  //std::cin >> MBs;
+  std::cout << "how many MBs do you want your vector to span? (ENTER 0 for default): ";
+  std::cin >> MBs;
   
   //write start timestamp to file
   srand(time(0));
@@ -142,7 +139,11 @@ int main() {
   //size = 125000 * MBs;
   long memsize = sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGESIZE) * 0.95;
   printf("Memory size (bytes): %ld\n", memsize);
-  size = memsize / sizeof(long); 
+  if(MBs == 0) {
+    size = memsize / sizeof(long); 
+  } else {
+    size = MBs * 131072;
+  }
   printf("size: %lu bytes\n",size*8);
 
   //allocate memory
@@ -203,7 +204,8 @@ int main() {
   
     //read all NEWPAGE lines, storing num, front, and back values
     while(fgets(buffer, sizeof(buffer), syscall) != NULL) {
-      sscanf(buffer, "%s %ld %ld %ld", buf, &rstv.n, &rstv.f, &rstv.b);
+      sscanf(buffer, "%s %s %ld %s %ld %s %ld", 
+		      buf, buf, &rstv.n, buf, &rstv.f, buf, &rstv.b);
       vec.push_back(rstv);
     }
     pclose(syscall);
