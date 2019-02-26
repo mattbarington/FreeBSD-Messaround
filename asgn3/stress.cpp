@@ -206,12 +206,18 @@ int main() {
     pclose(syscall);
   }
   
+  std::vector<std::string> dscrp2;
+  char h_msg[200];
   prev = -1;
+  sscanf(h_msg, "%ld > %ld", 69, 68);
+  dscrp2.push_back(h_msg);
   //find any times the queue front was newer than the queue back
   for(auto iter = vec.begin(); iter != vec.end(); ++iter) {
     if(prev > (*iter).f) {
-      printf("Observed head discrepency:\n before=%d after=%d\n", 
-        prev, (*iter).f);
+      //printf("Observed head discrepency:\n before=%d after=%d\n", 
+        //prev, (*iter).f);
+      sscanf(h_msg, "%ld > %ld", prev, (*iter).f);
+      dscrp2.push_back(h_msg);
     }
     if((*iter).f > (*iter).b) {
       dscrp.push_back((*iter));
@@ -220,10 +226,15 @@ int main() {
   }
 
   //print number of descrepencies
-  printf("Descrepencies during test: %d\n\n", dscrp.size());
+  printf("Discrepancies between head and tail: %d\n\n", dscrp.size());
   for(auto iter = dscrp.begin(); iter != dscrp.end(); ++iter) {
     printf("Front: %ld\nBack: %ld\nSize: %ld\n", (*iter).f, (*iter).b, (*iter).n);
   }
+  printf("Discrepancies between head and previous head: %d\n\n", dscrp2.size());
+  for(auto iter = dscrp2.begin(); iter != dscrp2.end(); ++iter) {
+    printf("%s\n", (*iter));
+  }
+
 
   return 0;
 }
