@@ -74,8 +74,8 @@ IMPORTANT NOTE:
       queue size, front-page's id, and tail-page's id.
       __NOTE__: We chose printing statistics here rather than every page
       fault for performance reasons. It is expensive to iterate 
-      through the entire queue for the number of pages, so we chose
-      to print less often but still during relevent times.      
+      through the entire queue for the number of page faults, so we chose
+      to print less often but still during relevent times.
 
   - Changes outside of vm_pageout_scan are meant to funnel pages into
     the inactive queue that would be placed in the active queue
@@ -125,6 +125,6 @@ IMPORTANT NOTE:
     the end page minus the starting page will be the number of pages
     in the queue.
 
-    Descrepencies: <number>
+    Discrepencies: <number>
       - This will describe the number of times a back page is older
         than a front page.
