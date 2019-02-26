@@ -22,7 +22,7 @@ from page counts and total FIFO ordering.
 The printouts that will be seen in the console occur upon every call to
 vm_pageout_scan(). The print message complies with the following format:
 
-NEWPAGE <FIFO queue size> <page# at queue HEAD> <page# at queue TAIL>
+NEWPAGE < FIFO queue size> <page# at queue HEAD> <page# at queue TAIL>
 
 IMPORTANT NOTE:
 
