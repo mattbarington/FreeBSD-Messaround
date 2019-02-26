@@ -20,9 +20,6 @@
 #include <string.h>
 #include <unistd.h>
 
-//Number of values to read from dmesg (true maximum of dmesg ~4500)
-#define SAMPLE_SIZE 10000
-
 //accesses random pages, but only the first ones
 //no page faults should occur
 void contiguous(long *A, long lenA) {
@@ -96,10 +93,8 @@ int main() {
   //stores the page value identifier
   unsigned long   page_val;
 
-  //stores page values from dmesg 
-  unsigned long   sample[SAMPLE_SIZE];
   //used to store previous page value to compare with
-  unsigned long   prev;
+  long   prev;
   //stores the actual sample size
   int             ss;
 
@@ -211,11 +206,17 @@ int main() {
     pclose(syscall);
   }
   
+  prev = -1;
   //find any times the queue front was newer than the queue back
   for(auto iter = vec.begin(); iter != vec.end(); ++iter) {
+    if(prev > (*iter).n) {
+      printf("Observed head discrepency:\n before=%d after=%d\n", 
+        prev, (*iter).n);
+    }
     if((*iter).n > (*iter).b) {
       dscrp.push_back((*iter));
     }
+    prev = (*iter).n;
   }
 
   //print number of descrepencies
