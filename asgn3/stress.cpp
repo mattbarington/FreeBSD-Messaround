@@ -210,14 +210,14 @@ int main() {
   char h_msg[200];
   prev = -1;
   sscanf(h_msg, "%ld > %ld", 69, 68);
-  dscrp2.push_back(h_msg);
+  dscrp2.push_back(std::string(h_msg));
   //find any times the queue front was newer than the queue back
   for(auto iter = vec.begin(); iter != vec.end(); ++iter) {
     if(prev > (*iter).f) {
       //printf("Observed head discrepency:\n before=%d after=%d\n", 
         //prev, (*iter).f);
       sscanf(h_msg, "%ld > %ld", prev, (*iter).f);
-      dscrp2.push_back(h_msg);
+      dscrp2.push_back(std::string(h_msg));
     }
     if((*iter).f > (*iter).b) {
       dscrp.push_back((*iter));
