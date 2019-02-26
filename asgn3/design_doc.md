@@ -4,14 +4,14 @@ Author(s): Matt Ovenden, Ryan Blelloch
 # Assignment 3 Design Document
 
 ## Brief Description
-We have changed kernel source files to implement a FIFO ordered memory
+Changed kernel source files to implement a FIFO ordered memory
 queue for all paging. This means on page faults the oldest page will be
 removed.
 
 Implemented a single FIFO queue by funneling all incoming pages into the
 inactive queue, rendering the active queue permanently vacant.
 
-FIFO insertion and removal was then applied to the inactive queue,such
+FIFO insertion and removal was applied to the inactive queue, such
 that a page is only ever inserted at the tail and only ever removed from
 the head of the queue.
 
@@ -22,14 +22,7 @@ from page counts and total FIFO ordering.
 The printouts that will be seen in the console occur upon every call to
 vm_pageout_scan(). The print message complies with the following format:
 
-NEWPAGE < FIFO queue size> <page# at queue HEAD> <page# at queue TAIL>
-
-IMPORTANT NOTE:
-
-	For reasons we are unable to diagnose, the machine has
-	infrequently crashed while running the benchmark. There has not
-	yet been an occurrence of two crash failures in a row.
-	
+NEWPAGE num_pages= {FIFO queue size} head_page= {page# at queue HEAD} tail_page= {page# at queue TAIL}
 
 ## All files in REPO:
 
@@ -61,7 +54,7 @@ IMPORTANT NOTE:
     - Marker pages, held pages, and busy pages are skipped over. This
       design decision was suggested by Professor Nawab. Through the
       majority of our tests, this has caused no irregularities to FIFO
-      page ordering, but, in rare cases, cause incontinuities.
+      page ordering, but, in rare cases, can cause incontinuities.
 
     - Removed all functionality that scans the active page queue, since
       it will always be empty.
@@ -71,7 +64,8 @@ IMPORTANT NOTE:
 
     - For statistics:
       Upon every call to vm_pageout_scan the following is printed:
-      queue size, front-page's id, and tail-page's id.
+      queue size, front-page's age, and tail-page's age.
+      
       __NOTE__: We chose printing statistics here rather than every page
       fault for performance reasons. It is expensive to iterate 
       through the entire queue for the number of page faults, so we chose
@@ -86,7 +80,7 @@ IMPORTANT NOTE:
     - Redirect pages from the active queue to the inactive queue.
     - update an incoming page's page count. 
 
-  - variable static unsigned long pg_cnt is a global monotinically
+  - variable `static unsigned long pg_cnt` is a global monotinically
     increasing counter that tracks the number of pages that have
     entered the FIFO page queue. This variable tracks page order within
     the queue, and is the key mechanism for displaying proper FIFO
@@ -94,37 +88,49 @@ IMPORTANT NOTE:
 
 ### vm/vm_page.h
   - The only change to this file is an additional field in the vm_page
-    struct. vm_page->id is a monotonically increasing variable, assigned
-    to the page when it enters the FIFO page queue. 
+    struct. `vm_page->id` is a monotonically increasing variable, assigned
+    to the page when it enters the FIFO page queue, to represent it's birthday 🎂.
 
 ## Benchmark:
 
-  Build:
-    `$ make benchmark`
+  ### Build:
+  `$ make benchmark`
     
-  Run (as Root):
-    `$ ./benchmark`
+  ### Run (as Root):
+  `$ ./benchmark`
 
-  Usage:
+  * Usage:
     On start up, specify number of MBs to allocate. Enter 0 to use a 
     calculated amount based on the size of memory. If the benchmark is
     overfilling swap space and crashing the system, or is too small
-    and not causing page faults, this can be used to try alternate
-    amounts of memory allocation.
+    to cause page faults, this can be used to augment or reduce memory allocation.
 
-  Description:
-    Allocates a large amount of memory to force virtual memory.
-    Then accesses the memory three different ways. The third way will
-    thrash and cause many page faults. 
+  * Description:
+  
+   - The system log is timestamped for the new test.
+  
+   - The benchmark will allocate a vector that spans that many MBs, and then access in 3 different ways:
+              
+   + Single Page Access - accesses random elements of the vector that span less than one page, 
+              reducing paging out.
+              
+   + Cache Ideal Access - accesses the 0th element of the vector exclusively. This reduces paging
+              out, and encourage ideal cache utilization.
+              
+   + Page Thrashing - accesses vector elements at random. This eliminates all locality, and forces 
+              page faults to occur.
     
-  Results:
-    Following the completion of
-    the thrashing run, pageout queue messages printed to the system
-    log will be analyzed to ensure FIFO queue. Any discrepencies will
-    be reported and assumed to be special pages. For the most part, 
-    the end page minus the starting page will be the number of pages
-    in the queue.
+   - The results in the system log are read and analyzed, starting at the system log line with the timestamp.
 
-    Discrepencies: <number>
-      - This will describe the number of times a back page is older
-        than a front page.
+    
+    
+  * Results:
+    Following the completion of the page thrashing stage, pageout queue messages printed to the system
+    log will be analyzed to ensure FIFO ordering. Any FIFO discrepencies observed will be printed to the terminal.
+    Ideally, descrepencies should be 0.
+
+   * Discrepencies: <number>
+      - This will describe the number of violations of FIFO order. A violation of FIFO ordering is observed when 
+	either the tail of the queue is younger than the head (tail's id (birthdate) is higher than head's), or when 
+	a page at the head of the queue is younger than a previous head (new head's id (birthdate) is higher than the 
+	older head's). 
