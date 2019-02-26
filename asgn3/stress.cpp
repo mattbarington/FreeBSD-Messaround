@@ -209,8 +209,6 @@ int main() {
   std::vector<std::string> dscrp2;
   char h_msg[200];
   prev = -1;
-  sprintf(h_msg, "%ld > %ld", 69, 68);
-  dscrp2.push_back(std::string(h_msg));
   //find any times the queue front was newer than the queue back
   for(auto iter = vec.begin(); iter != vec.end(); ++iter) {
     if(prev > (*iter).f) {
@@ -232,7 +230,7 @@ int main() {
   }
   printf("Discrepancies between head and previous head: %d\n\n", dscrp2.size());
   for(auto iter = dscrp2.begin(); iter != dscrp2.end(); ++iter) {
-    printf("%s\n", (*iter));
+    printf("%s\n", (*iter).c_str());
   }
 
 
