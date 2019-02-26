@@ -79,7 +79,7 @@ typedef struct result {
 int main() {
   
   //size of memory to allocate
-  unsigned long   size = 1139600000;
+  unsigned long   size;
   //user initialized number of megabytes to allocate
   int             MBs;
   //number of repetitions to run tests
@@ -140,7 +140,7 @@ int main() {
 
   //convert megabytes to bytes
   //size = 125000 * MBs;
-  long memsize = sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGESIZE);
+  long memsize = sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGESIZE) * 0.95;
   printf("Memory size (bytes): %ld\n", memsize);
   size = memsize / sizeof(long); 
   printf("size: %lu bytes\n",size*8);

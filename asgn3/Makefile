@@ -24,12 +24,12 @@ ${EXE}: stress.cpp
 	@$(CC) stress.cpp -o ${EXE} $(CFLAGS)
 
 build: copyFiles
-	@cd /usr/src/; make buildkernel -j$(CORES) #-DKERNFAST
+	@cd /usr/src/; make buildkernel -j$(CORES) -DKERNFAST
 
 copyFiles:
-	@cp $(PAGEH) $(SYS)/$(PAGEH)
 	@cp $(PAGEC) $(SYS)/$(PAGEC)
 	@cp $(PAGEOUT) $(SYS)/$(PAGEOUT)
+#	@cp $(PAGEH) $(SYS)/$(PAGEH)
 
 install:
 	@cd /usr/src/; make installkernel

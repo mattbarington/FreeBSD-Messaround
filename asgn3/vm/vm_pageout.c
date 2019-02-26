@@ -1311,7 +1311,7 @@ free_page:
 	 * pages.
 	 */
 	if (page_shortage > 0)
-		vm_swapout_run();	  
+		vm_swapout_run();
 
 	/*
 	 * If the inactive queue scan fails repeatedly to meet its
