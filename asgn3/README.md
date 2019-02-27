@@ -16,12 +16,14 @@
   * `make benchmark`
       
   * `reboot`
+  
+  * `su -` and enter password
     
   * `cd back to <repo>/asgn3`.
       
   * `./benchmark`.
   
-  * Enter the size of your allocated base memory in MBs (or any other number of MBs).
+  * The benchmark takes 1 input: the number of Bytes to be allocated. Please enter `0` for a calculated amount, or any other number if the calculated amount overflows swap space or is too small to cause page faults. 
  
  ## Makefile Description
   The makefile provides some intuitive services for the user. The syntax and result of 
@@ -29,7 +31,7 @@
     
  - `make`           - does nothing.
  
- - `make benchmark` - compiles stress.cpp to executable benchmark.
+ - `make benchmark` - compiles stress.cpp to executable benchmark. Also attempts to install gcc if not installed already.
  
  - `make build`     - copies all kernel files from vm/ to the corresponding 
                       files in the kernel.
