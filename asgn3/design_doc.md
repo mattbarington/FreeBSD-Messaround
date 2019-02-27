@@ -93,44 +93,38 @@ NEWPAGE num_pages= {FIFO queue size} head_page= {page# at queue HEAD} tail_page=
 
 ## Benchmark:
 
-  ### Build:
+ - **Build**:
   `$ make benchmark`
     
-  ### Run (as Root):
+  - **Run** (as Root):
   `$ ./benchmark`
 
-  * Usage:
-    On start up, specify number of MBs to allocate. Enter 0 to use a 
+  - **Usage**:
+   On start up, specify number of MBs to allocate. Enter 0 to use a 
     calculated amount based on the size of memory. If the benchmark is
     overfilling swap space and crashing the system, or is too small
     to cause page faults, this can be used to augment or reduce memory allocation.
 
-  * Description:
-  
-   - The system log is timestamped for the new test.
-  
-   - The benchmark will allocate a vector that spans that many MBs, and then access in 3 different ways:
+ - **Description** - The system log is timestamped for the new test. The benchmark will allocate a vector 
+ that spans that many MBs, and then access in 3 different ways:
               
-   + Single Page Access - accesses random elements of the vector that span less than one page, 
+     + Single Page Access - accesses random elements of the vector that span less than one page, 
               reducing paging out.
               
-   + Cache Ideal Access - accesses the 0th element of the vector exclusively. This reduces paging
+      + Cache Ideal Access - accesses the 0th element of the vector exclusively. This reduces paging
               out, and encourage ideal cache utilization.
               
-   + Page Thrashing - accesses vector elements at random. This eliminates all locality, and forces 
+      + Page Thrashing - accesses vector elements at random. This eliminates all locality, and forces 
               page faults to occur.
+	      
+The results in the system log are read and analyzed, starting at the system log line with the timestamp.	      
+              
     
-   - The results in the system log are read and analyzed, starting at the system log line with the timestamp.
-
-    
-    
-  * Results:
-    Following the completion of the page thrashing stage, pageout queue messages printed to the system
+  - **Results**: Following the completion of the page thrashing stage, pageout queue messages printed to the system
     log will be analyzed to ensure FIFO ordering. Any FIFO discrepancies observed will be printed to the terminal.
-    Ideally, descrepencies should be 0.
+    Ideally, discrepancies should be 0.
 
-   * Discrepancies: <number>
-      - This will describe the number of violations of FIFO order. A violation of FIFO ordering is observed when 
-	either the tail of the queue is younger than the head (tail's id (birthdate) is higher than head's), or when 
-	a page at the head of the queue is younger than a previous head (newer head's id (birthdate) is higher than the 
-	older head's). 
+   - **Discrepancies**: This will describe the number of violations of FIFO order. A violation of FIFO ordering is
+   observed when either the tail of the queue is younger than the head (tail's id (birthdate) is higher than head's),
+   or when a page at the head of the queue is younger than a previous head (newer head's id (birthdate) is higher than
+   the older head's). 
