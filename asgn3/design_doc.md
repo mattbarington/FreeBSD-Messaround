@@ -117,7 +117,7 @@ NEWPAGE num_pages= {FIFO queue size} head_page= {page# at queue HEAD} tail_page=
       + Page Thrashing - accesses vector elements at random. This eliminates all locality, and forces 
               page faults to occur.
 	      
-The results in the system log are read and analyzed, starting at the system log line with the timestamp.	      
+	The results in the system log are read and analyzed, starting at the system log line with the timestamp.	      
               
     
   - **Results**: Following the completion of the page thrashing stage, pageout queue messages printed to the system
