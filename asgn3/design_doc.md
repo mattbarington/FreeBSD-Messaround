@@ -126,11 +126,11 @@ NEWPAGE num_pages= {FIFO queue size} head_page= {page# at queue HEAD} tail_page=
     
   * Results:
     Following the completion of the page thrashing stage, pageout queue messages printed to the system
-    log will be analyzed to ensure FIFO ordering. Any FIFO discrepencies observed will be printed to the terminal.
+    log will be analyzed to ensure FIFO ordering. Any FIFO discrepancies observed will be printed to the terminal.
     Ideally, descrepencies should be 0.
 
-   * Discrepencies: <number>
+   * Discrepancies: <number>
       - This will describe the number of violations of FIFO order. A violation of FIFO ordering is observed when 
 	either the tail of the queue is younger than the head (tail's id (birthdate) is higher than head's), or when 
-	a page at the head of the queue is younger than a previous head (new head's id (birthdate) is higher than the 
+	a page at the head of the queue is younger than a previous head (newer head's id (birthdate) is higher than the 
 	older head's). 
