@@ -74,21 +74,19 @@
    This can be accomplished with `pkg install gcc`, and following the instructions. You likely have to
    first enter root user via `su -` to perform an install.
             
- - **Compile**  - `make benchmark` will compile the stress.cpp into an the executable `benchmark`.
+ - **Compile**  - `make benchmark` will compile the stress.cpp into an the executable `benchmark`. This also attempts install gcc if it is absent from the system. 
             
- - **Run Benchmark** - The benchmark will prompt you to enter some number of megabytes (MB). The benchmark 
+ - **Run Benchmark** - The benchmark will prompt you to enter some number of megabytes (MB). You can enter `0` and the benchmark will attempt to calculate the goldilox amount to use but not overfill swap space. Please use `0` unless swap space overflows or remains untouched (the calculation is static and therefore can't account for other prexisting memory allocations on your VM). The benchmark 
               will allocate a vector that spans that many MBs, and then access in 3 different ways:
               
      + Single Page Access - accesses random elements of the vector that span less than one page, 
               reducing paging out.
               
       + Cache Ideal Access - accesses the 0th element of the vector exclusively. This reduces paging
-              out, and encourage idea cache utilization.
+              out, and encourage ideal cache utilization.
               
       + Page Thrashing - accesses vector elements at random. This eliminates all locality, and forces 
               page faults to occur.
               
-     We decided to let you enter some size of memory to operate over because we do not know the size of 
-     your VM's allocated memory. 
      We find that entering the size of your allocated base memory works well. Since some of the memory
-     is wired with kernel pages, some of the allocated vector must live in swap space.
+     is wired with kernel pages, some of the allocated vector will have to live in swap space. We included variable entry incase the default calculation is inoptimal for the grader's VM.
