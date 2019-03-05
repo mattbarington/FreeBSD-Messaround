@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+
 int find_free_bit(uint8_t map[], int num_bits) {
    int el_size = sizeof(uint8_t) * 8;
    int bit_offset, byte_num, bit;
@@ -26,6 +27,36 @@ int set_bit(uint8_t map[], int bit_idx) {
     int mask = 1 << bit_offset;
     map[byte_num] |= mask;
   }
+  return 0;
+}
+
+
+int init_fs(AOFS* fs) {
+
+  int iter;
+  byte* i_b;
+
+  //initialize superblock
+  
+  fs->sb.magicnum    = MAGICNUM;
+  fs->sb.totalblocks = BLOCK_NUM;
+  fs->sb.blocksize   = BLOCK_SIZE;
+  
+  //initialize bitmap
+  for(iter = 0; iter < BITMAP_SIZE; ++iter) {
+    fs->sb.bitmap[iter] = EMPTY;
+  }
+  
+  //initialize datablocks
+  for(iter = 0; iter < BITMAP_SIZE; ++iter) {
+    strcpy(fs->blocks[iter].dbm.filename, "");
+    fs->blocks[iter].dbm.next = NULL;
+    fs->blocks[iter].dbm.head = false;
+    
+    i_b = fs->blocks[iter].data;
+    memset(i_b, 0, BLOCK_DATA*sizeof(i_b[0]));
+  }
+
   return 0;
 }
 
