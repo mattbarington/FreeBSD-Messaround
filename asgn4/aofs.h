@@ -15,7 +15,7 @@
 //Number of blocks
 #define BLOCK_NUM 4096
 
-typedef struct Superblock {
+typedef struct SuperBlock {
   uint32_t magicnum;
   uint32_t totalblocks;
   uint32_t blocksize;
@@ -41,7 +41,7 @@ typedef struct Block {
 
 typedef struct AOFS {
   Superblock sb;
-  Block db[BLOCK_NUM];
+  Block blocks[BLOCK_NUM];
 } AOFS;
 
 #endif
