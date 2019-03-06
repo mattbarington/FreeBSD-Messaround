@@ -10,6 +10,8 @@
 #define byte unsigned char
 #define EMPTY 0x00
 
+#define FS_FILE_NAME "FS_FILE"
+
 //Magic number
 #define MAGICNUM 0xfa19283e
 //Block size
