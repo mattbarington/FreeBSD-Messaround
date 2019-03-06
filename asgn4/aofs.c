@@ -48,8 +48,7 @@ int init_fs(AOFS* fs) {
   int iter;
   byte* i_b;
 
-  //initialize superblock
-  
+  //initialize superblock  
   fs->sb.magicnum    = MAGICNUM;
   fs->sb.totalblocks = BLOCK_NUM;
   fs->sb.blocksize   = BLOCK_SIZE;
