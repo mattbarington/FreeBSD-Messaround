@@ -59,17 +59,28 @@ int write_fs(const char* filename, AOFS* fs) {
 
 int main() {
 
-  printf("starting...\n");
+  printf("Creating File System...\n");
 
   //Create file system
   AOFS* my_fs;
   my_fs = malloc(1*sizeof(AOFS));
+
+  printf("Initializing File System...\n");
+
+  //Initialize file system
+  init_fs(my_fs);
+
+  printf("Writing File System to file...\n");
  
   //write file system to file
   write_fs("fs.dat", my_fs);
+
+  printf("Freeing File System Memory...\n");
  
   //free file system from memory
   free(my_fs);
+
+  printf("Reading in File System from file...\n");
 
   //create new file system to read into
   AOFS new_fs;
