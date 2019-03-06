@@ -6,7 +6,7 @@
 int find_free_bit(uint8_t map[], int num_bits) {
    int el_size = sizeof(uint8_t) * 8;
    int bit_offset, byte_num, bit;
-   for (int i = 0; i < num_bits; i++) {
+   for (int i = 0; i < num_bits; ++i) {
      byte_num   = i / el_size;
      bit_offset = i % el_size;
      bit = (map[byte_num] >> bit_offset) & 1U;
