@@ -1,9 +1,13 @@
-#include <stdio.h>
-#include "aofs.h"
+#define FUSE_USE_VERSION 26
 
-int main(int argc, char* argv[]) {
+#include <fuse.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+
 	
-    
-    
-    return 0;
+int main(int argc, char *argv[])
+{
+	return fuse_main(argc, argv, NULL, NULL);
 }

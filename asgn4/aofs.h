@@ -44,6 +44,11 @@ typedef struct AOFS {
   Block blocks[BLOCK_NUM];
 } AOFS;
 
+int read_fs(const char* filename, AOFS* fs);
+
+int write_fs(const char* filename, AOFS* fs);
+
+
 #endif
 
 
