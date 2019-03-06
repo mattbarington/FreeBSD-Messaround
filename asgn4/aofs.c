@@ -2,6 +2,47 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+
+int find_free_bit(uint8_t map[], int num_bits) {
+   int el_size = sizeof(uint8_t) * 8;
+   int bit_offset, byte_num, bit;
+   for (int i = 0; i < num_bits; i++) {
+     byte_num   = i / el_size;
+     bit_offset = i % el_size;
+     bit = (map[byte_num] >> bit_offset) & 1U;
+     if (!bit){
+       return i;
+     }
+   }
+   return -1;
+}
+
+int set_bit(uint8_t map[], int bit_idx) {
+  int el_size    = sizeof(uint8_t) * 8;
+  int bit_offset = bit_idx % el_size;
+  int byte_num   = bit_idx / el_size;
+  if ((map[byte_num] >> bit_offset) & 1U) { //Bit at bit_idx is already set
+    return 1;
+  } else {
+    int mask = 1 << bit_offset;
+    map[byte_num] |= mask;
+    return 0;
+  }
+}
+
+int clear_bit(uint8_t map[], int bit_idx) {
+  int el_size    = sizeof(uint8_t) * 8;
+  int bit_offset = bit_idx % el_size;
+  int byte_num   = bit_idx / el_size;
+  if (!((map[byte_num] >> bit_offset) & 1U)) { //Bit at bit_idx is already 0
+    return 1;
+  } else {
+    int mask = ~(1U << bit_offset);
+    map[byte_num] &= mask;
+    return 0;
+  }
+}
+
 int init_fs(AOFS* fs) {
 
   int iter;
@@ -30,6 +71,7 @@ int init_fs(AOFS* fs) {
 
   return 0;
 }
+
 
 int read_fs(const char* filename, AOFS* fs) {
   FILE* rf;
