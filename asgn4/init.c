@@ -1,16 +1,18 @@
 #define FUSE_USE_VERSION 26
 
-#include <fuse.h>
+//#include <fuse.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
 
+#define MAX_FILENAME 255
+#define FS_FILE_NAME "FS_FILE"
 
 typedef enum run_option {NONE, BUILD, RUN, ALL} Option;
 	
 void print_usage(void) {
-
+  printf("usage\n");
 }
 
 int main(int argc, char *argv[])
@@ -18,21 +20,17 @@ int main(int argc, char *argv[])
   char filename[256] = "";
   int iter;
   Option fs_op = NONE;
-  
 
   //handle command line arguments  
   for(iter = 1; iter < argc; ++iter) {
     if((argv[iter][0] == '-') && (strlen(argv[iter]) == 2)) {
       switch(argv[iter][1]) {
         case 'c':
-          fs_op = BUILD;
-          break;
+          fs_op = BUILD; break;
         case 'r':
-          fs_op = RUN;
-          break;
+          fs_op = RUN; break;
         case 'a':
-          fs_op = ALL;
-          break;
+          fs_op = ALL; break;
         default:
           printf("Unrecognized flag: %s\n", argv[iter]);
           print_usage();
@@ -67,11 +65,14 @@ int main(int argc, char *argv[])
 
   //build filesystem
   if(fs_op != RUN) {
-    
+    printf("building filesystem...\n");
   }
 
   //run filesystem
   if(fs_op != BUILD) {
-    return fuse_main(argc, argv, NULL, NULL);
+    printf("running filesystem...\n");
+    //return fuse_main(argc, argv, NULL, NULL);
   }
+
+  return 0;
 }
