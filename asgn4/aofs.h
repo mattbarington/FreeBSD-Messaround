@@ -51,6 +51,7 @@ typedef struct AOFS {
   Block blocks[BLOCK_NUM];
 } AOFS;
 
+
 /* returns the index of the first free block */
 int find_free_bit(uint8_t map[], int num_bits);
 /* sets the specified bit in the bitmap to 1 */

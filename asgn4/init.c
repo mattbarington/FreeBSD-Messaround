@@ -5,6 +5,7 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include "oper_fs.h"
 
 #define MAX_FILENAME 255
 #define FS_FILE_NAME "FS_FILE"
@@ -76,3 +77,6 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+
+
+
