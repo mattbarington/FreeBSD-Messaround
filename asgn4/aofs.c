@@ -2,6 +2,33 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+int init_fs(AOFS* fs) {
+
+  int iter;
+  
+
+  //initialize superblock
+  
+  fs->sb.magicnum    = MAGICNUM;
+  fs->sb.totalblocks = BLOCK_NUM;
+  fs->sb.blocksize   = BLOCK_SIZE;
+  
+  //initialize bitmap
+  for(iter = 0; iter < BITMAP_SIZE; ++iter) {
+    fs->sb.bitmap[iter] = EMPTY;
+  }
+  
+  //initialize datablocks
+  for(iter = 0; iter < BITMAP_SIZE; ++iter) {
+    fs->blocks[iter].dbm.filename = "";
+    fs->blocks[iter].dbm.next = NULL;
+    fs->blocks[iter].dbm.head = false;
+    
+    memset(fs->blocks[iter].blocks, 0, BLOCK_DATA*sizeof(
+  }
+
+}
+
 int read_fs(const char* filename, AOFS* fs) {
   FILE* rf;
     
