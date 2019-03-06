@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #define byte unsigned char
 #define EMPTY 0x00
@@ -16,7 +17,7 @@
 //Number of blocks
 #define BLOCK_NUM 4096
 
-#define BITMAP_SIZE (BLOCK_NUM / sizeof(unit8_t))
+#define BITMAP_SIZE (BLOCK_NUM / sizeof(uint8_t))
 
 typedef struct SuperBlock {
   uint32_t magicnum;
@@ -39,7 +40,7 @@ typedef struct BlockMeta {
 
 typedef struct Block {
   BlockMeta dbm;
-  byte data[DB_BLOCK_DATA];
+  byte data[BLOCK_DATA];
 } Block;
 
 typedef struct AOFS {

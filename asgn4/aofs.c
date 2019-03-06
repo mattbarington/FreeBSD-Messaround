@@ -5,7 +5,7 @@
 int init_fs(AOFS* fs) {
 
   int iter;
-  
+  byte* i_b;
 
   //initialize superblock
   
@@ -20,13 +20,15 @@ int init_fs(AOFS* fs) {
   
   //initialize datablocks
   for(iter = 0; iter < BITMAP_SIZE; ++iter) {
-    fs->blocks[iter].dbm.filename = "";
+    strcpy(fs->blocks[iter].dbm.filename, "");
     fs->blocks[iter].dbm.next = NULL;
     fs->blocks[iter].dbm.head = false;
     
-    memset(fs->blocks[iter].blocks, 0, BLOCK_DATA*sizeof(
+    i_b = fs->blocks[iter].data;
+    memset(i_b, 0, BLOCK_DATA*sizeof(i_b[0]));
   }
 
+  return 0;
 }
 
 int read_fs(const char* filename, AOFS* fs) {
