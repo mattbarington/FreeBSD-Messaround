@@ -27,7 +27,7 @@ typedef struct SuperBlock {
   uint32_t totalblocks;
   uint32_t blocksize;
   uint8_t bitmap[BITMAP_SIZE];
-} Superblock;
+} SuperBlock;
 
 struct Block;
 
@@ -47,11 +47,12 @@ typedef struct Block {
 } Block;
 
 typedef struct AOFS {
-  Superblock sb;
+  SuperBlock sb;
   Block blocks[BLOCK_NUM];
 } AOFS;
 
-
+/* returns the value of bit at idx */
+int bit_at(uint8_t map[], int bit_idx);
 /* returns the index of the first free block */
 int find_free_bit(uint8_t map[], int num_bits);
 /* sets the specified bit in the bitmap to 1 */
@@ -64,6 +65,18 @@ int read_fs(const char* filename, AOFS* fs);
 int write_fs(const char* filename, AOFS* fs);
 /* Initializes a new AOFS structure to default and empty values */
 int init_fs(AOFS* fs);
+/* Wipes block's data and metadata */
+int clear_block(Block*);
+/* Finds the first available block, marks it as unavailable, and returns its block address */
+int allocate_block(AOFS* fs);
+/* Initializes a single file block for a file */
+int aofs_create_file(const char* filename, AOFS* fs);
+/* Returns the block index of a file's head block */
+int find_file_head(const char* filename, AOFS* fs);
+/* Writes to a file */
+int aofs_write(const char* filename, const char* buf, size_t size, AOFS* fs);
+/* Attempts to write buffer into block. Returns the number of bytes written */
+int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write);
 
 #endif
 

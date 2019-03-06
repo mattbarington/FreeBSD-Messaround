@@ -2,6 +2,14 @@
 #include "aofs.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
+
+int bit_at(uint8_t map[], int idx) {
+  int el_size    = sizeof(uint8_t) * 8;
+  int bit_offset = idx % el_size;
+  int byte_num   = idx / el_size;
+  return (map[byte_num] >> bit_offset) & 1U;
+}
 
 int find_free_bit(uint8_t map[], int num_bits) {
    int el_size = sizeof(uint8_t) * 8;
@@ -60,14 +68,8 @@ int init_fs(AOFS* fs) {
   
   //initialize datablocks
   for(iter = 0; iter < BITMAP_SIZE; ++iter) {
-    strcpy(fs->blocks[iter].dbm.filename, "");
-    fs->blocks[iter].dbm.next = NULL;
-    fs->blocks[iter].dbm.head = false;
-    
-    i_b = fs->blocks[iter].data;
-    memset(i_b, 0, BLOCK_DATA*sizeof(i_b[0]));
-  }
-
+    clear_block(&fs->blocks[iter]);
+  }    
   return 0;
 }
 
@@ -97,38 +99,84 @@ int write_fs(const char* filename, AOFS* fs) {
     return -1;
   }
 }
-/*
-int main() {
 
-  printf("Creating File System...\n");
-
-  //Create file system
-  AOFS* my_fs;
-  my_fs = malloc(1*sizeof(AOFS));
-
-  printf("Initializing File System...\n");
-
-  //Initialize file system
-  init_fs(my_fs);
-
-  printf("Writing File System to file...\n");
- 
-  //write file system to file
-  write_fs(FS_FILE_NAME, my_fs);
-
-  printf("Freeing File System Memory...\n");
- 
-  //free file system from memory
-  free(my_fs);
-
-  printf("Reading in File System from file...\n");
-
-  //create new file system to read into
-  AOFS new_fs;
-
-  //read in file system from file
-  read_fs(FS_FILE_NAME, &new_fs);
-
+int clear_block(Block* block) {
+  strcpy(block->dbm.filename, "");
+  block->dbm.next = NULL;
+  block->dbm.head = false;
+  
+  byte* i_b = block->data;
+  memset(i_b, 0, BLOCK_DATA*sizeof(i_b[0]));
   return 0;
 }
-*/
+
+int allocate_block(AOFS* fs) {
+  SuperBlock *sb = &fs->sb;
+  uint8_t* map = fs->sb.bitmap;
+  int block_num = find_free_bit(map, sb->totalblocks);
+  if (block_num == -1) {
+    return -1;
+  }
+  set_bit(map, block_num);
+  Block *nb = &fs->blocks[block_num];
+  clear_block(nb);
+  return block_num;
+}
+
+int aofs_create_file(const char* filename, AOFS* fs) {
+  int block_num = allocate_block(fs);
+  if (block_num < 0)
+    return -ENOMEM;
+  
+  Block *nb = &fs->blocks[block_num];
+  BlockMeta *nb_meta = &nb->dbm;
+  strcpy(nb_meta->filename, filename);
+  nb_meta->head = true;
+  return block_num;
+}
+
+int find_file_head(const char* filename, AOFS* fs) {
+  BlockMeta* block = NULL;
+  int block_num;
+  for (block_num = 0; block_num < BLOCK_NUM; block_num++) {
+    if (bit_at(fs->sb.bitmap, block_num)) {
+      block = &fs->blocks[block_num].dbm;
+      if (block->head && !strcmp(block->filename,filename)) { // is a head block with matching filename
+	printf("find_file_head found '%s' head at %d\n", filename, block_num);
+	return block_num;
+      }
+    }
+  }
+  return -1;
+}
+
+int aofs_write(const char* filename, const char* buf, size_t size, AOFS* fs) {
+  int bytes_to_write = size;
+  int start_byte;
+  Block *block = NULL;
+  int block_num = find_file_head(filename, fs);
+  if (block_num < 0) {
+    return -1;
+  }
+  block = &fs->blocks[block_num];
+  while (bytes_to_write > 0) {
+    start_byte = size - bytes_to_write;
+    aofs_write_to_block(&buf[start_byte], block, bytes_to_write);
+    bytes_to_write -= BLOCK_DATA;
+    if (bytes_to_write > 0 && block->dbm.next == NULL) {
+      int b = allocate_block(fs);
+      Block* bp = &fs->blocks[b];
+      strcpy(bp->dbm.filename,filename);
+      block->dbm.next = bp;
+    }
+    block = block->dbm.next;
+  }  
+  return 0;
+}
+
+int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write) {
+  if (bytes_to_write > BLOCK_DATA)
+    bytes_to_write = BLOCK_DATA;
+  memcpy(block->data, buf, bytes_to_write);
+  return 0;
+}
