@@ -7,71 +7,43 @@
 #include <fcntl.h>
 #include "oper_fs.h"
 
-typedef enum run_option {NONE, BUILD, RUN, ALL} Option;
-	
-void print_usage(void) {
-  printf("usage\n");
-}
 
 int main(int argc, char *argv[])
 {
   char filename[256] = "";
   int iter;
-  Option fs_op = NONE;
+  AOFS* new_aofs;
 
-  //handle command line arguments  
-  for(iter = 1; iter < argc; ++iter) {
-    if((argv[iter][0] == '-') && (strlen(argv[iter]) == 2)) {
-      switch(argv[iter][1]) {
-        case 'c':
-          fs_op = BUILD; break;
-        case 'r':
-          fs_op = RUN; break;
-        case 'a':
-          fs_op = ALL; break;
-        default:
-          printf("Unrecognized flag: %s\n", argv[iter]);
-          print_usage();
-          return 1;
-      }
-    } else {
-      if(!strcmp(filename, "")) {
-        if(strlen(argv[iter]) > MAX_FILENAME) {
-          printf("Filename >%d characters.\n", MAX_FILENAME);
-        } else {
-          strcpy(filename, argv[iter]);
-        }
-      } else {
-        printf("Unrecognized argument: %s\n", argv[iter]);
-        print_usage();
-        return 1;
-      }
-    }
-  }
-
-  //check if option was selected
-  if(fs_op == NONE) {
-    printf("No run option selected.\n");
-    print_usage();
+  //check number of arguments
+  if(argc > 2) {
+    printf("Incorrect number of arguments.\n");
     return 1;
   }
 
-  //set default filename if no file was given
-  if(!strcmp(filename, "")) {
+  //initialize filename
+  if(argc == 2) {
+    if(strlen(argv[1]) > MAX_FILENAME) {
+      printf("Filename must be less than %d characters.\n", MAX_FILENAME);
+      return 1;
+    } else {
+      strcpy(filename, argv[1]);
+    }
+  } else {
     strcpy(filename, FS_FILE_NAME);
   }
 
-  //build filesystem
-  if(fs_op != RUN) {
-    printf("building filesystem...\n");
+  new_aofs = malloc(1*sizeof(AOFS));
+  if(init_fs(new_aofs) != 0) {
+    printf("Unable to initialize AOFS.\n");
+    return 1;
   }
-
-  //run filesystem
-  if(fs_op != BUILD) {
-    printf("running filesystem...\n");
-    //return fuse_main(argc, argv, NULL, NULL);
+  if(write_fs(filename, new_aofs) != 0) {
+    printf("Unable to write AOFS.\n");
+    return 1;
   }
-
+  free(new_aofs);
+  printf("Successfully created new file system in %s.\n", filename);
+  
   return 0;
 }
 
