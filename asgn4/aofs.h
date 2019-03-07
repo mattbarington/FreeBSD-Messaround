@@ -10,6 +10,8 @@
 #define byte unsigned char
 #define EMPTY 0x00
 
+#define FS_FILE_NAME "FS_FILE"
+
 //Magic number
 #define MAGICNUM 0xfa19283e
 //Block size
@@ -54,11 +56,11 @@ int find_free_bit(uint8_t map[], int num_bits);
 int set_bit(uint8_t map[], int bit_idx);
 /* sets the specified but in the bitmap to 0 */
 int clear_bit(uint8_t map[], int bit_idx);
-
+/* reads an AOFS structure in fs from specified file */
 int read_fs(const char* filename, AOFS* fs);
-
+/* writes the AOFS structure fs to a specified file */
 int write_fs(const char* filename, AOFS* fs);
-
+/* Initializes a new AOFS structure to default and empty values */
 int init_fs(AOFS* fs);
 
 #endif

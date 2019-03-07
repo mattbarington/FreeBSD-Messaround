@@ -115,7 +115,7 @@ int main() {
   printf("Writing File System to file...\n");
  
   //write file system to file
-  write_fs("fs.dat", my_fs);
+  write_fs(FS_FILE_NAME, my_fs);
 
   printf("Freeing File System Memory...\n");
  
@@ -128,7 +128,7 @@ int main() {
   AOFS new_fs;
 
   //read in file system from file
-  read_fs("fs.dat", &new_fs);
+  read_fs(FS_FILE_NAME, &new_fs);
 
   return 0;
 }
