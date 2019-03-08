@@ -11,6 +11,9 @@ static const char *hello_str = "Hello World!\n";
 static const char *hello_path = "/hello";
 static const char* hola_path = "/HolaMundo.txt";
 
+static AOFS* get_context() {
+  return ((AOFS *) fuse_get_context()->private_data);
+}
 
 static int aofs_getattr(const char *path, struct stat *stbuf)
 {
@@ -21,7 +24,7 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
     stbuf->st_mode = S_IFDIR | 0755;
     stbuf->st_nlink = 2;
   } else {
-    AOFS* fs = ((AOFS *) fuse_get_context()->private_data);
+    AOFS* fs = get_context();
     printf("checking for proper fetch: fs->present = %d\n", fs->present);
     int file_head = find_file_head(path, fs);
     printf("file head at %d. This is where we copy over the metadata\n", file_head);
@@ -50,6 +53,13 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   filler(buf, ".", NULL, 0);
   filler(buf, "..", NULL, 0);
   //Find all file names. Probably some inefficient iterative loop *barf*
+  AOFS* fs = get_context();
+  //  for (int block_num = 0; block_num < BLOCK_NUM; block_num++) {
+  //    if (bit_at
+  //  }
+  
+  
+  
   filler(buf, hola_path + 1, NULL, 0);
   //  filler(buf, hello_path + 1, NULL, 0);
   printf(" returned 0\n");

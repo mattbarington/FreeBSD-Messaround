@@ -80,11 +80,11 @@ int init_fs(AOFS* fs) {
     Block* b = &fs->blocks[block];
     const char* buf = "Hola Mundo, come mis shorts\n";
     const char* hola_path = "/HolaMundo.txt";
+    const char* dab = "DAB ON EM *dab* *dab* *dab*\n";
+    const char* ayy_path = "/AyyLmao.txt";
+    aofs_write(ayy_path, dab, strlen(dab), fs);
     aofs_write(hola_path, buf, strlen(buf), fs);
   }
-  
-
-  
   return 0;
 }
 
