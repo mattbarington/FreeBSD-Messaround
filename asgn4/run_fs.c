@@ -25,7 +25,7 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
   } else {
     AOFS* fs = get_context();
     printf("checking for proper fetch: fs->present = %d\n", fs->present);
-    int file_head = find_file_head(path, fs);
+    int file_head = aofs_find_file_head(path, fs);
     printf("file head at %d. This is where we copy over the metadata\n", file_head);
     
     //  }else if (strcmp(path, hello_path) == 0) {
@@ -53,13 +53,21 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   filler(buf, "..", NULL, 0);
   //Find all file names. Probably some inefficient iterative loop *barf*
   AOFS* fs = get_context();
-  //  for (int block_num = 0; block_num < BLOCK_NUM; block_num++) {
-  //    if (bit_at
-  //  }
+  BlockMeta* bm;
+  
+  for (int block_num = 0; block_num < BLOCK_NUM; block_num++) {
+    if (bit_at(fs->sb.bitmap, block_num)) {
+      bm = &fs->blocks[block_num].dbm;
+      if (bm->head) {
+	printf("found file '%s'\n", bm->filename);
+  	filler(buf, bm->filename + 1, NULL, 0);
+      }
+    }
+  }
   
   
   
-  filler(buf, hola_path + 1, NULL, 0);
+  //  filler(buf, hola_path + 1, NULL, 0);
   //  filler(buf, hello_path + 1, NULL, 0);
   printf(" returned 0\n");
   return 0;
