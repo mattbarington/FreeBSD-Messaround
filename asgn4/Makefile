@@ -10,7 +10,7 @@ init: init_disk.c aofs.o
 	${CC} init_disk.c aofs.o -o fs_$@  $(FUSE)
 
 run: run_fs.c aofs.o 
-	${CC} run_fs.c aofs.o  -o fs_$@  $(FUSE)
+	${CC} run_fs.c aofs.o -o fs_$@  $(FUSE)
 
 aofs.o:  aofs.c aofs.h
 	${CC} -c aofs.c

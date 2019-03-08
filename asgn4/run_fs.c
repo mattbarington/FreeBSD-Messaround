@@ -2,7 +2,7 @@
 
 #include <fuse.h>
 #include <stdio.h>
-#include  <string.h>
+#include <string.h>
 #include <errno.h>
 #include <fcntl.h>
 #include "aofs.h"
@@ -11,10 +11,13 @@ static const char *hello_str = "Hello World!\n";
 static const char *hello_path = "/hello";
 static const char* hola_path = "/HolaMundo.txt";
 
+<<<<<<< HEAD
 static AOFS* get_context() {
   return ((AOFS *) fuse_get_context()->private_data);
 }
 
+=======
+>>>>>>> d0dc5df652b6c5493cafa6a6838c591ab7e1617f
 static int aofs_getattr(const char *path, struct stat *stbuf)
 {
   printf("aofa_getattr. Path: %s\n",path);
@@ -74,7 +77,7 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 static struct fuse_operations aofs_oper = {
 	.getattr	= aofs_getattr,
 	.readdir	= aofs_readdir,
-	.create         = aofs_create,
+	.create   = aofs_create,
 };
 
 int main(int argc, char *argv[])
@@ -97,7 +100,7 @@ int main(int argc, char *argv[])
 
   AOFS* aofs = calloc(1,sizeof(AOFS));
   char* buf = malloc(sizeof(AOFS));
-  char* filename = "FS_FILE";
+  char* filename = FS_FILE_NAME;
   if (read_fs(filename, aofs) == -1) {
     printf("There was a problem loading the disk image\n");
     exit(1);
