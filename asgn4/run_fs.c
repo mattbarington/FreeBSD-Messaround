@@ -16,7 +16,7 @@ static AOFS* get_context() {
 }
 static int aofs_getattr(const char *path, struct stat *stbuf)
 {
-  printf("aofa_getattr. Path: %s\n",path);
+  printf("aofs_getattr. Path: %s\n",path);
   int res = 0;
   memset(stbuf, 0, sizeof(struct stat));
   if (strcmp(path, "/") == 0) {
@@ -42,7 +42,7 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
 static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			off_t offset, struct fuse_file_info *fi)
 {
-  printf("eraddir");
+  printf("readdir");
   (void) offset;
   (void) fi;
   
@@ -78,23 +78,34 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 
   printf("aofs_create\n");
 
-  AOFS* fs = get_context();
+  //AOFS* fs = get_context();
 
 
   //if file already exists, run open operation instead??
-  if(aofs_find_file_head(path, fs)) {
-    return aofs_open(path, fi);
-  }
+  //if(aofs_find_file_head(path, fs)) {
+  //  return aofs_open(path, fi);
+  //}
 
   //Create file at first avaliable block
-  return aofs_create_file(path, fs);  
+  
+  return 0;  
+}
+static int aofs2_write(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi) {
+  printf("write\n");
+  return 0;
+}
+static int aofs2_read(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi) {
+  printf("read\n");
+  return 0;
 }
 
 static struct fuse_operations aofs_oper = {
 	.getattr	= aofs_getattr,
 	.readdir	= aofs_readdir,
-	.create         = aofs_create,
-        .open           = aofs_open,
+	.create   = aofs_create,
+  .open     = aofs_open,
+  .read     = aofs2_read,
+  //.write    = aofs2_write
 };
 
 int main(int argc, char *argv[])
