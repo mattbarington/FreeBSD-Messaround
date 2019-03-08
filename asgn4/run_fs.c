@@ -88,7 +88,7 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 
 
   //if file already exists, run open operation instead??
-  if(find_file_head(path, fs)) {
+  if(aofs_find_file_head(path, fs)) {
     return aofs_open(path, fi);
   }
 
@@ -119,10 +119,10 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  printf("Launching AOFS file system from img %s in %s\n", argv[1], argv[2]);
+  //printf("Launching AOFS file system from img %s in %s\n", argv[1], argv[2]);
 
   AOFS* aofs = calloc(1,sizeof(AOFS));
-  char* buf = malloc(sizeof(AOFS));
+  //char* buf = malloc(sizeof(AOFS));
   char* filename = FS_FILE_NAME;
   if (read_fs(filename, aofs) == -1) {
     printf("There was a problem loading the disk image\n");
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
   }
   printf("checking to see if it was read in correctly: present = %d\n",aofs->present);
   fuse_main(argc, argv, &aofs_oper, aofs);
-  
+
   return 0;
 }
 
