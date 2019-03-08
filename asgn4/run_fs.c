@@ -51,7 +51,7 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   
   filler(buf, ".", NULL, 0);
   filler(buf, "..", NULL, 0);
-  //Find all file names. Probably some inefficient iterative loop *barf*
+  //Find all file names with iterative loop *barf*
   AOFS* fs = get_context();
   BlockMeta* bm;
   
@@ -59,17 +59,11 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     if (bit_at(fs->sb.bitmap, block_num)) {
       bm = &fs->blocks[block_num].dbm;
       if (bm->head) {
-	printf("found file '%s'\n", bm->filename);
+	//	printf("found file '%s'\n", bm->filename);
   	filler(buf, bm->filename + 1, NULL, 0);
       }
     }
   }
-  
-  
-  
-  //  filler(buf, hola_path + 1, NULL, 0);
-  //  filler(buf, hello_path + 1, NULL, 0);
-  printf(" returned 0\n");
   return 0;
 }
 
@@ -99,8 +93,8 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 static struct fuse_operations aofs_oper = {
 	.getattr	= aofs_getattr,
 	.readdir	= aofs_readdir,
-	.create   = aofs_create,
-  .open     = aofs_open,
+	.create         = aofs_create,
+        .open           = aofs_open,
 };
 
 int main(int argc, char *argv[])
