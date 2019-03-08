@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
 int find_free_bit(uint8_t map[], int num_bits) {
    int el_size = sizeof(uint8_t) * 8;
    int bit_offset, byte_num, bit;
@@ -98,7 +97,7 @@ int write_fs(const char* filename, AOFS* fs) {
     return -1;
   }
 }
-
+/*
 int main() {
 
   printf("Creating File System...\n");
@@ -132,3 +131,4 @@ int main() {
 
   return 0;
 }
+*/
