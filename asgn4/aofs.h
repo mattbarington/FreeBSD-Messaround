@@ -35,6 +35,8 @@ typedef struct BlockMeta {
   char filename[256];
   struct Block* next;
   bool head;
+  int64_t create_time;
+  int64_t access_time;
 } BlockMeta;
 
 //Datablock metadata size
