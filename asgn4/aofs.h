@@ -11,6 +11,7 @@
 #define EMPTY 0x00
 
 #define FS_FILE_NAME "FS_FILE"
+#define MAX_FILENAME 255
 
 //Magic number
 #define MAGICNUM 0xfa19283e
