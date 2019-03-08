@@ -5,7 +5,7 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
-#include "oper_fs.h"
+#include "aofs.h"
 
 
 int main(int argc, char *argv[])
