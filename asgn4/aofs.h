@@ -6,6 +6,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <time.h>
+#include <sys/_types.h>
 
 #define byte unsigned char
 #define EMPTY 0x00
@@ -35,8 +37,20 @@ typedef struct BlockMeta {
   char filename[256];
   struct Block* next;
   bool head;
-  int64_t create_time;
-  int64_t access_time;
+  //  __dev_t   st_dev;               /* inode's device */
+  //  ino_t     st_ino;               /* inode's number */
+  __mode_t    st_mode;              /* inode protection mode */
+  //  nlink_t   st_nlink;             /* number of hard links */
+  //uid_t     st_uid;               /* user ID of the file's owner */
+  //  gid_t     st_gid;               /* group ID of the file's group */
+  uint64_t  st_atim;              /* time of last access */
+  uint64_t  st_mtim;              /* time of last data modification */
+  uint64_t  st_ctim;              /* time of last file status change */
+  off_t     st_size;              /* file size, in bytes */
+  __blkcnt_t st_blocks;             /* blocks allocated for file */
+  __blksize_t st_blksize;           /* optimal blocksize for I/O */
+  __fflags_t  st_flags;             /* user defined flags for file */
+  uint64_t  st_birthtim;          /* time of file creation */
 } BlockMeta;
 
 //Datablock metadata size
@@ -49,7 +63,6 @@ typedef struct Block {
 } Block;
 
 typedef struct AOFS {
-  int present;
   SuperBlock sb;
   Block blocks[BLOCK_NUM];
 } AOFS;

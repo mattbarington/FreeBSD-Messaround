@@ -4,7 +4,7 @@ EXE= fs_run fs_init
 
 make:
 	@echo No target specified for make.
-
+all: init run
 
 init: init_disk.c aofs.o
 	${CC} init_disk.c aofs.o -o fs_$@  $(FUSE)

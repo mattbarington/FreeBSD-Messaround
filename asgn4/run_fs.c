@@ -24,7 +24,6 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
     stbuf->st_nlink = 2;
   } else {
     AOFS* fs = get_context();
-    printf("checking for proper fetch: fs->present = %d\n", fs->present);
     int file_head = aofs_find_file_head(path, fs);
     printf("file head at %d. This is where we copy over the metadata\n", file_head);
     
@@ -35,21 +34,23 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
     //  } else
     //    res = -ENOENT;
   }
-  printf("res = %d\n",res);
   return res;
 }
 
 static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			off_t offset, struct fuse_file_info *fi)
 {
-  printf("eraddir");
+  printf("readdir\n");
   (void) offset;
   (void) fi;
   
-  if (strcmp(path, "/") != 0)
-    return -ENOENT;
+  if (strcmp(path, "/") != 0) {
+    //    return -ENOENT;
+    filler(buf, path + 1, NULL, 0);
+    return 0;
+  }
   
-  filler(buf, ".", NULL, 0);
+  
   filler(buf, "..", NULL, 0);
   //Find all file names with iterative loop *barf*
   AOFS* fs = get_context();
@@ -90,11 +91,24 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
   return aofs_create_file(path, fs);  
 }
 
+static int aofs_read(const char *path, char *buf, size_t size, off_t offset,
+		     struct fuse_file_info *fi) {
+  printf("called aofs_read\n");
+  return 0;
+}
+
+static int aofs2_write(const char *path, const char *buf, size_t size,
+		     off_t offset, struct fuse_file_info *file_info) {
+  return 0;
+}
+
 static struct fuse_operations aofs_oper = {
 	.getattr	= aofs_getattr,
 	.readdir	= aofs_readdir,
 	.create         = aofs_create,
-        .open           = aofs_open,
+        .read           = aofs_read,
+	.open           = aofs_open,
+        .write          = aofs2_write,
 };
 
 int main(int argc, char *argv[])
@@ -122,7 +136,6 @@ int main(int argc, char *argv[])
     printf("There was a problem loading the disk image\n");
     exit(1);
   }
-  printf("checking to see if it was read in correctly: present = %d\n",aofs->present);
   fuse_main(argc, argv, &aofs_oper, aofs);
   
   return 0;

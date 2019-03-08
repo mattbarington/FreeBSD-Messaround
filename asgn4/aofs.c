@@ -60,7 +60,6 @@ int init_fs(AOFS* fs) {
   fs->sb.magicnum    = MAGICNUM;
   fs->sb.totalblocks = BLOCK_NUM;
   fs->sb.blocksize   = BLOCK_SIZE;
-  fs->present = 32;
   
   //initialize bitmap
   for(iter = 0; iter < BITMAP_SIZE; ++iter) {
@@ -119,6 +118,15 @@ int clear_block(Block* block) {
   strcpy(block->dbm.filename, "");
   block->dbm.next = NULL;
   block->dbm.head = false;
+  block->dbm.st_atim = time(NULL);
+  block->dbm.st_mtim = time(NULL);
+  block->dbm.st_ctim = time(NULL);
+  block->dbm.st_birthtim = time(NULL);
+  block->dbm.st_size = 0;
+  block->dbm.st_blocks = 0;
+  block->dbm.st_blksize = BLOCK_SIZE;
+  block->dbm.st_flags = 0;
+  
   
   byte* i_b = block->data;
   memset(i_b, 0, BLOCK_DATA*sizeof(i_b[0]));
