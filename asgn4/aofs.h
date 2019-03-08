@@ -49,6 +49,7 @@ typedef struct Block {
 } Block;
 
 typedef struct AOFS {
+  int present;
   SuperBlock sb;
   Block blocks[BLOCK_NUM];
 } AOFS;

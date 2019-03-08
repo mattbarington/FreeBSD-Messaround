@@ -60,6 +60,7 @@ int init_fs(AOFS* fs) {
   fs->sb.magicnum    = MAGICNUM;
   fs->sb.totalblocks = BLOCK_NUM;
   fs->sb.blocksize   = BLOCK_SIZE;
+  fs->present = 32;
   
   //initialize bitmap
   for(iter = 0; iter < BITMAP_SIZE; ++iter) {

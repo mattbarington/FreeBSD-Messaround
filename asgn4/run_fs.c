@@ -13,12 +13,14 @@ static const char *hello_path = "/hello";
 
 static int aofs_getattr(const char *path, struct stat *stbuf)
 {
+  printf("aofa_getattr\n");
   int res = 0;
   memset(stbuf, 0, sizeof(struct stat));
   if (strcmp(path, "/") == 0) {
     stbuf->st_mode = S_IFDIR | 0755;
     stbuf->st_nlink = 2;
-    
+    AOFS* fs = ((AOFS *) fuse_get_context()->private_data);
+    printf("checking for proper fetch: fs->present = %d\n", fs->present);
     //  }else if (strcmp(path, hello_path) == 0) {
     //    stbuf->st_mode = S_IFREG | 0444;
     //    stbuf->st_nlink = 1;
@@ -56,7 +58,8 @@ int main(int argc, char *argv[])
   
   //check number of arguments
   if(argc < 2) {
-    printf("Incorrect number of arguments.\n");
+        printf("Incorrect number of arguments.\n");
+    //    printf("Incorrect number of arguments.\nMust Provide <disk_img> <mount folder>");
     return 1;
   }
 
@@ -66,8 +69,17 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  printf("Launching AOFS file system in %s\n", argv[1]);
-  fuse_main(argc, argv, &aofs_oper, NULL);
+  printf("Launching AOFS file system from img %s in %s\n", argv[1], argv[2]);
+
+  AOFS* aofs = calloc(1,sizeof(AOFS));
+  char* buf = malloc(sizeof(AOFS));
+  char* filename = "FS_FILE";
+  if (read_fs(filename, aofs) == -1) {
+    printf("There was a problem loading the disk image\n");
+    exit(1);
+  }
+  printf("checking to see if it was read in correctly: present = %d\n",aofs->present);
+  fuse_main(argc, argv, &aofs_oper, aofs);
   
   return 0;
 }
