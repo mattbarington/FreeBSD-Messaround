@@ -5,11 +5,11 @@ EXE= fs_run fs_init
 make:
 	@echo No target specified for make.
 
-fs_init: init_disk.c oper_fs.o aofs.o
-	${CC} init_disk.c aofs.o oper_fs.o -o $@  $(FUSE)
+init: init_disk.c oper_fs.o aofs.o
+	${CC} init_disk.c aofs.o oper_fs.o -o fs_$@  $(FUSE)
 
-fs_run: run_fs.c oper_fs.o aofs.o 
-	${CC} run_fs.c aofs.o oper_fs.o -o $@  $(FUSE)
+run: run_fs.c oper_fs.o aofs.o 
+	${CC} run_fs.c aofs.o oper_fs.o -o fs_$@  $(FUSE)
 
 aofs.o:  aofs.c aofs.h
 	${CC} -c aofs.c

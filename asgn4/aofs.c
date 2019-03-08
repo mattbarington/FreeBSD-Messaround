@@ -30,7 +30,7 @@ int set_bit(uint8_t map[], int bit_idx) {
   int bit_offset = bit_idx % el_size;
   int byte_num   = bit_idx / el_size;
   if ((map[byte_num] >> bit_offset) & 1U) { //Bit at bit_idx is already set
-    return 1;
+    return -1;
   } else {
     int mask = 1 << bit_offset;
     map[byte_num] |= mask;
@@ -43,7 +43,7 @@ int clear_bit(uint8_t map[], int bit_idx) {
   int bit_offset = bit_idx % el_size;
   int byte_num   = bit_idx / el_size;
   if (!((map[byte_num] >> bit_offset) & 1U)) { //Bit at bit_idx is already 0
-    return 1;
+    return -1;
   } else {
     int mask = ~(1U << bit_offset);
     map[byte_num] &= mask;
@@ -70,7 +70,21 @@ int init_fs(AOFS* fs) {
   //initialize datablocks
   for(iter = 0; iter < BITMAP_SIZE; ++iter) {
     clear_block(&fs->blocks[iter]);
-  }    
+  }
+
+  //pretend to put file "HolaMundo.txt" at block 42. This is for testing only.
+  int block = 42;
+  if (set_bit(fs->sb.bitmap, block)) {
+    printf("Something went wrong while trying to make HolaMundo file\n");
+  } else {
+    Block* b = &fs->blocks[block];
+    const char* buf = "Hola Mundo, come mis shorts\n";
+    const char* hola_path = "/HolaMundo.txt";
+    aofs_write(hola_path, buf, strlen(buf), fs);
+  }
+  
+
+  
   return 0;
 }
 
@@ -137,11 +151,14 @@ int aofs_create_file(const char* filename, AOFS* fs) {
 }
 
 int find_file_head(const char* filename, AOFS* fs) {
+  printf("in findfile_head. Looking for %s\n",filename);
   BlockMeta* block = NULL;
   int block_num;
   for (block_num = 0; block_num < BLOCK_NUM; block_num++) {
     if (bit_at(fs->sb.bitmap, block_num)) {
       block = &fs->blocks[block_num].dbm;
+      if (block->head)
+	printf("is '%s' the file you're looking for?\n", block->filename);
       if (block->head && !strcmp(block->filename,filename)) { // is a head block with matching filename
 	printf("find_file_head found '%s' head at %d\n", filename, block_num);
 	return block_num;
@@ -157,7 +174,7 @@ int aofs_write(const char* filename, const char* buf, size_t size, AOFS* fs) {
   Block *block = NULL;
   int block_num = find_file_head(filename, fs);
   if (block_num < 0) {
-    return -1;
+    block_num = aofs_create_file(filename, fs);
   }
   block = &fs->blocks[block_num];
   while (bytes_to_write > 0) {
