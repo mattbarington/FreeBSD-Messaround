@@ -4,6 +4,19 @@
 #include <stdio.h>
 #include <errno.h>
 
+/*
+int logger(const char* msg) {
+
+  FILE* lg = fopen("log.dat", "a");
+  if(lg) {
+    fprintf(lg, "%s\n", msg);
+    fclose(lg);
+    return 0;
+  } else {
+    return -1;
+  }
+}*/
+
 int bit_at(uint8_t map[], int idx) {
   int el_size    = sizeof(uint8_t) * 8;
   int bit_offset = idx % el_size;
@@ -131,6 +144,8 @@ int clear_block(Block* block) {
   
   byte* i_b = block->data;
   memset(i_b, 0, BLOCK_DATA*sizeof(i_b[0]));
+  char empty[2] = "\0";
+  strcpy(i_b, empty);
   return 0;
 }
 
@@ -148,14 +163,17 @@ int aofs_allocate_block(AOFS* fs) {
 }
 
 int aofs_create_file(const char* filename, AOFS* fs) {
+  printf("Finding block to allocate for aofs_create_file\n");
   int block_num = aofs_allocate_block(fs);
   if (block_num < 0)
     return -ENOMEM;
   
+  printf("Block found!\n");
   Block *nb = &fs->blocks[block_num];
   BlockMeta *nb_meta = &nb->dbm;
   strcpy(nb_meta->filename, filename);
   nb_meta->head = true;
+  printf("Block initialized!\n");
   return block_num;
 }
 

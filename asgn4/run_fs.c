@@ -41,8 +41,11 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
       stbuf->st_uid = getuid();
       stbuf->st_gid = getgid();
       stbuf->st_mode = S_IFREG | 0444 | 0777;
-      
-	
+      printf("Finished setting file.");	
+    }
+    //file does not exist
+    else {
+      return -ENOENT;
     }
     //  }else if (strcmp(path, hello_path) == 0) {
     //    stbuf->st_mode = S_IFREG | 0444;
@@ -97,8 +100,7 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 
   printf("aofs_create\n");
 
-  //AOFS* fs = get_context();
-
+  AOFS* fs = get_context();
 
   //if file already exists, run open operation instead??
   //if(aofs_find_file_head(path, fs)) {
@@ -106,8 +108,11 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
   //}
 
   //Create file at first avaliable block
-  
-  return 0;  
+  int x = aofs_create_file(path, fs); 
+  printf("new file at: %d\n", x);
+  if(x >= 0) {
+    return 0;
+  } else { return -1;}  
 }
 
 static int aofs2_read(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi) {
