@@ -5,7 +5,7 @@
 #include  <string.h>
 #include <errno.h>
 #include <fcntl.h>
-#include "oper_fs.h"
+#include "aofs.h"
 
 static const char *hello_str = "Hello World!\n";
 static const char *hello_path = "/hello";
