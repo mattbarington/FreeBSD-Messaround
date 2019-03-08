@@ -11,13 +11,9 @@ static const char *hello_str = "Hello World!\n";
 static const char *hello_path = "/hello";
 static const char* hola_path = "/HolaMundo.txt";
 
-<<<<<<< HEAD
 static AOFS* get_context() {
   return ((AOFS *) fuse_get_context()->private_data);
 }
-
-=======
->>>>>>> d0dc5df652b6c5493cafa6a6838c591ab7e1617f
 static int aofs_getattr(const char *path, struct stat *stbuf)
 {
   printf("aofa_getattr. Path: %s\n",path);
