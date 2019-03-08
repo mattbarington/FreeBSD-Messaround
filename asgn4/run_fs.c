@@ -105,7 +105,7 @@ static struct fuse_operations aofs_oper = {
 	.create   = aofs_create,
   .open     = aofs_open,
   .read     = aofs2_read,
-  //.write    = aofs2_write
+  .write    = aofs2_write,
 };
 
 int main(int argc, char *argv[])
