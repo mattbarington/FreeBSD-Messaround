@@ -51,7 +51,7 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   
   filler(buf, ".", NULL, 0);
   filler(buf, "..", NULL, 0);
-  //Find all file names. Probably some inefficient iterative loop *barf*
+  //Find all file names with iterative loop *barf*
   AOFS* fs = get_context();
   BlockMeta* bm;
   
