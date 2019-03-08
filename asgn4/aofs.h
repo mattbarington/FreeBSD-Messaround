@@ -90,7 +90,7 @@ int aofs_create_file(const char* filename, AOFS* fs);
 /* Returns the block index of a file's head block */
 int aofs_find_file_head(const char* filename, AOFS* fs);
 /* Writes to a file */
-int aofs_write(const char* filename, const char* buf, size_t size, AOFS* fs);
+int aofs_write_file(const char* filename, const char* buf, size_t size, AOFS* fs);
 /* Attempts to write buffer into block. Returns the number of bytes written */
 int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write);
 

@@ -81,8 +81,8 @@ int init_fs(AOFS* fs) {
     const char* hola_path = "/HolaMundo.txt";
     const char* dab = "DAB ON EM *dab* *dab* *dab*\n";
     const char* ayy_path = "/AyyLmao.txt";
-    aofs_write(ayy_path, dab, strlen(dab), fs);
-    aofs_write(hola_path, buf, strlen(buf), fs);
+    aofs_write_file(ayy_path, dab, strlen(dab), fs);
+    aofs_write_file(hola_path, buf, strlen(buf), fs);
   }
   return 0;
 }
@@ -118,6 +118,7 @@ int clear_block(Block* block) {
   strcpy(block->dbm.filename, "");
   block->dbm.next = NULL;
   block->dbm.head = false;
+  
   block->dbm.st_atim = time(NULL);
   block->dbm.st_mtim = time(NULL);
   block->dbm.st_ctim = time(NULL);
@@ -159,16 +160,16 @@ int aofs_create_file(const char* filename, AOFS* fs) {
 }
 
 int aofs_find_file_head(const char* filename, AOFS* fs) {
-  printf("in findfile_head. Looking for %s\n",filename);
+  //  printf("in findfile_head. Looking for %s\n",filename);
   BlockMeta* block = NULL;
   int block_num;
   for (block_num = 0; block_num < BLOCK_NUM; block_num++) {
     if (bit_at(fs->sb.bitmap, block_num)) {
       block = &fs->blocks[block_num].dbm;
-      if (block->head)
-	printf("is '%s' the file you're looking for?\n", block->filename);
+      //      if (block->head)
+      //	printf("is '%s' the file you're looking for?\n", block->filename);
       if (block->head && !strcmp(block->filename,filename)) { // is a head block with matching filename
-	printf("find_file_head found '%s' head at %d\n", filename, block_num);
+	//	printf("find_file_head found '%s' head at %d\n", filename, block_num);
 	return block_num;
       }
     }
@@ -176,7 +177,7 @@ int aofs_find_file_head(const char* filename, AOFS* fs) {
   return -1;
 }
 
-int aofs_write(const char* filename, const char* buf, size_t size, AOFS* fs) {
+int aofs_write_file(const char* filename, const char* buf, size_t size, AOFS* fs) {
   int bytes_to_write = size;
   int start_byte;
   Block *block = NULL;
