@@ -125,7 +125,7 @@ int clear_block(Block* block) {
   return 0;
 }
 
-int allocate_block(AOFS* fs) {
+int aofs_allocate_block(AOFS* fs) {
   SuperBlock *sb = &fs->sb;
   uint8_t* map = fs->sb.bitmap;
   int block_num = find_free_bit(map, sb->totalblocks);
@@ -139,7 +139,7 @@ int allocate_block(AOFS* fs) {
 }
 
 int aofs_create_file(const char* filename, AOFS* fs) {
-  int block_num = allocate_block(fs);
+  int block_num = aofs_allocate_block(fs);
   if (block_num < 0)
     return -ENOMEM;
   
@@ -150,7 +150,7 @@ int aofs_create_file(const char* filename, AOFS* fs) {
   return block_num;
 }
 
-int find_file_head(const char* filename, AOFS* fs) {
+int aofs_find_file_head(const char* filename, AOFS* fs) {
   printf("in findfile_head. Looking for %s\n",filename);
   BlockMeta* block = NULL;
   int block_num;
@@ -172,7 +172,7 @@ int aofs_write(const char* filename, const char* buf, size_t size, AOFS* fs) {
   int bytes_to_write = size;
   int start_byte;
   Block *block = NULL;
-  int block_num = find_file_head(filename, fs);
+  int block_num = aofs_find_file_head(filename, fs);
   if (block_num < 0) {
     block_num = aofs_create_file(filename, fs);
   }
@@ -182,7 +182,7 @@ int aofs_write(const char* filename, const char* buf, size_t size, AOFS* fs) {
     aofs_write_to_block(&buf[start_byte], block, bytes_to_write);
     bytes_to_write -= BLOCK_DATA;
     if (bytes_to_write > 0 && block->dbm.next == NULL) {
-      int b = allocate_block(fs);
+      int b = aofs_allocate_block(fs);
       Block* bp = &fs->blocks[b];
       strcpy(bp->dbm.filename,filename);
       block->dbm.next = bp;

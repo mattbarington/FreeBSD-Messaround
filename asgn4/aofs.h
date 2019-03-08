@@ -71,11 +71,11 @@ int init_fs(AOFS* fs);
 /* Wipes block's data and metadata */
 int clear_block(Block*);
 /* Finds the first available block, marks it as unavailable, and returns its block address */
-int allocate_block(AOFS* fs);
+int aofs_allocate_block(AOFS* fs);
 /* Initializes a single file block for a file */
 int aofs_create_file(const char* filename, AOFS* fs);
 /* Returns the block index of a file's head block */
-int find_file_head(const char* filename, AOFS* fs);
+int aofs_find_file_head(const char* filename, AOFS* fs);
 /* Writes to a file */
 int aofs_write(const char* filename, const char* buf, size_t size, AOFS* fs);
 /* Attempts to write buffer into block. Returns the number of bytes written */
