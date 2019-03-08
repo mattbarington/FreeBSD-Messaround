@@ -65,15 +65,34 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   return 0;
 }
 
-static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
-  printf("Simon says to create file '%s'\n. Fuck, not implemented yet?\n", path);
+static int aofs_open(const char *path, struct fuse_file_info *fi) {
+
+  printf("aofs_open\n");
+
   return 0;
+}
+
+static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
+
+  printf("aofs_create\n");
+
+  AOFS* fs = get_context();
+
+
+  //if file already exists, run open operation instead??
+  if(find_file_head(path, fs)) {
+    return aofs_open(path, fi);
+  }
+
+  //Create file at first avaliable block
+  return aofs_create_file(path, fs);  
 }
 
 static struct fuse_operations aofs_oper = {
 	.getattr	= aofs_getattr,
 	.readdir	= aofs_readdir,
 	.create   = aofs_create,
+  .open     = aofs_open,
 };
 
 int main(int argc, char *argv[])
