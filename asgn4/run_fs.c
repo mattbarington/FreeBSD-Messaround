@@ -55,18 +55,19 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   AOFS* fs = get_context();
   BlockMeta* bm;
   
-  //  for (int block_num = 0; block_num < BLOCK_NUM; block_num++) {
-  //    if (bit_at(fs->sb.bitmap, block_num)) {
-  //      bm = &fs->blocks[block_num].dbm;
-  //      if (bm->head) {
-  //	filler(buf(
-  //      }
-  //    }
-  //  }
+  for (int block_num = 0; block_num < BLOCK_NUM; block_num++) {
+    if (bit_at(fs->sb.bitmap, block_num)) {
+      bm = &fs->blocks[block_num].dbm;
+      if (bm->head) {
+	printf("found file '%s'\n", bm->filename);
+  	filler(buf, bm->filename + 1, NULL, 0);
+      }
+    }
+  }
   
   
   
-  filler(buf, hola_path + 1, NULL, 0);
+  //  filler(buf, hola_path + 1, NULL, 0);
   //  filler(buf, hello_path + 1, NULL, 0);
   printf(" returned 0\n");
   return 0;
