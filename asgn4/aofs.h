@@ -8,6 +8,7 @@
 #include <string.h>
 #include <time.h>
 #include <sys/_types.h>
+#include <fcntl.h>
 
 #define byte unsigned char
 #define EMPTY 0x00
@@ -25,6 +26,7 @@
 #define BITMAP_SIZE (BLOCK_NUM / sizeof(uint8_t))
 #define SUPER_BLOCK_OFFSET 0
 #define BLOCK_OFFSET(block_num) 4 + (block_num*sizeof(Block))
+#define OPEN_DISK open("FS_FILE", O_RDWR, 0777)
 
 typedef struct SuperBlock {
   uint32_t magicnum;
@@ -37,7 +39,7 @@ struct Block;
 
 typedef struct BlockMeta {
   char filename[256];
-  struct Block* next;
+  int next;
   bool head;
   //  __dev_t   st_dev;               /* inode's device */
   //  ino_t     st_ino;               /* inode's number */
@@ -94,7 +96,7 @@ int init_fs(AOFS* fs);
 /* Wipes block's data and metadata */
 int clear_block(Block*);
 /* Finds the first available block, marks it as unavailable, and returns its block address */
-int aofs_allocate_block(AOFS* fs);
+int aofs_allocate_block(Block* block);
 /* Initializes a single file block for a file */
 int aofs_create_file(const char* filename, AOFS* fs);
 /* Returns the block index of a file's head block */

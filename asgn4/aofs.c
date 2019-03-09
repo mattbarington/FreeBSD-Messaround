@@ -153,6 +153,7 @@ int clear_block(Block* block) {
   return 0;
 }
 
+/*
 int aofs_allocate_block(AOFS* fs) {
   SuperBlock *sb = &fs->sb;
   uint8_t* map = fs->sb.bitmap;
@@ -165,9 +166,22 @@ int aofs_allocate_block(AOFS* fs) {
   clear_block(nb);
   return block_num;
 }
+*/
+int aofs_allocate_block(Block* block) {
+  SuperBlock sb;
+  int disk = OPEN_DISK;
+  if (disk < 0) {
+    printf("There was a problem opening the disk image\n");
+    return -1;
+  }
+  read_super_block(disk, &sb);
+  return 0;
+}
 
-int aofs_create_file(const char* filename, AOFS* fs) {
-  printf("Finding block to allocate for aofs_create_file\n");
+int aofs_create_file(const char* filename) {
+  SuperBlock* sb = malloc(sizeof(SuperBlock));
+  
+  
   int block_num = aofs_allocate_block(fs);
   if (block_num < 0)
     return -ENOMEM;
