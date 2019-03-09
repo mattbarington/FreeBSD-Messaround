@@ -6,6 +6,9 @@ make:
 	@echo No target specified for make.
 all: init run
 
+benchmark: benchmark.c
+	${CC} benchmark.c -o $@
+
 init: init_disk.c aofs.o
 	${CC} init_disk.c aofs.o -o fs_$@  $(FUSE)
 
