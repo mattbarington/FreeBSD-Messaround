@@ -258,7 +258,7 @@ int delete_chain(int disk, int blockidx) {
   return 0;
 }
 
-int aofs_write_file(int disk, const char* filename, char* buf, size_t size, off_t offset) {
+int aofs_write_file(int disk, const char* filename, const char* buf, size_t size, off_t offset) {
   int bytes_to_write = size;
   int bytes_written = 0;
   Block* block = malloc(sizeof(Block));
@@ -446,3 +446,52 @@ int aofs_delete_file(int disk, const char* path) {
   return 0;
 }
 
+int aofs_truncate_file(int fd, const char* path, off_t size) {
+
+  Block headblock, curblock;
+  int file_head;
+  off_t cur_size;
+  int cur_blocks, new_blocks, delete_blocks;
+  int next;
+  int i;
+
+  file_head = aofs_find_file_head(fd, path, &headblock);
+  if(file_head == -1) {
+    return -ENOENT;
+  }
+
+  read_block(fd, file_head, &curblock);
+  cur_size = curblock.dbm.st_size;
+  cur_blocks = (cur_size - 1) / BLOCK_DATA;
+  new_blocks = (size - 1) / BLOCK_DATA;
+ 
+  //break down file
+  if(size < cur_size) {
+    //delete extra blocks
+    delete_blocks = cur_blocks - new_blocks;
+    if(delete_blocks) {
+      //read to last block to keep
+      for(i = 0; i < new_blocks; ++i) {
+        read_block(fd, curblock.dbm.next, &curblock);
+      }
+      //remove all blocks after
+      next = curblock.dbm.next;
+      while(next != -1) {
+        next = aofs_deallocate_block(fd, next);
+      }
+    }
+
+    //change size to ignore rest of block
+    headblock.dbm.st_size = size;
+    write_block(fd, file_head, &headblock);
+  }
+
+  //append file
+  else if(size > cur_size) {
+    //add extra blocks
+    
+  }
+
+  return 0;
+  
+}
