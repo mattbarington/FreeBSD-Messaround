@@ -113,6 +113,8 @@ int aofs_read_file(int fd, const char* path, char* buf, size_t size, off_t offse
 /* Writes to a file */
 int aofs_write_file(int fd, const char* filename, char* buf, size_t size, off_t offset);
 
+int aofs_delete_file(int fd, const char* path);
+
 /* Attempts to write buffer into block. Returns the number of bytes written */
 //int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write);
 

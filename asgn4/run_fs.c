@@ -227,6 +227,18 @@ static int aofs_release(const char* path, struct fuse_file_info *fi) {
   return 0;
 }
 
+static int aofs_unlink(const char* path) {
+
+  int disk = OPEN_DISK;
+  if (disk < 0) {
+    printf("Unable to open disk image in %s\n",__func__);
+    return disk;
+  }
+  int res = aofs_delete_file(disk, path);
+  close(disk);
+  return res;
+}
+
 static struct fuse_operations aofs_oper = {
 	.getattr	= aofs_getattr,
 	.readdir	= aofs_readdir,
@@ -236,6 +248,7 @@ static struct fuse_operations aofs_oper = {
 	.write    = aofs_write,
 	.statfs   = aofs_statfs,
 	.release  = aofs_release,
+  .unlink   = aofs_unlink,
 };
 
 int main(int argc, char *argv[])
@@ -263,45 +276,6 @@ int main(int argc, char *argv[])
     printf("There was a problem loading the disk image\n");
     exit(1);
   }
-
-  int disk = OPEN_DISK;
-  if (disk < 0) {
-    printf("error opening disk >:(\n");
-    return disk;
-  }
-  //    aofs_create_file(hello_path);
-  char longboi[4110];
-  int fd = open("4kfile", O_RDWR);
-  if (fd < 0) {
-    printf("problem opening file\n");
-    exit(1);
-  }
-  const char* longpath = "/thisisbig";
-  int howlong = read(fd, longboi, sizeof(longboi));
-  printf("read in %lu bytes\n", strlen(longboi));
-  aofs_create_file(disk, hola_path);
-  aofs_write_file(disk, hello_path, hello_str, strlen(hello_str), 0);
-  aofs_write_file(disk, longpath, longboi, strlen(longboi), 0);
- 
-  
-  /*
-  char buf[256] = "A simple sentence. This is data that will live in the data portion of a file, and hopefully be present for some time";
-  SuperBlock super;
-  Block* block = malloc(sizeof(Block));
-  int block_num = 0;
-  read_super_block(disk, &super);
-  int first_free = find_free_bit(super.bitmap, super.totalblocks);
-  read_block(disk, block_num, block);
-  printf("First block filename is %s\n", block->dbm.filename);
-  printf("First free should be like 2? %d\nWriting a simple sentence to block %d\n", first_free,block_num);
-  memcpy(block->data,buf,sizeof(buf));
-  block->dbm.st_size = sizeof(buf);
-  write_block(disk, block_num, block);
-  free(block);
-  
-  */
-  print_aofs(disk);
-  close(disk);
   
   fuse_main(argc, argv, &aofs_oper, NULL);
 

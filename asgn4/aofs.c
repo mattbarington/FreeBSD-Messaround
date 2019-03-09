@@ -172,13 +172,6 @@ int clear_block(Block* block) {
 
 int aofs_allocate_block(int disk) {
   SuperBlock sb;
-  /*
-  int disk = OPEN_DISK;
-  if (disk < 0) {
-    printf("There was a problem opening the disk image in %s\n", __func__);
-    return -1;
-  }
-  */
   read_super_block(disk, &sb);
   uint8_t* map = sb.bitmap;
   int block_num = find_free_bit(map,sb.totalblocks);
@@ -190,7 +183,21 @@ int aofs_allocate_block(int disk) {
   clear_block(&b);
   write_block(disk, block_num, &b);
   write_super_block(disk, &sb);
-  //  close(disk);
+  return block_num;
+}
+
+int aofs_deallocate_block(int disk, int block_num) {
+  SuperBlock sb;
+  read_super_block(disk, &sb);
+  uint8_t* map = sb.bitmap;
+  if (block_num == -1) {
+    return -1;
+  }
+  clear_bit(map, block_num);
+  Block b;
+  clear_block(&b);
+  write_block(disk, block_num, &b);
+  write_super_block(disk, &sb);
   return block_num;
 }
 
@@ -402,3 +409,21 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
   return bytes_read;
 }
 
+int aofs_delete_file(int disk, const char* path) {
+
+  Block curblock;
+  int blockidx;
+
+  //find file head
+  blockidx = aofs_find_file_head(disk, path, &curblock); 
+  if (blockidx < 0) {
+    return -ENOENT;
+  }
+
+  do {
+    aofs_deallocate_block(disk, blockidx);
+    blockidx = curblock.dbm.next;
+  } while(blockidx != -1);
+
+  return 0;
+}
