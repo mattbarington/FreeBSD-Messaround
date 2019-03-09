@@ -268,8 +268,34 @@ int read_file(const char* path, char* buf, size_t size, off_t offset) {
     if(next_block < 0) { 
       return -ENOENT;
     }
+    //load next block
+    read_block(fd, &curblock, next_block);
   }
 
+  //read first block
+  memcpy(buf, curblock.data + block_offset, size_f);
+  
+  //read additional full blocks
+  for(i = 0; i < num_blocks - 1; ++i) {
+    int next_block = curblock.dbm.next;
+    if(next_block < 0) { 
+      return -ENOENT;
+    }
+    //load next block
+    read_block(fd, &curblock, next_block);
+    memcpy(buf + block_offset + (BLOCK_DATA * i), curblock.data, BLOCK_DATA);
+  }
+  //read last block
+  if(num_blocks > 0) {
+    int next_block = curblock.dbm.next;
+    if(next_block < 0) { 
+      return -ENOENT;
+    }
+    read_block(fd, &curblock, next_block);
+    memcpy(buf + buff_offset + (BLOCK_DATA * (num_blocks - 1)), curblock.data, size_l);
+  }
+
+  //all blocks read to buffer
   return 0;
 }
 
