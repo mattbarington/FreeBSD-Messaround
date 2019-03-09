@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <unistd.h>
 
 int bit_at(uint8_t map[], int idx) {
   int el_size    = sizeof(uint8_t) * 8;
@@ -81,8 +82,8 @@ int init_fs(AOFS* fs) {
     const char* hola_path = "/HolaMundo.txt";
     const char* dab = "DAB ON EM *dab* *dab* *dab*\n";
     const char* ayy_path = "/AyyLmao.txt";
-    aofs_write_file(ayy_path, dab, strlen(dab), fs);
-    aofs_write_file(hola_path, buf, strlen(buf), fs);
+    //    aofs_write_file(ayy_path, dab, strlen(dab), fs);
+    //    aofs_write_file(hola_path, buf, strlen(buf), fs);
   }
   return 0;
 }
@@ -114,6 +115,22 @@ int write_fs(const char* filename, AOFS* fs) {
   }
 }
 
+int read_block(int fd, int block_num, Block* block) {
+  lseek(fd, BLOCK_OFFSET(block_num), SEEK_SET);
+  return read(fd, block, sizeof(Block));
+}
+
+int read_super_block(int fd, SuperBlock* sb) {
+  lseek(fd, SUPER_BLOCK_OFFSET, SEEK_SET);
+  return read(fd, sb, sizeof(SuperBlock));
+}
+
+int write_block(int fd, int block_num, Block* block) {
+  lseek(fd, BLOCK_OFFSET(block_num), SEEK_SET);
+  return write(fd, block, sizeof(Block));
+}
+
+
 int clear_block(Block* block) {
   strcpy(block->dbm.filename, "");
   block->dbm.next = NULL;
@@ -130,9 +147,9 @@ int clear_block(Block* block) {
   
   
   byte* i_b = block->data;
-  memset(i_b, 0, BLOCK_DATA*sizeof(i_b[0]));
+  memset((char*)i_b, 0, BLOCK_DATA*sizeof(i_b[0]));
   char empty[2] = "\0";
-  strcpy(i_b, empty);
+  strcpy((char*)i_b, empty);
   return 0;
 }
 
@@ -255,5 +272,4 @@ int read_file(const char* path, char* buf, size_t size, off_t offset) {
 
   return 0;
 }
-
 
