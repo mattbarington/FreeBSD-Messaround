@@ -366,13 +366,12 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
   //      printf("%s\n", bb.data);
     block_num = block->dbm.next;
     memcpy(block, next_block, sizeof(Block));
-    
   }
 
   aofs_find_file_head(disk, filename, block);
   //  printf("ending file size %s = %ld\n", block->dbm.filename, block->dbm.st_size);
-  
-  printf("Printing AOFS from the write function:\n");
+
+  printf("AOFSafter write\n");
   print_aofs(disk);
   free(block);
   free(next_block);
