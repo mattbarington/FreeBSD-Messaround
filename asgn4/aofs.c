@@ -190,15 +190,12 @@ int aofs_deallocate_block(int disk, int block_num) {
   SuperBlock sb;
   read_super_block(disk, &sb);
   uint8_t* map = sb.bitmap;
-  if (block_num == -1) {
-    return -1;
-  }
   clear_bit(map, block_num);
   Block b;
   clear_block(&b);
   write_block(disk, block_num, &b);
   write_super_block(disk, &sb);
-  return block_num;
+  return b.dbm.next;
 }
 
 int aofs_create_file(int disk, const char* filename) {
@@ -241,6 +238,13 @@ int aofs_find_file_head(int disk, const char* filename, Block* block) {
     }
   }
   return -1;
+}
+
+int delete_chain(int disk, int blockidx) {
+  do {
+    blockidx = aofs_deallocate_block(disk, blockidx);
+  } while(blockidx != -1);
+  return 0;
 }
 
 int write_to_block(const char* buf, Block* block, int bytes_to_write) {
@@ -420,10 +424,9 @@ int aofs_delete_file(int disk, const char* path) {
     return -ENOENT;
   }
 
-  do {
-    aofs_deallocate_block(disk, blockidx);
-    blockidx = curblock.dbm.next;
-  } while(blockidx != -1);
+  //remove file recursively
+  delete_chain(disk, blockidx);
 
   return 0;
 }
+

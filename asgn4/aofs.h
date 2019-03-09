@@ -92,6 +92,8 @@ int read_block(int fd, int block_num, Block* block);
 int read_super_block(int fd, SuperBlock*);
 /* Writes provided block to disk img */
 int write_block(int fd, int block_num, Block* block);
+/* Deletes file blocks in chain, starting at block_num */
+int delete_chain(int fd, int block_num);
 
 /* Initializes a new AOFS structure to default and empty values */
 int init_fs(AOFS* fs);
