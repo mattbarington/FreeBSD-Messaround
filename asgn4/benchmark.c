@@ -1,31 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
-//#include <time.h>
 #include <string.h>
 #include <sys/time.h>
 
 //#define NUM_ARGS 2
 
 //https://stackoverflow.com/questions/307596/time-difference-in-c
-int diff_ms(struct timeval t1, struct timeval t2)
+long diff_ms(struct timeval t1, struct timeval t2)
 {
-    return (((t1.tv_sec - t2.tv_sec) * 1000000) + 
-            (t1.tv_usec - t2.tv_usec))/1000;
+    return (((t1.tv_sec - t2.tv_sec) * 1000000000) + 
+            (t1.tv_usec - t2.tv_usec));
 }
 
 int main(int argc, char* argv[]) {
 
-  int aofs_write_t;
+  long aofs_write_t;
   struct timeval aofs_write_s, aofs_write_f;
-  int fbsd_write_t;
+  long fbsd_write_t;
   struct timeval fbsd_write_s, fbsd_write_f;
-  int aofs_create_t;
+  long aofs_create_t;
   struct timeval aofs_create_s, aofs_create_f;
-  int fbsd_create_t;
+  long fbsd_create_t;
   struct timeval fbsd_create_s, fbsd_create_f;
-  int aofs_read_t;
+  long aofs_read_t;
   struct timeval aofs_read_s, aofs_read_f;
-  int fbsd_read_t;
+  long fbsd_read_t;
   struct timeval fbsd_read_s, fbsd_read_f;
 
   char run_aofs[] = "./init_fs ; ./run_fs aofs_test";
@@ -90,15 +89,15 @@ int main(int argc, char* argv[]) {
   //AOFS read test
   aofs_read_t = 420420420;
 
-  //print test results
+  //prlong test results
   printf("/------------------------------------\\\n");
-  printf("|       RESULTS (microseconds)       |\n");
+  printf("|       RESULTS (milliseconds)       |\n");
   printf("|------------------------------------|\n");
   printf("|  test  |   FreeBSD   |     AOFS    |\n");
   printf("|------------------------------------|\n");
-  printf("| create |%13d|%13d|\n", fbsd_create_t, aofs_create_t);
-  printf("| write  |%13d|%13d|\n", fbsd_write_t, aofs_write_t);
-  printf("| read   |%13d|%13d|\n", fbsd_read_t, aofs_read_t);
+  printf("| create |%13ld|%13ld|\n", fbsd_create_t, aofs_create_t);
+  printf("| write  |%13ld|%13ld|\n", fbsd_write_t, aofs_write_t);
+  printf("| read   |%13ld|%13ld|\n", fbsd_read_t, aofs_read_t);
   printf("\\------------------------------------/\n");
 
   //remove test folders
