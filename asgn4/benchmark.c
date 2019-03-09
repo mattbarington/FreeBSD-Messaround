@@ -12,6 +12,8 @@ long diff_ms(struct timeval t1, struct timeval t2)
             (t1.tv_usec - t2.tv_usec));
 }
 
+
+
 int main(int argc, char* argv[]) {
 
   long aofs_write_t;
@@ -35,36 +37,34 @@ int main(int argc, char* argv[]) {
   char make_aofs_folder[] = "mkdir aofs_test";
   char remove_fbsd_folder[] = "rm -rf fbsd_test";
   char remove_aofs_folder[] = "rm -rf aofs_test";
+  char remove_fbsd_sh[] = "rm fbsd.sh";
+  char remove_aofs_sh[] = "rm aofs.sh";
 
-  char fbsd_touch_100_files[] = "touch fbsd_test/test_file";
-  char aofs_touch_100_files[] = "touch aofs_test/test_file";
-  char fbsd_write_file[] = "dd if=/dev/urandom of=fbsd_test/test_file1 bs=8192 count=1";
-  char aofs_write_file[] = "dd if=/dev/urandom of=aofs_test/test_file1 bs=8192 count=1";
+  //char fbsd_touch_100_files[] = "touch fbsd_test/test_file";
+  //char aofs_touch_100_files[] = "touch aofs_test/test_file";
+  char fbsd_touch_100_files[] = "./fbsd.sh";
+  char aofs_touch_100_files[] = "./aofs.sh";
+  char fbsd_write_file[] = "dd if=/dev/urandom of=fbsd_test/test_file1 bs=8192 count=1 > /dev/null 2>&1 ";
+  char aofs_write_file[] = "dd if=/dev/urandom of=aofs_test/test_file1 bs=8192 count=1 > /dev/null 2>&1";
   char fbsd_read_file[] = "cat fbsd_test/test_file1 >nul 2>&1";
   char aofs_read_file[] = "cat aofs_test/test_file1 >nul 2>&1";
   int i;
-  
+
+  char fbsd_build_create[] = "touch fbsd.sh ; chmod 777 fbsd.sh ; printf 'for i in `seq 1 100`\ndo\n  touch fbsd_test/test_file$i\ndone' > fbsd.sh ;";
+  char aofs_build_create[] = "touch aofs.sh ; chmod 777 aofs.sh ; printf 'for i in `seq 1 100`\ndo\n  touch aofs_test/test_file$i\ndone' > aofs.sh ;";
+
   char touch_command[200];
   char numval[12];
-
-  //check for correct number of arguments
-  /*if(argc != NUM_ARGS) {
-    printf("Incorrect number of arguments. Expected=%d. Actual=%d\n", NUM_ARGS, argc);
-    return 1;
-  }*/
 
   //initialize test
   system(make_fbsd_folder);
   system(make_aofs_folder);
-  
+  system(fbsd_build_create);
+  system(aofs_build_create);
+
   //FreeBSD 100 files test
   gettimeofday(&fbsd_create_s, NULL);
-  for(i = 0; i < 100; ++i) {
-    sprintf(numval, "%d", i);
-    strcpy(touch_command, fbsd_touch_100_files);
-    strcat(touch_command, numval);
-    system(touch_command);
-  }
+  system(fbsd_touch_100_files);
   gettimeofday(&fbsd_create_f, NULL);
   fbsd_create_t = diff_ms(fbsd_create_f, fbsd_create_s);
   
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 
   //AOFS 100 files test
   aofs_create_t = 123412334;
-
+  
   //AOFS write test
   aofs_write_t = 69696969;
 
@@ -103,8 +103,8 @@ int main(int argc, char* argv[]) {
   //remove test folders
   system(remove_fbsd_folder);
   system(remove_aofs_folder);
-
-  
+  system(remove_fbsd_sh);
+  system(remove_aofs_sh);
 
   return 0;
 }
