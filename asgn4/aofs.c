@@ -4,7 +4,36 @@
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
+#include <limits.h>
+/*
+int open_disk() {
+  
+  FILE* wf;
 
+  wf = fopen("~/logfile", "w");
+  if(wf) {
+    fwrite("Opened", 6, 1, wf);
+    fclose(wf);
+  } else {
+    printf("couldn't open log file :(\n");
+    return -1;
+  }
+  
+  char current_dir[PATH_MAX];
+  getcwd(current_dir, sizeof(current_dir));
+  char FS_FILE_path[PATH_MAX];
+  memset(FS_FILE_path, 0, sizeof(FS_FILE_path));
+  printf("current_dir: %s\n", current_dir);
+  strcat(FS_FILE_path, current_dir);
+  strcat(FS_FILE_path, "/");
+  strcat(FS_FILE_path, FS_FILE_NAME);
+  printf("Opening disk with path: %s\n", FS_FILE_path);
+  //  write(logfile, FS_FILE_path, strlen(FS_FILE_path));
+  return open(FS_FILE_path, O_RDWR, 0777);
+  //  printf("opening disk with path %s\n", FS_FILE_NAME);
+  //  return open(FS_FILE_NAME, O_RDWR, 0777);
+}
+*/
 void print_aofs(int disk) {
   SuperBlock sb;
   read_super_block(disk, &sb);
@@ -137,7 +166,7 @@ int read_fs(const char* filename, AOFS* fs) {
 int write_fs(const char* filename, AOFS* fs) {
   int disk = open(filename, O_RDWR | O_CREAT, 0777);
   if (disk < 0) {
-    printf("There was a problem opening the disk image in %s\n",__func__);
+    printf("There was a problem opening disk image '%s' in %s\n",filename,__func__);
     return -1;
   }
   const int super_off = 0;
@@ -188,7 +217,6 @@ int clear_block(Block* block) {
   block->dbm.st_blksize = BLOCK_DATA;
   block->dbm.st_flags = 0;
   
-  
   byte* i_b = block->data;
   memset((char*)i_b, 0, BLOCK_DATA*sizeof(i_b[0]));
   char empty[2] = "\0";
@@ -238,13 +266,11 @@ int aofs_create_file(int disk, const char* filename) {
   //  int disk = OPEN_DISK;
   write_block(disk, block_num, &b);
 
-  SuperBlock sb;
-  read_super_block(disk, &sb);
-  int first_free = find_free_bit(sb.bitmap, sb.totalblocks);
+  //  SuperBlock sb;
+  //  read_super_block(disk, &sb);
+  //  int first_free = find_free_bit(sb.bitmap, sb.totalblocks);
   //  printf("first free after creation: %d\n", first_free);
 
-  
-  //  close(disk);
   return block_num;
 }
 
@@ -253,12 +279,12 @@ int aofs_find_file_head(int disk, const char* filename, Block* block) {
   read_super_block(disk, &sb);
   uint8_t* bitmap = sb.bitmap;
   int block_num;
-  Block* b = malloc(sizeof(Block));
+  Block b;// = malloc(sizeof(Block));
   for (block_num = 0; block_num < BLOCK_NUM; block_num++) {
     if (bit_at(bitmap, block_num)) {
-      read_block(disk, block_num, b);
-      if (b->dbm.head && !strcmp(b->dbm.filename,filename)) { //is a head block with matching filename
-	memcpy(block, b, sizeof(Block));
+      read_block(disk, block_num, &b);
+      if (b.dbm.head && !strcmp(b.dbm.filename,filename)) { //is a head block with matching filename
+	memcpy(block, &b, sizeof(Block));
 	return block_num;
       }
     }
@@ -269,11 +295,11 @@ int aofs_find_file_head(int disk, const char* filename, Block* block) {
 int write_to_block(const char* buf, Block* block, int bytes_to_write, off_t offset) {
   if (offset > BLOCK_DATA)
     return BLOCK_DATA; //offset is beyond this block
-  //  if (offset < 0)
-  //    offset = 0;    // this is just silly
+  if (offset < 0)
+    offset = 0;    // this is just silly
   if (bytes_to_write + offset > BLOCK_DATA) // offset is in this block. 
     bytes_to_write = BLOCK_DATA - offset;   // can't write all bytes, so write as many as will fit
-  printf("copying bytes from  %ld of length %d to block\n", offset, bytes_to_write);
+  //  printf("copying bytes from  %ld of length %d to block\n", offset, bytes_to_write);
   memcpy(&block->data[offset], buf, bytes_to_write);
   return bytes_to_write;
 }
@@ -314,7 +340,6 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
       read_block(disk, block->dbm.next, block);
       continue;
     }
-    //    printf("about to write to block %d for %s=%s\n", block_num, filename,block->dbm.filename);
     int wr = write_to_block(buf, block, bytes_to_write, offset);
     //    printf("just  wrote to block %d for %s=%s\n", block_num, filename,block->dbm.filename);
     //    printf("%s\n", block->data);
