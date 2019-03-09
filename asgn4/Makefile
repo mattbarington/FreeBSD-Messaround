@@ -27,5 +27,5 @@ reset: clean
 fresh: reset all
 	./fs_init
 
-unmount:
+umount:
 	umount /dev/fuse

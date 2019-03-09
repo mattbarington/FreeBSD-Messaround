@@ -43,7 +43,7 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
     return disk;
   }
   printf("aofs_getattr. Path: %s\n",path);
-//  print_stbuf(stbuf);
+  //  print_stbuf(stbuf);
   int res = 0;
   memset(stbuf, 0, sizeof(struct stat));
   if (strcmp(path, "/") == 0) {
@@ -93,7 +93,11 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
   (void) offset;
   (void) fi;
-  
+  int lgg = open("log.txt", O_CREAT | O_RDWR);
+  if (lgg < 0) {
+    printf("couldn't open log\n");
+  }
+  write(lgg, path, strlen(path));
   if (strcmp(path, "/") != 0) {
     filler(buf, path + 1, NULL, 0);
     return 0;
@@ -266,11 +270,21 @@ int main(int argc, char *argv[])
     return disk;
   }
   //    aofs_create_file(hello_path);
-  aofs_create_file(disk, hola_path); 
-  aofs_write_file(disk, hello_path, hello_str, sizeof(hello_str), 0);
+  char longboi[4110];
+  int fd = open("4kfile", O_RDWR);
+  if (fd < 0) {
+    printf("problem opening file\n");
+    exit(1);
+  }
+  const char* longpath = "/thisisbig";
+  int howlong = read(fd, longboi, sizeof(longboi));
+  printf("read in %lu bytes\n", strlen(longboi));
+  aofs_create_file(disk, hola_path);
+  aofs_write_file(disk, hello_path, hello_str, strlen(hello_str), 0);
+  aofs_write_file(disk, longpath, longboi, strlen(longboi), 0);
  
   
-  
+  /*
   char buf[256] = "A simple sentence. This is data that will live in the data portion of a file, and hopefully be present for some time";
   SuperBlock super;
   Block* block = malloc(sizeof(Block));
@@ -285,6 +299,8 @@ int main(int argc, char *argv[])
   write_block(disk, block_num, block);
   free(block);
   
+  */
+  print_aofs(disk);
   close(disk);
   
   fuse_main(argc, argv, &aofs_oper, NULL);
