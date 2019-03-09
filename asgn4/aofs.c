@@ -4,19 +4,6 @@
 #include <stdio.h>
 #include <errno.h>
 
-/*
-int logger(const char* msg) {
-
-  FILE* lg = fopen("log.dat", "a");
-  if(lg) {
-    fprintf(lg, "%s\n", msg);
-    fclose(lg);
-    return 0;
-  } else {
-    return -1;
-  }
-}*/
-
 int bit_at(uint8_t map[], int idx) {
   int el_size    = sizeof(uint8_t) * 8;
   int bit_offset = idx % el_size;
@@ -225,3 +212,48 @@ int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write) {
   memcpy(block->data, buf, bytes_to_write);
   return 0;
 }
+
+int read_file(const char* path, char* buf, size_t size, off_t offset) {
+
+  
+  Block curblock;
+
+  char filename[257];
+  //fix path to just be filename
+  strcpy(filename, path);
+  memmove(filename, filename+1, strlen(filename));
+  
+  //find head block for file
+  int head_block = aofs_find_file_head(filename, &curblock);
+
+  //calculate where buf should read from
+  int start_block, num_blocks, block_offset;
+  size_t size_f, size_l;
+  //NOTE: blocks indexed at 0, num_blocks = additional blocks beyond head block
+  //Example BLOCK_DATA = 3
+  //[...]-[.S.]-[...]-[.E.]
+  //start_block = 4 / 3 => 1
+  //block_offset = 4 - (1 * 3) => 1
+  //num_blocks = (1 + 7) / 3 => 2
+  //size_f = 3 - 1 => 2
+  //size_l = 7 - (2 + ((2 - 1) * 3)) => 2
+ 
+  start_block = offset / BLOCK_DATA; //find where the offset starts
+  block_offset = offset - (start_block * BLOCK_DATA);
+  num_blocks = (block_offset + size) / BLOCK_DATA; //find number of blocks its in
+  size_f = ((num_blocks == 0) ? size : BLOCK_DATA - block_offset);
+  size_l = ((num_blocks == 0) ? 0 : size - (size_f + ((num_blocks - 1) * BLOCK_DATA)));
+
+  //get the first block
+  int i;
+  for(i = 0; i < start_block; ++i) { 
+    int next_block = curblock.dbm.next;
+    if(next_block < 0) { 
+      return -ENOENT;
+    }
+  }
+
+  return 0;
+}
+
+
