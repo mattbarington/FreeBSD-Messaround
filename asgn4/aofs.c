@@ -246,10 +246,12 @@ int aofs_deallocate_block(int disk, int block_num) {
   uint8_t* map = sb.bitmap;
   clear_bit(map, block_num);
   Block b;
+  read_block(disk, block_num, &b);
+  int n = b.dbm.next;
   clear_block(&b);
   write_block(disk, block_num, &b);
   write_super_block(disk, &sb);
-  return b.dbm.next;
+  return n;
 }
 
 int aofs_create_file(int disk, const char* filename) {
@@ -306,7 +308,6 @@ int write_to_block(const char* buf, Block* block, int bytes_to_write, off_t offs
 
 int delete_chain(int disk, int blockidx) {
   do {
-    printf("deleting block %d\n", blockidx);
     blockidx = aofs_deallocate_block(disk, blockidx);
   } while(blockidx != -1);
   return 0;
