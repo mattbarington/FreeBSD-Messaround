@@ -306,6 +306,7 @@ int write_to_block(const char* buf, Block* block, int bytes_to_write, off_t offs
 
 int delete_chain(int disk, int blockidx) {
   do {
+    printf("deleting block %d\n", blockidx);
     blockidx = aofs_deallocate_block(disk, blockidx);
   } while(blockidx != -1);
   return 0;
