@@ -458,8 +458,8 @@ int aofs_truncate_file(int fd, const char* path, off_t size) {
   Block headblock, curblock;
   int file_head;
   off_t cur_size;
-  int cur_blocks, new_blocks, delete_blocks;
-  int next;
+  int cur_blocks, new_blocks, diff_blocks;
+  int prev, next;
   int i;
 
   file_head = aofs_find_file_head(fd, path, &headblock);
@@ -471,12 +471,11 @@ int aofs_truncate_file(int fd, const char* path, off_t size) {
   cur_size = curblock.dbm.st_size;
   cur_blocks = (cur_size - 1) / BLOCK_DATA;
   new_blocks = (size - 1) / BLOCK_DATA;
- 
+
   //break down file
   if(size < cur_size) {
     //delete extra blocks
-    delete_blocks = cur_blocks - new_blocks;
-    if(delete_blocks) {
+    if(cur_blocks - new_blocks) {
       //read to last block to keep
       for(i = 0; i < new_blocks; ++i) {
         read_block(fd, curblock.dbm.next, &curblock);
@@ -488,17 +487,43 @@ int aofs_truncate_file(int fd, const char* path, off_t size) {
       }
     }
 
-    //change size to ignore rest of block
-    headblock.dbm.st_size = size;
-    write_block(fd, file_head, &headblock);
-  }
+ }
 
-  //append file
+  //expand file
   else if(size > cur_size) {
     //add extra blocks
-    
+    diff_blocks = new_blocks - cur_blocks;
+    if(diff_blocks) {
+      //seek to last block
+      prev = file_head;
+      while(curblock.dbm.next != -1) {
+        prev = curblock.dbm.next;
+        read_block(fd, curblock.dbm.next, &curblock);
+      }
+      //allocate new blocks
+      for(i = 0; i < diff_blocks; ++i) {
+        curblock.dbm.next = aofs_allocate_block(fd);
+        //if new block couldn't be allocated
+        if(curblock.dbm.next == -1) {
+          return -1;
+        } else {
+          //write previous block with changed next pointer
+          write_block(fd, prev, &curblock);
+          //initialize new block
+          prev = curblock.dbm.next;
+          read_block(fd, prev, &curblock);
+          clear_block(&curblock);
+          strcpy(curblock.dbm.filename, path);
+          write_block(fd, prev, &curblock);
+        }
+      }
+    }
   }
-
+ 
+  //change size in head block
+  headblock.dbm.st_size = size;
+  write_block(fd, file_head, &headblock);
+ 
   return 0;
   
 }
