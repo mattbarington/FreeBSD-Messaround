@@ -73,6 +73,8 @@ typedef struct AOFS {
 
 /* prints out the head block for each file and their block_num in Blocks[] */
 void print_aofs(int disk);
+
+void print_block(int disk, int block_num);
 /* returns the value of bit at idx */
 int bit_at(uint8_t map[], int bit_idx);
 /* returns the index of the first free block */

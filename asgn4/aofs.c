@@ -21,6 +21,30 @@ void print_aofs(int disk) {
   }
 }
 
+void print_block(int disk, int block_num) {
+
+  Block block;
+
+  if(block_num == -1) {
+    printf("Can't print block at -1\n");
+    return;
+  }
+
+  if(read_block(disk, block_num, &block) == -1) {
+    printf("Error reading block %d\n", block_num);
+  }
+  
+  printf("---------BLOCK INFO--------\n");
+  printf("Block num: %d\n", block_num);
+  printf("Filename:  %s\n", block.dbm.filename);
+  printf("next:      %d\n", block.dbm.next);
+  printf("head:      %d\n", block.dbm.head);
+  printf("size:      %ld\n", block.dbm.st_size);
+  printf("---------------------------\n");
+
+  return;
+}
+
 int bit_at(uint8_t map[], int idx) {
   int el_size    = sizeof(uint8_t) * 8;
   int bit_offset = idx % el_size;
@@ -279,12 +303,14 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
     offset = block->dbm.st_size;
   // new file size will be number of bytes written + offset starting pos
   block->dbm.st_size = size + offset;
+  //  printf("head block?: %d\n", block->dbm.head);
   write_block(disk, block_num, block);
   //  printf("size = %zu\n", size+offset);
   bytes_to_write = size;
   while (bytes_to_write > 0) {
     if (offset > BLOCK_DATA) {  //traverse down block list until finding the block with offset
       offset -= BLOCK_DATA;
+      block_num = block->dbm.next;
       read_block(disk, block->dbm.next, block);
       continue;
     }
@@ -308,10 +334,10 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
     //    printf("storing block %d for %s=%s\n", block_num, filename,block->dbm.filename);
     write_block(disk, block_num, block);
     //    printf("just  wrote to block(2) %d for %s=%s\n", block_num, filename,block->dbm.filename);
-    Block bb;
-    read_block(disk, block_num, &bb);
+    //Block bb;
+    //read_block(disk, block_num, &bb);
     //    printf("checking that the fetch matches for block %d, %s=%s\n", block_num, filename, bb.dbm.filename);
-    //    printf("%s\n", bb.data);
+  //      printf("%s\n", bb.data);
     block_num = block->dbm.next;
     memcpy(block, next_block, sizeof(Block));
     
@@ -320,6 +346,7 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
   aofs_find_file_head(disk, filename, block);
   //  printf("ending file size %s = %ld\n", block->dbm.filename, block->dbm.st_size);
   
+  printf("Printing AOFS from the write function:\n");
   print_aofs(disk);
   free(block);
   free(next_block);
@@ -455,62 +482,74 @@ int aofs_delete_file(int disk, const char* path) {
 
 int aofs_truncate_file(int fd, const char* path, off_t size) {
 
-  Block headblock, curblock;
+  Block curblock;
   int file_head;
   off_t cur_size;
   int cur_blocks, new_blocks, diff_blocks;
   int prev, next;
   int i;
 
-  file_head = aofs_find_file_head(fd, path, &headblock);
+  printf("path: %s, size: %ld\n", path, size);
+  printf("before truncate:\n");
+  print_aofs(fd);
+
+  file_head = aofs_find_file_head(fd, path, &curblock);
   if(file_head == -1) {
     return -ENOENT;
   }
 
-  read_block(fd, file_head, &curblock);
   cur_size = curblock.dbm.st_size;
-  cur_blocks = (cur_size - 1) / BLOCK_DATA;
-  new_blocks = (size - 1) / BLOCK_DATA;
+  cur_blocks = (cur_size) / BLOCK_DATA;
+  new_blocks = (size) / BLOCK_DATA;
+  printf("cur_blocks: %d new_blocks: %d\n", cur_blocks, new_blocks);
+
 
   //break down file
   if(size < cur_size) {
+    printf("breaking down file...\n");
     //delete extra blocks
     if(cur_blocks - new_blocks) {
       //read to last block to keep
+      prev = file_head;
       for(i = 0; i < new_blocks; ++i) {
+        prev = curblock.dbm.next;
+        printf("seeking to last block to keep\n");
         read_block(fd, curblock.dbm.next, &curblock);
       }
       //remove all blocks after
-      next = curblock.dbm.next;
-      while(next != -1) {
-        next = aofs_deallocate_block(fd, next);
-      }
+      delete_chain(fd, curblock.dbm.next);
+      curblock.dbm.next = -1;
+      write_block(fd, prev, &curblock);
     }
-
- }
-
+  }
   //expand file
   else if(size > cur_size) {
+    printf("building up file...\n");
     //add extra blocks
     diff_blocks = new_blocks - cur_blocks;
     if(diff_blocks) {
       //seek to last block
       prev = file_head;
       while(curblock.dbm.next != -1) {
+        printf("seeking to last block\n");
         prev = curblock.dbm.next;
-        read_block(fd, curblock.dbm.next, &curblock);
+        read_block(fd, prev, &curblock);
       }
       //allocate new blocks
       for(i = 0; i < diff_blocks; ++i) {
+        printf("allocating block\n");
         curblock.dbm.next = aofs_allocate_block(fd);
+        printf("new next: %d\n", curblock.dbm.next);
         //if new block couldn't be allocated
         if(curblock.dbm.next == -1) {
           return -1;
         } else {
           //write previous block with changed next pointer
           write_block(fd, prev, &curblock);
+          printf("wrote block with new next pointer\n");
           //initialize new block
           prev = curblock.dbm.next;
+          printf("getting next block at %d", prev);
           read_block(fd, prev, &curblock);
           clear_block(&curblock);
           strcpy(curblock.dbm.filename, path);
@@ -521,9 +560,12 @@ int aofs_truncate_file(int fd, const char* path, off_t size) {
   }
  
   //change size in head block
-  headblock.dbm.st_size = size;
-  write_block(fd, file_head, &headblock);
+  read_block(fd, file_head, &curblock);
+  curblock.dbm.st_size = size;
+  write_block(fd, file_head, &curblock);
+
+  printf("After truncate:\n");
+  print_aofs(fd);
  
   return 0;
-  
 }
