@@ -27,9 +27,9 @@ void print_stbuf(struct stat *stbuf) {
   printf("-----------------------------------\n");
 }
 
-static AOFS* get_context() {
-  return ((AOFS *) fuse_get_context()->private_data);
-}
+//static AOFS* get_context() {
+//  return ((AOFS *) fuse_get_context()->private_data);
+//}
 static int aofs_getattr(const char *path, struct stat *stbuf)
 {
   printf("aofs_getattr. Path: %s\n",path);
@@ -40,11 +40,11 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
     stbuf->st_mode = S_IFDIR | 0755;
     stbuf->st_nlink = 2;
   } else {
-    AOFS* fs = get_context();
-    int file_head = aofs_find_file_head(path, fs);
+    Block b;
+    int file_head = aofs_find_file_head(path, &b);
     printf("file head at %d. This is where we copy over the metadata\n", file_head);
     if (file_head != -1) {
-      BlockMeta* bm = &fs->blocks[file_head].dbm;
+      BlockMeta* bm = &b.dbm;
       //stbuf->st_mode = S_IFREG | 0444;
       stbuf->st_mode    = S_IFREG | 0777;
       stbuf->st_nlink   = 1;
@@ -91,14 +91,21 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   filler(buf, ".", NULL, 0);
   filler(buf, "..", NULL, 0);
   //Find all file names with iterative loop *barf*
-  AOFS* fs = get_context();
+  Block block;
+  SuperBlock sb;
   BlockMeta* bm;
-  
+  int disk = OPEN_DISK;
+  if (disk < 0) {
+    printf("There was a problem reading the disk image in %s\n", __func__);
+    return -1;
+  }
+  read_super_block(disk, &sb);
+  uint8_t* bitmap = sb.bitmap;
   for (int block_num = 0; block_num < BLOCK_NUM; block_num++) {
-    if (bit_at(fs->sb.bitmap, block_num)) {
-      bm = &fs->blocks[block_num].dbm;
+    if (bit_at(bitmap, block_num)) {
+      read_block(disk, block_num, &block);
+      bm = &block.dbm;
       if (bm->head) {
-	//	printf("found file '%s'\n", bm->filename);
   	filler(buf, bm->filename + 1, NULL, 0);
       }
     }
@@ -125,7 +132,7 @@ static int aofs_open(const char *path, struct fuse_file_info *fi) {
   printf("aofs_open\n");
   printf("OPEN path: %s\n", path);
 
-  AOFS* fs = get_context();
+  //  AOFS* fs = get_context();
 //  print_fi_flags(fi);  
   fi->flags = O_RDWR | O_TRUNC | O_CREAT;
 //  print_fi_flags(fi);
@@ -133,7 +140,8 @@ static int aofs_open(const char *path, struct fuse_file_info *fi) {
 //  printf("File descriptor: %" PRIu64 "\n", fi->fh);
 
   //check to see file exists
-  if(aofs_find_file_head(path, fs) != -1) {
+  Block b;
+  if(aofs_find_file_head(path,&b) != -1) {
     fi->nonseekable = 0;
     fi->direct_io   = 0;
     //fi->fh          = open(path, fi->flags, S_IRWXU | S_IRWXG | S_IRWXO);
@@ -152,7 +160,7 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 
   printf("aofs_create\n");
 
-  AOFS* fs = get_context();
+  //  AOFS* fs = get_context();
 
   //if file already exists, run open operation instead??
   //if(aofs_find_file_head(path, fs)) {
@@ -160,7 +168,7 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
   //}
 
   //Create file at first avaliable block
-  int x = aofs_create_file(path, fs); 
+  int x = aofs_create_file(path);//, fs); 
   printf("new file at: %d\n", x);
   if(x >= 0) {
     return 0;
@@ -229,7 +237,7 @@ int main(int argc, char *argv[])
     printf("There was a problem loading the disk image\n");
     exit(1);
   }
-  fuse_main(argc, argv, &aofs_oper, aofs);
+  fuse_main(argc, argv, &aofs_oper, NULL);
 
   return 0;
 }

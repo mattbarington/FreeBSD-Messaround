@@ -130,10 +130,15 @@ int write_block(int fd, int block_num, Block* block) {
   return write(fd, block, sizeof(Block));
 }
 
+int write_super_block(int fd, SuperBlock* sb) {
+  lseek(fd, SUPER_BLOCK_OFFSET, SEEK_SET);
+  return write(fd, sb, sizeof(SuperBlock));
+}
+
 
 int clear_block(Block* block) {
   strcpy(block->dbm.filename, "");
-  block->dbm.next = NULL;
+  block->dbm.next = -1;
   block->dbm.head = false;
   
   block->dbm.st_atim = time(NULL);
@@ -153,21 +158,7 @@ int clear_block(Block* block) {
   return 0;
 }
 
-/*
-int aofs_allocate_block(AOFS* fs) {
-  SuperBlock *sb = &fs->sb;
-  uint8_t* map = fs->sb.bitmap;
-  int block_num = find_free_bit(map, sb->totalblocks);
-  if (block_num == -1) {
-    return -1;
-  }
-  set_bit(map, block_num);
-  Block *nb = &fs->blocks[block_num];
-  clear_block(nb);
-  return block_num;
-}
-*/
-int aofs_allocate_block(Block* block) {
+int aofs_allocate_block() {
   SuperBlock sb;
   int disk = OPEN_DISK;
   if (disk < 0) {
@@ -175,13 +166,22 @@ int aofs_allocate_block(Block* block) {
     return -1;
   }
   read_super_block(disk, &sb);
-  return 0;
+  uint8_t* map = sb.bitmap;
+  int block_num = find_free_bit(map,sb.totalblocks);
+  if (block_num == -1) {
+    return -1;
+  }
+  set_bit(map, block_num);
+  Block b;
+  clear_block(&b);
+  write_block(disk, block_num, &b);
+  return block_num;
 }
 
 int aofs_create_file(const char* filename) {
   SuperBlock* sb = malloc(sizeof(SuperBlock));
   
-  
+  /*
   int block_num = aofs_allocate_block(fs);
   if (block_num < 0)
     return -ENOMEM;
@@ -192,20 +192,22 @@ int aofs_create_file(const char* filename) {
   strcpy(nb_meta->filename, filename);
   nb_meta->head = true;
   printf("Block initialized!\n");
-  return block_num;
+  */
+  return 0;//block_num;
 }
 
-int aofs_find_file_head(const char* filename, AOFS* fs) {
-  //  printf("in findfile_head. Looking for %s\n",filename);
-  BlockMeta* block = NULL;
+int aofs_find_file_head(const char* filename, Block* block) {
+  SuperBlock sb;
+  int disk = OPEN_DISK;
+  read_super_block(disk, &sb);
+  uint8_t* bitmap = sb.bitmap;
   int block_num;
+  Block* b = malloc(sizeof(Block));
   for (block_num = 0; block_num < BLOCK_NUM; block_num++) {
-    if (bit_at(fs->sb.bitmap, block_num)) {
-      block = &fs->blocks[block_num].dbm;
-      //      if (block->head)
-      //	printf("is '%s' the file you're looking for?\n", block->filename);
-      if (block->head && !strcmp(block->filename,filename)) { // is a head block with matching filename
-	//	printf("find_file_head found '%s' head at %d\n", filename, block_num);
+    if (bit_at(bitmap, block_num)) {
+      read_block(disk, block_num, b);
+      if (b->dbm.head && !strcmp(b->dbm.filename,filename)) { // is a head block with matching filename
+	memcpy(block, b, sizeof(Block));
 	return block_num;
       }
     }
@@ -213,6 +215,7 @@ int aofs_find_file_head(const char* filename, AOFS* fs) {
   return -1;
 }
 
+/*
 int aofs_write_file(const char* filename, const char* buf, size_t size, AOFS* fs) {
   int bytes_to_write = size;
   int start_byte;
@@ -243,6 +246,7 @@ int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write) {
   memcpy(block->data, buf, bytes_to_write);
   return 0;
 }
+*/
 
 int read_file(const char* path, char* buf, size_t size, off_t offset) {
 

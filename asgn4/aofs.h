@@ -98,9 +98,9 @@ int clear_block(Block*);
 /* Finds the first available block, marks it as unavailable, and returns its block address */
 int aofs_allocate_block(Block* block);
 /* Initializes a single file block for a file */
-int aofs_create_file(const char* filename, AOFS* fs);
+int aofs_create_file(const char* filename);
 /* Returns the block index of a file's head block */
-int aofs_find_file_head(const char* filename, AOFS* fs);
+int aofs_find_file_head(const char* filename, Block* block);
 
 /* Writes to a file */
 //int aofs_write_file(const char* filename, const char* buf, size_t size, AOFS* fs);
