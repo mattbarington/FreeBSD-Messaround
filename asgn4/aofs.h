@@ -39,7 +39,7 @@ struct Block;
 
 typedef struct BlockMeta {
   char filename[256];
-  struct Block* next;
+  int next;
   bool head;
   //  __dev_t   st_dev;               /* inode's device */
   //  ino_t     st_ino;               /* inode's number */
