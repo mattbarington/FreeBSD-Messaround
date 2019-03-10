@@ -25,7 +25,7 @@
 
 #define BITMAP_SIZE (BLOCK_NUM / sizeof(uint8_t))
 #define SUPER_BLOCK_OFFSET 0
-#define BLOCK_OFFSET(block_num) 4 + (block_num*sizeof(Block))
+#define BLOCK_OFFSET(block_num) sizeof(SuperBlock) + (block_num*sizeof(Block))
 #define OPEN_DISK open("FS_FILE", O_RDWR, 0777)
 
 typedef struct SuperBlock {

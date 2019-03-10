@@ -33,7 +33,6 @@ int main(int argc, char *argv[])
   }
   
   new_aofs = malloc(1*sizeof(AOFS));
-  //  write_fs(filename,new_aofs);
   if(init_fs(new_aofs) != 0) {
     printf("Unable to initialize AOFS.\n");
     return 1;

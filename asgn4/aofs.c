@@ -76,6 +76,25 @@ int init_fs(AOFS* fs) {
 
 
 int read_fs(const char* filename, AOFS* fs) {
+  int disk = open(filename, O_RDWR | O_CREAT, 0777);
+  if (disk < 0) {
+    printf("There was a problem opening the disk image in %s\n",__func__);
+    return -1;
+  }
+  const int super_off = 0;
+  const int block_offset = sizeof(SuperBlock);
+  lseek(disk, SUPER_BLOCK_OFFSET, SEEK_SET);
+  read(disk, &fs->sb, sizeof(SuperBlock));
+
+  for (int b = 0; b < fs->sb.totalblocks; b++) {
+    lseek(disk, BLOCK_OFFSET(b), SEEK_SET);
+    read(disk, &fs->blocks[b], sizeof(Block));
+  }
+  close(disk);
+  return 0;
+  
+  
+  
   FILE* rf;
     
   rf = fopen(filename, "r");
@@ -89,16 +108,22 @@ int read_fs(const char* filename, AOFS* fs) {
 }
 
 int write_fs(const char* filename, AOFS* fs) {
-  FILE* wf;
-
-  wf = fopen(filename, "w");
-  if(wf) {
-    fwrite(fs, sizeof(AOFS), 1, wf);
-    fclose(wf);
-    return 0;
-  } else {
+  int disk = open(filename, O_RDWR | O_CREAT, 0777);
+  if (disk < 0) {
+    printf("There was a problem opening the disk image in %s\n",__func__);
     return -1;
   }
+  const int super_off = 0;
+  const int block_offset = sizeof(SuperBlock);
+  lseek(disk, SUPER_BLOCK_OFFSET, SEEK_SET);
+  write(disk, &fs->sb, sizeof(SuperBlock));
+
+  for (int b = 0; b < fs->sb.totalblocks; b++) {
+    lseek(disk, BLOCK_OFFSET(b), SEEK_SET);
+    write(disk, &fs->blocks[b], sizeof(Block));
+  }
+  close(disk);
+  return 0;
 }
 
 int read_block(int fd, int block_num, Block* block) {
@@ -148,7 +173,7 @@ int aofs_allocate_block() {
   SuperBlock sb;
   int disk = OPEN_DISK;
   if (disk < 0) {
-    printf("There was a problem opening the disk image\n");
+    printf("There was a problem opening the disk image in %s\n", __func__);
     return -1;
   }
   read_super_block(disk, &sb);
@@ -246,7 +271,7 @@ int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write) {
 int aofs_write_file(const char* path, char* buf, size_t size, off_t offset) {
 
   int fd = OPEN_DISK;
-
+  Block curblock;
   char filename[257];
   //fix path to just be filename
   strcpy(filename, path);

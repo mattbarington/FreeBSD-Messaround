@@ -112,7 +112,7 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
       //    memcpy(&block, &fs->blocks[block_num], sizeof(Block));
       read_block(disk, block_num, &block);
       bm = &block.dbm;
-      //      printf("found a occupied boi[%d]:\n%s\n",block_num,bm->filename);
+      printf("found a occupied boi[%d]:\n%s\n",block_num,bm->filename);
       if (bm->head) {
   	filler(buf, bm->filename + 1, NULL, 0);
       }
@@ -246,7 +246,8 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  aofs_create_file("ayylmao");
+  aofs_create_file(hello_path);
+  aofs_create_file(hola_path);
   
   int disk = OPEN_DISK;
   if (disk < 0)
@@ -256,6 +257,8 @@ int main(int argc, char *argv[])
   Block* block = malloc(sizeof(Block));
   read_super_block(disk, &super);
   int first_free = find_free_bit(super.bitmap, super.totalblocks);
+  read_block(disk, 0, block);
+  printf("First block filename is %s\n", block->dbm.filename);
   printf("First free should be like 1? %d\n", first_free);
   free(block);
   fuse_main(argc, argv, &aofs_oper, NULL);
