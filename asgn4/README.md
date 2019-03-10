@@ -43,29 +43,10 @@
 - `$ make fresh` - Calls `make reset` and `make setup`, cleansing the environment
                 from any previous instantiations of AOFS, recompiling the 
                 the execuatables, and initializing a new `/FS_FILE` disk.
+
+- `$ make benchmark` - Creates the benchmark executable. Can be made without previous 
+                     makes. Must only be run after AOFS has been made (but not 
+                     currently running). 
 		
 - `$ make umount` - Unmounts a mounted FUSE file system.
-
-## Benchmark
-
- - **Build**:
-  `$ make benchmark`
-    
- - **Run** (as Root):
-  `$ ./benchmark`
-
- - **Usage**:
-  Simply build and run
-
- - **Description**:
-  This benchmark uses system calls to build identical folders 
-  (one for FreeBSD and one for AOFS). Identical  tests are run 
-  inside to compare. Tests:
-    - 100 Files (Shell Script used to touch 100 files)
-    - Write File (A random-filled file of 8192 bytes is written)
-    - Read File (The written file is read)
-              
- - **Results**:
-  Results are compared in microseconds (printed to the screen)
-
 
