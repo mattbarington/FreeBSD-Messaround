@@ -7,10 +7,25 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "aofs.h"
+#include <inttypes.h>
 
 static const char *hello_str = "Hello World!\n";
 static const char *hello_path = "/hello";
 static const char* hola_path = "/HolaMundo.txt";
+
+void print_stbuf(struct stat *stbuf) {
+
+  printf("----------<Current stbuf>----------\n");
+  printf("st_dev:   %d\n", stbuf->st_dev);
+  printf("st_ino:   %d\n", stbuf->st_ino);
+  printf("st_nlink: %d\n", stbuf->st_nlink);
+  printf("st_mode:  %x\n", stbuf->st_mode);
+  printf("st_atime: %ld\n", stbuf->st_atime);
+  printf("st_mtime: %ld\n", stbuf->st_mtime);
+  printf("st_ctime: %ld\n", stbuf->st_ctime);
+  printf("st_size:  %ld\n", stbuf->st_size);
+  printf("-----------------------------------\n");
+}
 
 static AOFS* get_context() {
   return ((AOFS *) fuse_get_context()->private_data);
@@ -18,6 +33,7 @@ static AOFS* get_context() {
 static int aofs_getattr(const char *path, struct stat *stbuf)
 {
   printf("aofs_getattr. Path: %s\n",path);
+//  print_stbuf(stbuf);
   int res = 0;
   memset(stbuf, 0, sizeof(struct stat));
   if (strcmp(path, "/") == 0) {
@@ -48,6 +64,7 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
       //stbuf->st_mode    = 0040777;
       stbuf->st_mode    = S_IFREG | 0444 | 0666;
       printf("Finished setting file.\n");	
+      print_stbuf(stbuf);
     }
     //file does not exist
     else {
@@ -89,23 +106,43 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   return 0;
 }
 
+void print_fi_flags(struct fuse_file_info *fi) {
+
+  int mask = 1;
+  for(int i = 0; i < sizeof(int)*8; ++i) {
+    if(mask & fi->flags) {
+      printf("1");
+    } else {
+      printf("0");
+    }
+    mask = mask << 1;
+  }
+  printf("\n");
+}
+
 static int aofs_open(const char *path, struct fuse_file_info *fi) {
 
   printf("aofs_open\n");
+  printf("OPEN path: %s\n", path);
 
   AOFS* fs = get_context();
-  
+//  print_fi_flags(fi);  
+  fi->flags = O_RDWR | O_TRUNC | O_CREAT;
+//  print_fi_flags(fi);
+  fi->fh = 0;
+//  printf("File descriptor: %" PRIu64 "\n", fi->fh);
+
   //check to see file exists
   if(aofs_find_file_head(path, fs) != -1) {
     fi->nonseekable = 0;
     fi->direct_io   = 0;
-    fi->fh          = 0;
-    fi->flags       = 0;
+    //fi->fh          = open(path, fi->flags, S_IRWXU | S_IRWXG | S_IRWXO);
     fi->flush       = 0;
     fi->writepage   = 0;
     printf("Set fuse_file_info\n");
-    return 0;
-  } else {
+    printf("File descriptor: %" PRIu64 "\n", fi->fh);
+    return ((fi->fh < 0) ? -ENOENT : 0);
+  } else {  
     printf("aofs_open error. couldn't find specified file :/\n");
     return -ENOENT;
   }
@@ -133,7 +170,9 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 
 static int aofs2_read(const char *path, char *buf, size_t size, off_t offset,
 		     struct fuse_file_info *fi) {
-  printf("aofs_run\n");
+  printf("aofs_read\n");
+  printf("size: %lu, offset: %lu\n", size, offset);
+  //read_file(path, buf, size, offset);
   return 0;
 }
 
@@ -147,6 +186,13 @@ static int aofs_statfs(const char* path, struct statvfs* stbufi) {
   return 0;
 }
 
+static int aofs_release(const char* path, struct fuse_file_info *fi) {
+  printf("aofs_release\n");
+  //printf("File descriptor: %" PRIu64 "\n", fi->fh);
+  //close(fi->fh);
+  return 0;
+}
+
 static struct fuse_operations aofs_oper = {
 	.getattr	= aofs_getattr,
 	.readdir	= aofs_readdir,
@@ -155,6 +201,7 @@ static struct fuse_operations aofs_oper = {
 	.open     = aofs_open,
   .write    = aofs_write,
   .statfs   = aofs_statfs,
+  .release  = aofs_release,
 };
 
 int main(int argc, char *argv[])
