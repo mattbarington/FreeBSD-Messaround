@@ -23,6 +23,8 @@
 #define BLOCK_NUM 4096
 
 #define BITMAP_SIZE (BLOCK_NUM / sizeof(uint8_t))
+#define SUPER_BLOCK_OFFSET 0
+#define BLOCK_OFFSET(block_num) 4 + (block_num*sizeof(Block))
 
 typedef struct SuperBlock {
   uint32_t magicnum;
@@ -79,6 +81,12 @@ int clear_bit(uint8_t map[], int bit_idx);
 int read_fs(const char* filename, AOFS* fs);
 /* writes the AOFS structure fs to a specified file */
 int write_fs(const char* filename, AOFS* fs);
+
+/* Get block block_num from disk */
+int read_block(int fd, int block_num, Block* block);
+/* Get SuperBLock from disk */
+int read_super_block(int fd, SuperBlock*);
+
 /* Initializes a new AOFS structure to default and empty values */
 int init_fs(AOFS* fs);
 /* Wipes block's data and metadata */
@@ -89,10 +97,11 @@ int aofs_allocate_block(AOFS* fs);
 int aofs_create_file(const char* filename, AOFS* fs);
 /* Returns the block index of a file's head block */
 int aofs_find_file_head(const char* filename, AOFS* fs);
+
 /* Writes to a file */
-int aofs_write_file(const char* filename, const char* buf, size_t size, AOFS* fs);
+//int aofs_write_file(const char* filename, const char* buf, size_t size, AOFS* fs);
 /* Attempts to write buffer into block. Returns the number of bytes written */
-int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write);
+//int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write);
 
 #endif
 

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <unistd.h>
 
 /*
 int logger(const char* msg) {
@@ -94,8 +95,8 @@ int init_fs(AOFS* fs) {
     const char* hola_path = "/HolaMundo.txt";
     const char* dab = "DAB ON EM *dab* *dab* *dab*\n";
     const char* ayy_path = "/AyyLmao.txt";
-    aofs_write_file(ayy_path, dab, strlen(dab), fs);
-    aofs_write_file(hola_path, buf, strlen(buf), fs);
+    //    aofs_write_file(ayy_path, dab, strlen(dab), fs);
+    //    aofs_write_file(hola_path, buf, strlen(buf), fs);
   }
   return 0;
 }
@@ -127,6 +128,18 @@ int write_fs(const char* filename, AOFS* fs) {
   }
 }
 
+
+int read_block(int fd, int block_num, Block* block) {
+  lseek(fd, BLOCK_OFFSET(block_num), SEEK_SET);
+  return read(fd, block, sizeof(Block));
+}
+
+int read_super_block(int fd, SuperBlock* sb) {
+  lseek(fd, SUPER_BLOCK_OFFSET, SEEK_SET);
+  return read(fd, sb, sizeof(SuperBlock));
+}
+
+
 int clear_block(Block* block) {
   strcpy(block->dbm.filename, "");
   block->dbm.next = NULL;
@@ -143,9 +156,9 @@ int clear_block(Block* block) {
   
   
   byte* i_b = block->data;
-  memset(i_b, 0, BLOCK_DATA*sizeof(i_b[0]));
+  memset((char*)i_b, 0, BLOCK_DATA*sizeof(i_b[0]));
   char empty[2] = "\0";
-  strcpy(i_b, empty);
+  strcpy((char*)i_b, empty);
   return 0;
 }
 
@@ -195,6 +208,8 @@ int aofs_find_file_head(const char* filename, AOFS* fs) {
   return -1;
 }
 
+/*
+
 int aofs_write_file(const char* filename, const char* buf, size_t size, AOFS* fs) {
   int bytes_to_write = size;
   int start_byte;
@@ -225,3 +240,5 @@ int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write) {
   memcpy(block->data, buf, bytes_to_write);
   return 0;
 }
+
+*/
