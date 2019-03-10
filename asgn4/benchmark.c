@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 //#define NUM_ARGS 2
 
@@ -11,8 +12,6 @@ long diff_ms(struct timeval t1, struct timeval t2)
     return (((t1.tv_sec - t2.tv_sec) * 1000000000) + 
             (t1.tv_usec - t2.tv_usec));
 }
-
-
 
 int main(int argc, char* argv[]) {
 
@@ -39,6 +38,10 @@ int main(int argc, char* argv[]) {
   char remove_aofs_folder[] = "rm -rf aofs_test";
   char remove_fbsd_sh[] = "rm fbsd.sh";
   char remove_aofs_sh[] = "rm aofs.sh";
+  char remove_aofs_files[] = "rm aofs_test/test*";
+
+  char start_aofs[] = "./fs_run aofs_test";
+  char stop_aofs[] = "umount aofs_test";
 
   //char fbsd_touch_100_files[] = "touch fbsd_test/test_file";
   //char aofs_touch_100_files[] = "touch aofs_test/test_file";
@@ -80,18 +83,36 @@ int main(int argc, char* argv[]) {
   gettimeofday(&fbsd_read_f, NULL);
   fbsd_read_t = diff_ms(fbsd_read_f, fbsd_read_s);
 
+  //Start up the AOFS system
+  system(start_aofs);
+  sleep(1); //wait for system to start up
+
   //AOFS 100 files test
-  aofs_create_t = 123412334;
+  gettimeofday(&aofs_create_s, NULL);
+  system(aofs_touch_100_files);
+  gettimeofday(&aofs_create_f, NULL);
+  aofs_create_t = diff_ms(aofs_create_f, aofs_create_s);
   
   //AOFS write test
-  aofs_write_t = 69696969;
+  gettimeofday(&aofs_write_s, NULL);
+  system(aofs_write_file); 
+  gettimeofday(&aofs_write_f, NULL);
+  aofs_write_t = diff_ms(aofs_write_f, aofs_write_s);
 
   //AOFS read test
-  aofs_read_t = 420420420;
+  gettimeofday(&aofs_read_s, NULL);
+  system(aofs_read_file); 
+  gettimeofday(&aofs_read_f, NULL);
+  aofs_read_t = diff_ms(aofs_read_f, aofs_read_s);
+
+  //Shut down AOFS system
+  system(remove_aofs_files);
+  system(stop_aofs);
+  sleep(1);
 
   //prlong test results
   printf("/------------------------------------\\\n");
-  printf("|       RESULTS (milliseconds)       |\n");
+  printf("|       RESULTS (microseconds)       |\n");
   printf("|------------------------------------|\n");
   printf("|  test  |   FreeBSD   |     AOFS    |\n");
   printf("|------------------------------------|\n");
