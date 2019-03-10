@@ -20,6 +20,8 @@ Author(s): Matt Ovenden, Ryan Blelloch
 
 * init_disk.c           - Standalone implementation for creating new FS_FILE
 
+* benchmark.c           - Source file for benchmark code
+
 ## Source Files explanation
 
 ### aofs.h
@@ -60,6 +62,16 @@ Author(s): Matt Ovenden, Ryan Blelloch
 ### init_disk.c
   - Initializes an fresh AOFS structure and writes it to /FS_FILE on disk for
     persistent storage.
+
+### benchmark.c
+  - Code to run system calls that test simple filesystem operations.
+  - Note: The benchmark expects the AOFS filesystem to already be built.
+  - All folders and files are created and removed during the benchmark, nothing is left behind.
+  - Three tests are run:
+    + Create 100 Files
+    + Write file
+    + Read file
+  - Time taken to run tests is compared in microseconds
 
 ## AOFS Design: The Nitty and the Gritty
 
