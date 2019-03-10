@@ -71,20 +71,6 @@ int init_fs(AOFS* fs) {
   for(iter = 0; iter < BITMAP_SIZE; ++iter) {
     clear_block(&fs->blocks[iter]);
   }
-
-  //pretend to put file "HolaMundo.txt" at block 42. This is for testing only.
-  int block = 42;
-  if (set_bit(fs->sb.bitmap, block)) {
-    printf("Something went wrong while trying to make HolaMundo file\n");
-  } else {
-    Block* b = &fs->blocks[block];
-    const char* buf = "Hola Mundo, come mis shorts\n";
-    const char* hola_path = "/HolaMundo.txt";
-    const char* dab = "DAB ON EM *dab* *dab* *dab*\n";
-    const char* ayy_path = "/AyyLmao.txt";
-    //    aofs_write_file(ayy_path, dab, strlen(dab), fs);
-    //    aofs_write_file(hola_path, buf, strlen(buf), fs);
-  }
   return 0;
 }
 
@@ -175,25 +161,33 @@ int aofs_allocate_block() {
   Block b;
   clear_block(&b);
   write_block(disk, block_num, &b);
+  write_super_block(disk, &sb);
+  close(disk);
   return block_num;
 }
 
 int aofs_create_file(const char* filename) {
-  SuperBlock* sb = malloc(sizeof(SuperBlock));
+  int block_num = aofs_allocate_block();
+  if (block_num == -1) {
+    printf("There was a problem allocating a new block in %s\n", __func__);
+    return -1;
+  }
+  Block b;
+  clear_block(&b);
+  strcpy(b.dbm.filename, filename);
+  b.dbm.head = true;
+  printf("Head block for file %s initialized at block %d\n", filename,block_num);
+  int disk = OPEN_DISK;
+  write_block(disk, block_num, &b);
+
+  SuperBlock sb;
+  read_super_block(disk, &sb);
+  int first_free = find_free_bit(sb.bitmap, sb.totalblocks);
+  printf("first free after creation: %d\n", first_free);
+
   
-  /*
-  int block_num = aofs_allocate_block(fs);
-  if (block_num < 0)
-    return -ENOMEM;
-  
-  printf("Block found!\n");
-  Block *nb = &fs->blocks[block_num];
-  BlockMeta *nb_meta = &nb->dbm;
-  strcpy(nb_meta->filename, filename);
-  nb_meta->head = true;
-  printf("Block initialized!\n");
-  */
-  return 0;//block_num;
+  close(disk);
+  return block_num;
 }
 
 int aofs_find_file_head(const char* filename, Block* block) {
@@ -208,10 +202,12 @@ int aofs_find_file_head(const char* filename, Block* block) {
       read_block(disk, block_num, b);
       if (b->dbm.head && !strcmp(b->dbm.filename,filename)) { // is a head block with matching filename
 	memcpy(block, b, sizeof(Block));
+	close(disk);
 	return block_num;
       }
     }
   }
+  close(disk);
   return -1;
 }
 
@@ -292,7 +288,8 @@ int read_file(const char* path, char* buf, size_t size, off_t offset) {
   int i;
   for(i = 0; i < start_block; ++i) { 
     int next_block = curblock.dbm.next;
-    if(next_block < 0) { 
+    if(next_block < 0) {
+      close(fd);
       return -ENOENT;
     }
     read_block(fd, next_block, &curblock);
@@ -306,7 +303,8 @@ int read_file(const char* path, char* buf, size_t size, off_t offset) {
   // [...]-[.S.]-[RRR]-[.E.]
   for(i = 0; i < num_blocks - 1; ++i) {
     int next_block = curblock.dbm.next;
-    if(next_block < 0) { 
+    if(next_block < 0) {
+      close(fd);
       return -ENOENT;
     }
     read_block(fd, next_block, &curblock);
@@ -316,7 +314,8 @@ int read_file(const char* path, char* buf, size_t size, off_t offset) {
   // [...]-[.S.]-[...]-[RR.]
   if(num_blocks > 0) {
     int next_block = curblock.dbm.next;
-    if(next_block < 0) { 
+    if(next_block < 0) {
+      close(fd);
       return -ENOENT;
     }
     read_block(fd, next_block, &curblock);
@@ -325,6 +324,7 @@ int read_file(const char* path, char* buf, size_t size, off_t offset) {
 
   //all blocks read to buffer
   // buf = [...]-[.BB]-[BBB]-[BB.]
+  close(fd);
   return 0;
 }
 

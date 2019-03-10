@@ -99,12 +99,20 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     printf("There was a problem reading the disk image in %s\n", __func__);
     return -1;
   }
+
+  //AOFS* fs = malloc(sizeof(AOFS));
+  //  read_fs(FS_FILE_NAME, fs);
+
+  //  uint8_t* bitmap = fs->sb.bitmap;
+  
   read_super_block(disk, &sb);
   uint8_t* bitmap = sb.bitmap;
   for (int block_num = 0; block_num < BLOCK_NUM; block_num++) {
     if (bit_at(bitmap, block_num)) {
+      //    memcpy(&block, &fs->blocks[block_num], sizeof(Block));
       read_block(disk, block_num, &block);
       bm = &block.dbm;
+      //      printf("found a occupied boi[%d]:\n%s\n",block_num,bm->filename);
       if (bm->head) {
   	filler(buf, bm->filename + 1, NULL, 0);
       }
@@ -168,7 +176,7 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
   //}
 
   //Create file at first avaliable block
-  int x = aofs_create_file(path);//, fs); 
+  int x = aofs_create_file(path);
   printf("new file at: %d\n", x);
   if(x >= 0) {
     return 0;
@@ -237,6 +245,19 @@ int main(int argc, char *argv[])
     printf("There was a problem loading the disk image\n");
     exit(1);
   }
+
+  aofs_create_file("ayylmao");
+  
+  int disk = OPEN_DISK;
+  if (disk < 0)
+    printf("error opening disk >:(\n");
+
+  SuperBlock super;
+  Block* block = malloc(sizeof(Block));
+  read_super_block(disk, &super);
+  int first_free = find_free_bit(super.bitmap, super.totalblocks);
+  printf("First free should be like 1? %d\n", first_free);
+  free(block);
   fuse_main(argc, argv, &aofs_oper, NULL);
 
   return 0;
