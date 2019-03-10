@@ -83,7 +83,6 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   (void) fi;
   
   if (strcmp(path, "/") != 0) {
-    //    return -ENOENT;
     filler(buf, path + 1, NULL, 0);
     return 0;
   }
@@ -99,20 +98,13 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     printf("There was a problem reading the disk image in %s\n", __func__);
     return -1;
   }
-
-  //AOFS* fs = malloc(sizeof(AOFS));
-  //  read_fs(FS_FILE_NAME, fs);
-
-  //  uint8_t* bitmap = fs->sb.bitmap;
   
   read_super_block(disk, &sb);
   uint8_t* bitmap = sb.bitmap;
   for (int block_num = 0; block_num < BLOCK_NUM; block_num++) {
     if (bit_at(bitmap, block_num)) {
-      //    memcpy(&block, &fs->blocks[block_num], sizeof(Block));
       read_block(disk, block_num, &block);
       bm = &block.dbm;
-      printf("found a occupied boi[%d]:\n%s\n",block_num,bm->filename);
       if (bm->head) {
   	filler(buf, bm->filename + 1, NULL, 0);
       }
@@ -140,7 +132,6 @@ static int aofs_open(const char *path, struct fuse_file_info *fi) {
   printf("aofs_open\n");
   printf("OPEN path: %s\n", path);
 
-  //  AOFS* fs = get_context();
 //  print_fi_flags(fi);  
   fi->flags = O_RDWR | O_TRUNC | O_CREAT;
 //  print_fi_flags(fi);
@@ -167,13 +158,6 @@ static int aofs_open(const char *path, struct fuse_file_info *fi) {
 static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
 
   printf("aofs_create\n");
-
-  //  AOFS* fs = get_context();
-
-  //if file already exists, run open operation instead??
-  //if(aofs_find_file_head(path, fs)) {
-  //  return aofs_open(path, fi);
-  //}
 
   //Create file at first avaliable block
   int x = aofs_create_file(path);
@@ -237,7 +221,7 @@ int main(int argc, char *argv[])
   }
 
   //printf("Launching AOFS file system from img %s in %s\n", argv[1], argv[2]);
-
+  /*
   AOFS* aofs = calloc(1,sizeof(AOFS));
   //char* buf = malloc(sizeof(AOFS));
   char* filename = FS_FILE_NAME;
@@ -245,6 +229,7 @@ int main(int argc, char *argv[])
     printf("There was a problem loading the disk image\n");
     exit(1);
   }
+  
 
   aofs_create_file(hello_path);
   aofs_create_file(hola_path);
@@ -261,6 +246,8 @@ int main(int argc, char *argv[])
   printf("First block filename is %s\n", block->dbm.filename);
   printf("First free should be like 1? %d\n", first_free);
   free(block);
+  */
+  
   fuse_main(argc, argv, &aofs_oper, NULL);
 
   return 0;
