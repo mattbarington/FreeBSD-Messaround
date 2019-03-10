@@ -29,6 +29,8 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
     printf("file head at %d. This is where we copy over the metadata\n", file_head);
     if (file_head != -1) {
       BlockMeta* bm = &fs->blocks[file_head].dbm;
+      stbuf->dev = 0;
+      stbuf->ino = 0;
       stbuf->st_mode = S_IFREG | 0444;
       stbuf->st_nlink = 1;
       stbuf->st_atime = bm->st_atim;
