@@ -82,10 +82,12 @@ int read_fs(const char* filename, AOFS* fs);
 /* writes the AOFS structure fs to a specified file */
 int write_fs(const char* filename, AOFS* fs);
 
-/* Get block block_num from disk */
+/* Get block block_num from disk  and stores in provided buffer */
 int read_block(int fd, int block_num, Block* block);
-/* Get SuperBLock from disk */
+/* Get SuperBLock from disk and stores in provided buffer */
 int read_super_block(int fd, SuperBlock*);
+/* Writes provided block to disk img */
+int write_block(int fd, int block_num, Block* block);
 
 /* Initializes a new AOFS structure to default and empty values */
 int init_fs(AOFS* fs);

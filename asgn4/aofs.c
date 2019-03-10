@@ -128,7 +128,6 @@ int write_fs(const char* filename, AOFS* fs) {
   }
 }
 
-
 int read_block(int fd, int block_num, Block* block) {
   lseek(fd, BLOCK_OFFSET(block_num), SEEK_SET);
   return read(fd, block, sizeof(Block));
@@ -137,6 +136,11 @@ int read_block(int fd, int block_num, Block* block) {
 int read_super_block(int fd, SuperBlock* sb) {
   lseek(fd, SUPER_BLOCK_OFFSET, SEEK_SET);
   return read(fd, sb, sizeof(SuperBlock));
+}
+
+int write_block(int fd, int block_num, Block* block) {
+  lseek(fd, BLOCK_OFFSET(block_num), SEEK_SET);
+  return write(fd, block, sizeof(Block));
 }
 
 
