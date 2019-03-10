@@ -243,8 +243,31 @@ int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write) {
   return 0;
 }
 */
+int aofs_write_file(const char* path, char* buf, size_t size, off_t offset) {
 
-int read_file(const char* path, char* buf, size_t size, off_t offset) {
+  int fd = OPEN_DISK;
+
+  char filename[257];
+  //fix path to just be filename
+  strcpy(filename, path);
+  memmove(filename, filename+1, strlen(filename));
+ 
+  //find head block for file
+  if(aofs_find_file_head(filename, &curblock) < 0) {
+    printf("Can't file head block for %s\n", filename);
+    close(fd);
+    return -ENOENT;
+  }
+
+  //Calculate positions to write
+  
+  //write everything possible in first block
+
+
+  return 0;
+}
+
+int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
   
   Block curblock;
 
