@@ -249,9 +249,11 @@ int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write) {
 */
 
 int read_file(const char* path, char* buf, size_t size, off_t offset) {
-
   
   Block curblock;
+
+  //open up disk image
+  int fd = OPEN_DISK;
 
   char filename[257];
   //fix path to just be filename
@@ -264,19 +266,26 @@ int read_file(const char* path, char* buf, size_t size, off_t offset) {
   //calculate where buf should read from
   int start_block, num_blocks, block_offset;
   size_t size_f, size_l;
-  //NOTE: blocks indexed at 0, num_blocks = additional blocks beyond head block
-  //Example BLOCK_DATA = 3
-  //[...]-[.S.]-[...]-[.E.]
-  //start_block = 4 / 3 => 1
-  //block_offset = 4 - (1 * 3) => 1
-  //num_blocks = (1 + 7) / 3 => 2
-  //size_f = 3 - 1 => 2
-  //size_l = 7 - (2 + ((2 - 1) * 3)) => 2
- 
-  start_block = offset / BLOCK_DATA; //find where the offset starts
+  /*
+  // NOTE: blocks indexed at 0, num_blocks = additional blocks beyond head block
+  // Example (BLOCK_DATA = 3)
+  // [...]-[.S.]-[...]-[.E.]
+  // start_block = 4 / 3 => 1
+  // block_offset = 4 - (1 * 3) => 1
+  // num_blocks = (1 + 7) / 3 => 2
+  // size_f = 3 - 1 => 2
+  // size_l = 7 - (2 + ((2 - 1) * 3)) => 2
+  */ 
+
+  //number of blocks away from the head block
+  start_block = offset / BLOCK_DATA;
+  //true offset considering start_block to offset from
   block_offset = offset - (start_block * BLOCK_DATA);
-  num_blocks = (block_offset + size) / BLOCK_DATA; //find number of blocks its in
+  //number of blocks to read (-1 in case exactly BLOCK_DATA read)
+  num_blocks = (block_offset + size - 1) / BLOCK_DATA;
+  //size of the first block
   size_f = ((num_blocks == 0) ? size : BLOCK_DATA - block_offset);
+  //size of the last block
   size_l = ((num_blocks == 0) ? 0 : size - (size_f + ((num_blocks - 1) * BLOCK_DATA)));
 
   //get the first block
@@ -286,8 +295,36 @@ int read_file(const char* path, char* buf, size_t size, off_t offset) {
     if(next_block < 0) { 
       return -ENOENT;
     }
+    read_block(fd, next_block, &curblock);
   }
 
+  //read first block
+  // [...]-[.RR]-[...]-[.E.]
+  memcpy(buf, curblock.data + block_offset, size_f);
+  
+  //read additional full blocks
+  // [...]-[.S.]-[RRR]-[.E.]
+  for(i = 0; i < num_blocks - 1; ++i) {
+    int next_block = curblock.dbm.next;
+    if(next_block < 0) { 
+      return -ENOENT;
+    }
+    read_block(fd, next_block, &curblock);
+    memcpy(buf + block_offset + (BLOCK_DATA * i), curblock.data, BLOCK_DATA);
+  }
+  //read last block
+  // [...]-[.S.]-[...]-[RR.]
+  if(num_blocks > 0) {
+    int next_block = curblock.dbm.next;
+    if(next_block < 0) { 
+      return -ENOENT;
+    }
+    read_block(fd, next_block, &curblock);
+    memcpy(buf + block_offset + (BLOCK_DATA * (num_blocks - 1)), curblock.data, size_l);
+  }
+
+  //all blocks read to buffer
+  // buf = [...]-[.BB]-[BBB]-[BB.]
   return 0;
 }
 
