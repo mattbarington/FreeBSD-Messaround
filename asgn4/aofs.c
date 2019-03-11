@@ -438,7 +438,8 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
       return bytes_read;
     }
     read_block(disk, next_block, &curblock);
-    buf = &buf[bytes_read];
+    //    buf = &buf[bytes_read];
+    //    printf("copying to bytes from %d of range %d\n", buf + block_offset + (BLOCK_DATA * i), BLOCK_DATA);
     memcpy(buf + block_offset + (BLOCK_DATA * i), curblock.data, BLOCK_DATA);
     bytes_read += BLOCK_DATA;
   }
@@ -451,7 +452,7 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
       return bytes_read;
     }
     read_block(disk, next_block, &curblock);
-    memcpy(buf + block_offset + (BLOCK_DATA * (num_blocks - 1)), curblock.data, size_l);
+    memcpy(&buf[ block_offset + (BLOCK_DATA * num_blocks)], curblock.data, size_l);
     bytes_read += size_l;
   }
 
