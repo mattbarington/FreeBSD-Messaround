@@ -426,8 +426,8 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
   // [...]-[.RR]-[...]-[.E.]
   memcpy(buf, curblock.data + block_offset, size_f);
   bytes_read = size_f;
-  printf("\n\nREAD 1ST BLOCK OF %s with offset %ld:\n%s",path, offset, curblock.data);
-  return bytes_read;
+  //printf("\n\nREAD 1ST BLOCK OF %s with offset %ld:\n%s",path, offset, curblock.data);
+  //  return bytes_read;
   
   //read additional full blocks
   // [...]-[.S.]-[RRR]-[.E.]
@@ -438,6 +438,7 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
       return bytes_read;
     }
     read_block(disk, next_block, &curblock);
+    buf = &buf[bytes_read];
     memcpy(buf + block_offset + (BLOCK_DATA * i), curblock.data, BLOCK_DATA);
     bytes_read += BLOCK_DATA;
   }
