@@ -172,7 +172,9 @@ static int aofs_read(const char *path, char *buf, size_t size, off_t offset,
 		     struct fuse_file_info *fi) {
   printf("aofs_read\n");
   printf("size: %lu, offset: %lu\n", size, offset);
-  return aofs_read_file(path, buf, size, offset);
+  int bytes_read = aofs_read_file(path, buf, size, offset);
+  printf("Read %d bytes: '%s'\n", bytes_read, buf);
+  return bytes_read;
 }
 
 static int aofs_write(const char *path, const char *buf, size_t size,
