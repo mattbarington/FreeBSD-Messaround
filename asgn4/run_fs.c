@@ -251,6 +251,7 @@ static struct fuse_operations aofs_oper = {
   .unlink   = aofs_unlink,
 };
 
+
 int main(int argc, char *argv[])
 {
   
@@ -284,18 +285,36 @@ int main(int argc, char *argv[])
   }
   //    aofs_create_file(hello_path);
   char* longboi = calloc(4110, sizeof(char));
-  int fd = open("4kfile", O_RDWR);
+  int fd = open("nums", O_RDWR);
   if (fd < 0) {
     printf("problem opening file\n");
     exit(1);
   }
   const char* longpath = "/thisisbig";
-  int howlong = read(fd, longboi, BLOCK_DATA + 2);//sizeof(longboi));//BLOCK_DATA + 10);
+  int howlong = read(fd, longboi, BLOCK_DATA + 6);//sizeof(longboi));//BLOCK_DATA + 10);
+  printf("last 8 chars of long boi: %s\n", &longboi[strlen(longboi) - 9]);
   printf("read in %lu bytes\n", strlen(longboi));
   aofs_create_file(disk, hola_path);
   aofs_write_file(disk, hello_path, hello_str, strlen(hello_str), 0);
-  printf("written %d bytes\n",aofs_write_file(disk, hello_path, longboi, strlen(longboi), 0));
- 
+  printf("written %d bytes\n",aofs_write_file(disk, hello_path, longboi, strlen(longboi), 10));
+  //  Block b;
+  //  read_block(disk, 2, &b);
+  //  printf("last block data : %s\n", b.data);
+  //  printf("written %d bytes\n",aofs_write_file(disk, longpath, longboi, strlen(longboi), 0));
+
+  
+  printf("So now that everything is initialized...\n");
+  SuperBlock super;
+  Block block;
+  read_super_block(disk, &super);
+  for (int b = 0; b < 3; b++) {
+    if (bit_at(super.bitmap, b)) {
+	read_block(disk, b, &block);
+	printf("--------------file: %s--- head - %s---- block %d--------------------------%s\n",
+	       block.dbm.filename, (block.dbm.head ? "true":"false"), b, block.data);
+      }
+  }
+  
   
   /*
   char buf[256] = "A simple sentence. This is data that will live in the data portion of a file, and hopefully be present for some time";
