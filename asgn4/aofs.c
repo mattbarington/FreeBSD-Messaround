@@ -319,9 +319,21 @@ int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
   size_f = ((num_blocks == 0) ? size : BLOCK_DATA - block_offset);
   //size of the last block
   size_l = ((num_blocks == 0) ? 0 : size - (size_f + ((num_blocks - 1) * BLOCK_DATA)));
+
+    printf("+------------------READ------------+\n");
+    printf("| size_t size     : %9zu |\n", size);
+    printf("| off_t offset    : %9zu |\n", offset);
+    printf("| start_block     : %9d |\n", start_block);
+    printf("| block_offset    : %9d |\n", block_offset);
+    printf("| num_blocks      : %9d |\n", num_blocks);
+    printf("| size_f          : %9zu |\n", size_f);
+    printf("| size_l          : %9zu |\n", size_l);
+    printf("+----------------------------------+\n");
+
+
   
    //get the first block from which to begin reading.
-   for(int i = 0; i < start_block; ++i) { 
+   for(int i = 0; i < start_block; ++i) {
      int next_block = curblock.dbm.next;
      if(next_block < 0) {
        close(fd);
@@ -336,8 +348,6 @@ int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
   // [...]-[.RR]-[...]-[.E.]
   memcpy(buf, curblock.data + block_offset, size_f);
   bytes_read = size_f;
-  //  close(fd);
-  //  return bytes_read;
   
   //read additional full blocks
   // [...]-[.S.]-[RRR]-[.E.]
@@ -345,10 +355,11 @@ int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
     int next_block = curblock.dbm.next;
     if(next_block < 0) {
       close(fd);
-      return size_f;
+      return bytes_read;
     }
     read_block(fd, next_block, &curblock);
     memcpy(buf + block_offset + (BLOCK_DATA * i), curblock.data, BLOCK_DATA);
+    bytes_read += BLOCK_DATA;
   }
   //read last block
   // [...]-[.S.]-[...]-[RR.]
@@ -356,15 +367,16 @@ int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
     int next_block = curblock.dbm.next;
     if(next_block < 0) {
       close(fd);
-      return -ENOENT;
+      return bytes_read;
     }
     read_block(fd, next_block, &curblock);
     memcpy(buf + block_offset + (BLOCK_DATA * (num_blocks - 1)), curblock.data, size_l);
+    bytes_read += size_l;
   }
 
   //all blocks read to buffer
   // buf = [...]-[.BB]-[BBB]-[BB.]
   close(fd);
-  return 0;
+  return bytes_read;
 }
 
