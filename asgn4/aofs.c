@@ -5,6 +5,20 @@
 #include <errno.h>
 #include <unistd.h>
 
+void print_aofs(int disk) {
+  SuperBlock sb;
+  read_super_block(disk, &sb);
+  Block block;
+  for (int b = 0; b < sb.totalblocks; b++) {
+    if (bit_at(sb.bitmap, b)){
+      read_block(disk, b, &block);
+      if (block.dbm.head) {
+        printf("Blocks[%d]: %s\n", b, block.dbm.filename);
+      }
+    }
+  }
+}
+
 int bit_at(uint8_t map[], int idx) {
   int el_size    = sizeof(uint8_t) * 8;
   int bit_offset = idx % el_size;
@@ -206,7 +220,6 @@ int aofs_create_file(int disk, const char* filename) {
 
 int aofs_find_file_head(int disk, const char* filename, Block* block) {
   SuperBlock sb;
-  //  int disk = OPEN_DISK;
   read_super_block(disk, &sb);
   uint8_t* bitmap = sb.bitmap;
   int block_num;
@@ -214,75 +227,82 @@ int aofs_find_file_head(int disk, const char* filename, Block* block) {
   for (block_num = 0; block_num < BLOCK_NUM; block_num++) {
     if (bit_at(bitmap, block_num)) {
       read_block(disk, block_num, b);
-      if (b->dbm.head && !strcmp(b->dbm.filename,filename)) { // is a head block with matching filename
+      if (b->dbm.head && !strcmp(b->dbm.filename,filename)) { //is a head block with matching filename
 	memcpy(block, b, sizeof(Block));
-	//	close(disk);
 	return block_num;
       }
     }
   }
-  //  close(disk);
   return -1;
 }
 
-/*
-int aofs_write_file(const char* filename, const char* buf, size_t size, AOFS* fs) {
-  int bytes_to_write = size;
-  int start_byte;
-  Block *block = NULL;
-  int block_num = aofs_find_file_head(filename, fs);
-  if (block_num < 0) {
-    block_num = aofs_create_file(filename, fs);
-  }
-  block = &fs->blocks[block_num];
-  while (bytes_to_write > 0) {
-    start_byte = size - bytes_to_write;
-    aofs_write_to_block(&buf[start_byte], block, bytes_to_write);
-    bytes_to_write -= BLOCK_DATA;
-    if (bytes_to_write > 0 && block->dbm.next == NULL) {
-      int b = aofs_allocate_block(fs);
-      Block* bp = &fs->blocks[b];
-      strcpy(bp->dbm.filename,filename);
-      block->dbm.next = bp;
-    }
-    block = block->dbm.next;
-  }  
-  return 0;
-}
-
-int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write) {
+int write_to_block(const char* buf, Block* block, int bytes_to_write) {
   if (bytes_to_write > BLOCK_DATA)
     bytes_to_write = BLOCK_DATA;
   memcpy(block->data, buf, bytes_to_write);
   return 0;
 }
-*/
+
+
 int aofs_write_file(int disk, const char* filename, char* buf, size_t size, off_t offset) {
+
+  
+  int bytes_to_write = size;
+  int start_byte;
+  Block* block = malloc(sizeof(Block));
+  Block* bp = malloc(sizeof(Block));
+  int block_num = aofs_find_file_head(disk, filename, block);
+  if (block_num < 0) {
+    block_num = aofs_create_file(disk, filename);
+  }
+  //  block = &fs->blocks[block_num];
+  read_block(disk, block_num, block);
+  block->dbm.st_size = size;
+  while (bytes_to_write > 0) {
+    start_byte = size - bytes_to_write;
+    write_to_block(&buf[start_byte], block, bytes_to_write);
+    write_block(disk, block_num, block);
+    bytes_to_write -= BLOCK_DATA;
+    if (bytes_to_write > 0 && block->dbm.next == -1) {
+      int b = aofs_allocate_block(disk);
+      //bp = &fs->blocks[b];
+      read_block(disk, b, bp);
+      strcpy(bp->dbm.filename,filename);
+      block->dbm.next = b;
+    }
+    //    block = block.dbm.next;
+    read_block(disk, block->dbm.next, block);
+  }
+  printf("after write:\n");
+  print_aofs(disk);
+  return 0;
+
+
+  
+  //  aofs_create_file(disk, filename);
+  //return 0;
   printf("ah, you want to write '%s' to '%s\n", buf, filename);
-  //  int fd = OPEN_DISK;
   Block curblock;
   
   //find head block for file
   int head_block = aofs_find_file_head(disk, filename, &curblock);
   if(head_block == -1) {
     printf("Can't file head block for %s\n", filename);
-    //    close(fd);
     head_block = aofs_create_file(disk, filename);
-    //    fd = OPEN_DISK;
+    printf("Allocated head block %d for '%s'\n", head_block, filename);
+    read_block(disk, head_block, &curblock);
   }
   //First: assume <= 1 block, offset = 0
-  memcpy(curblock.data, buf, size);
+  curblock.dbm.st_size = size;
+  memcpy(&curblock.data, buf, size);
   write_block(disk, head_block, &curblock);
-  printf("wrote '%s' to '%s' at block %d\n", buf, filename, head_block);
-  //  close(fd);
   
   //Calculate positions to write
   
   //write everything possible in first block
-
-
-  return 0;
 }
+
+ 
 
 int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t offset) {
   printf("aofs read_file\n");
