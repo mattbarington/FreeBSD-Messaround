@@ -270,18 +270,18 @@ int main(int argc, char *argv[])
     return disk;
   }
   //    aofs_create_file(hello_path);
-  char longboi[4110];
+  char* longboi = calloc(4110, sizeof(char));
   int fd = open("4kfile", O_RDWR);
   if (fd < 0) {
     printf("problem opening file\n");
     exit(1);
   }
   const char* longpath = "/thisisbig";
-  int howlong = read(fd, longboi, sizeof(longboi));
+  int howlong = read(fd, longboi, BLOCK_DATA - 8);//sizeof(longboi));//BLOCK_DATA + 10);
   printf("read in %lu bytes\n", strlen(longboi));
   aofs_create_file(disk, hola_path);
   aofs_write_file(disk, hello_path, hello_str, strlen(hello_str), 0);
-  aofs_write_file(disk, longpath, longboi, strlen(longboi), 0);
+  aofs_write_file(disk, hello_path, longboi, strlen(longboi), 9);
  
   
   /*
@@ -300,7 +300,7 @@ int main(int argc, char *argv[])
   free(block);
   
   */
-  print_aofs(disk);
+  //  print_aofs(disk);
   close(disk);
   
   fuse_main(argc, argv, &aofs_oper, NULL);

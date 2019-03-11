@@ -236,46 +236,59 @@ int aofs_find_file_head(int disk, const char* filename, Block* block) {
   return -1;
 }
 
-int write_to_block(const char* buf, Block* block, int bytes_to_write) {
-  if (bytes_to_write > BLOCK_DATA)
-    bytes_to_write = BLOCK_DATA;
-  memcpy(block->data, buf, bytes_to_write);
-  return 0;
+int write_to_block(const char* buf, Block* block, int bytes_to_write, off_t offset) {
+  if (offset > BLOCK_DATA)
+    return BLOCK_DATA; //offset is beyond this block
+  if (offset < 0)
+    offset = 0;    // this is just silly
+  if (bytes_to_write + offset > BLOCK_DATA) // offset is in this block. 
+    bytes_to_write = BLOCK_DATA - offset;   // can't write all bytes, so write as many as will fit
+  memcpy(&block->data[offset], buf, bytes_to_write);
+  return bytes_to_write;
 }
 
 
 int aofs_write_file(int disk, const char* filename, char* buf, size_t size, off_t offset) {
 
-  
+
   int bytes_to_write = size;
   int start_byte;
   Block* block = malloc(sizeof(Block));
   Block* bp = malloc(sizeof(Block));
   int block_num = aofs_find_file_head(disk, filename, block);
-  if (block_num < 0) {
+  //if file doesn't exist create it
+  if (block_num < 0) {                      
     block_num = aofs_create_file(disk, filename);
+    read_block(disk, block_num, block);
   }
-  //  block = &fs->blocks[block_num];
-  read_block(disk, block_num, block);
-  block->dbm.st_size = size;
+  //if offset > file size, then set offset to file size
+  if (offset > block->dbm.st_size)
+    offset = block->dbm.st_size;
+  // new file size will be number of bytes written + offset starting pos
+  block->dbm.st_size = size + offset;
+  // we don't "write" the offset but we can consider this as padding buf.
+  bytes_to_write += offset;
   while (bytes_to_write > 0) {
-    start_byte = size - bytes_to_write;
-    write_to_block(&buf[start_byte], block, bytes_to_write);
+    
+    write_to_block(buf, block, bytes_to_write, offset);
+    printf("writing block %d to disk\n", block_num);
     write_block(disk, block_num, block);
     bytes_to_write -= BLOCK_DATA;
     if (bytes_to_write > 0 && block->dbm.next == -1) {
+      printf("still more to write and no next. better allocate another block\n");
       int b = aofs_allocate_block(disk);
-      //bp = &fs->blocks[b];
-      read_block(disk, b, bp);
       strcpy(bp->dbm.filename,filename);
       block->dbm.next = b;
     }
-    //    block = block.dbm.next;
-    read_block(disk, block->dbm.next, block);
+    printf("block's next = %d. bytes_left = %d\n", block->dbm.next, bytes_to_write);
+    block_num = block->dbm.next;
   }
+
   printf("after write:\n");
   print_aofs(disk);
+  
   return 0;
+  
 
 
   
