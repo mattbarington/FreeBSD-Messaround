@@ -290,11 +290,11 @@ int main(int argc, char *argv[])
     exit(1);
   }
   const char* longpath = "/thisisbig";
-  int howlong = read(fd, longboi, BLOCK_DATA - 8);//sizeof(longboi));//BLOCK_DATA + 10);
+  int howlong = read(fd, longboi, BLOCK_DATA + 2);//sizeof(longboi));//BLOCK_DATA + 10);
   printf("read in %lu bytes\n", strlen(longboi));
   aofs_create_file(disk, hola_path);
   aofs_write_file(disk, hello_path, hello_str, strlen(hello_str), 0);
-  aofs_write_file(disk, hello_path, longboi, strlen(longboi), 9);
+  printf("written %d bytes\n",aofs_write_file(disk, hello_path, longboi, strlen(longboi), 0));
  
   
   /*

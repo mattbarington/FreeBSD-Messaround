@@ -259,10 +259,8 @@ int delete_chain(int disk, int blockidx) {
 }
 
 int aofs_write_file(int disk, const char* filename, char* buf, size_t size, off_t offset) {
-
-
   int bytes_to_write = size;
-  int start_byte;
+  int bytes_written = 0;
   Block* block = malloc(sizeof(Block));
   Block* bp = malloc(sizeof(Block));
   int block_num = aofs_find_file_head(disk, filename, block);
@@ -284,6 +282,7 @@ int aofs_write_file(int disk, const char* filename, char* buf, size_t size, off_
     printf("writing block %d to disk\n", block_num);
     write_block(disk, block_num, block);
     bytes_to_write -= BLOCK_DATA;
+    bytes_written += BLOCK_DATA;
     if (bytes_to_write > 0 && block->dbm.next == -1) {
       printf("still more to write and no next. better allocate another block\n");
       int b = aofs_allocate_block(disk);
@@ -293,11 +292,16 @@ int aofs_write_file(int disk, const char* filename, char* buf, size_t size, off_
     printf("block's next = %d. bytes_left = %d\n", block->dbm.next, bytes_to_write);
     block_num = block->dbm.next;
   }
+  bytes_written += bytes_to_write - offset;
+  printf("Block num: %d\n", block_num);
 
+  
   printf("after write:\n");
   print_aofs(disk);
+
   
-  return 0;
+  
+  return bytes_written;
   
 
 
