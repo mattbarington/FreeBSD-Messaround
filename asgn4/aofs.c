@@ -156,13 +156,15 @@ int clear_block(Block* block) {
   return 0;
 }
 
-int aofs_allocate_block() {
+int aofs_allocate_block(int disk) {
   SuperBlock sb;
+  /*
   int disk = OPEN_DISK;
   if (disk < 0) {
     printf("There was a problem opening the disk image in %s\n", __func__);
     return -1;
   }
+  */
   read_super_block(disk, &sb);
   uint8_t* map = sb.bitmap;
   int block_num = find_free_bit(map,sb.totalblocks);
@@ -174,12 +176,12 @@ int aofs_allocate_block() {
   clear_block(&b);
   write_block(disk, block_num, &b);
   write_super_block(disk, &sb);
-  close(disk);
+  //  close(disk);
   return block_num;
 }
 
-int aofs_create_file(const char* filename) {
-  int block_num = aofs_allocate_block();
+int aofs_create_file(int disk, const char* filename) {
+  int block_num = aofs_allocate_block(disk);
   if (block_num == -1) {
     printf("There was a problem allocating a new block in %s\n", __func__);
     return -1;
@@ -189,7 +191,7 @@ int aofs_create_file(const char* filename) {
   strcpy(b.dbm.filename, filename);
   b.dbm.head = true;
   printf("Head block for file %s initialized at block %d\n", filename,block_num);
-  int disk = OPEN_DISK;
+  //  int disk = OPEN_DISK;
   write_block(disk, block_num, &b);
 
   SuperBlock sb;
@@ -198,13 +200,13 @@ int aofs_create_file(const char* filename) {
   printf("first free after creation: %d\n", first_free);
 
   
-  close(disk);
+  //  close(disk);
   return block_num;
 }
 
-int aofs_find_file_head(const char* filename, Block* block) {
+int aofs_find_file_head(int disk, const char* filename, Block* block) {
   SuperBlock sb;
-  int disk = OPEN_DISK;
+  //  int disk = OPEN_DISK;
   read_super_block(disk, &sb);
   uint8_t* bitmap = sb.bitmap;
   int block_num;
@@ -214,12 +216,12 @@ int aofs_find_file_head(const char* filename, Block* block) {
       read_block(disk, block_num, b);
       if (b->dbm.head && !strcmp(b->dbm.filename,filename)) { // is a head block with matching filename
 	memcpy(block, b, sizeof(Block));
-	close(disk);
+	//	close(disk);
 	return block_num;
       }
     }
   }
-  close(disk);
+  //  close(disk);
   return -1;
 }
 
@@ -255,22 +257,25 @@ int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write) {
   return 0;
 }
 */
-int aofs_write_file(const char* path, char* buf, size_t size, off_t offset) {
-
-  int fd = OPEN_DISK;
+int aofs_write_file(int disk, const char* filename, char* buf, size_t size, off_t offset) {
+  printf("ah, you want to write '%s' to '%s\n", buf, filename);
+  //  int fd = OPEN_DISK;
   Block curblock;
-  char filename[257];
-  //fix path to just be filename
-  strcpy(filename, path);
-  memmove(filename, filename+1, strlen(filename));
- 
+  
   //find head block for file
-  if(aofs_find_file_head(filename, &curblock) < 0) {
+  int head_block = aofs_find_file_head(disk, filename, &curblock);
+  if(head_block == -1) {
     printf("Can't file head block for %s\n", filename);
-    close(fd);
-    return -ENOENT;
+    //    close(fd);
+    head_block = aofs_create_file(disk, filename);
+    //    fd = OPEN_DISK;
   }
-
+  //First: assume <= 1 block, offset = 0
+  memcpy(curblock.data, buf, size);
+  write_block(disk, head_block, &curblock);
+  printf("wrote '%s' to '%s' at block %d\n", buf, filename, head_block);
+  //  close(fd);
+  
   //Calculate positions to write
   
   //write everything possible in first block
@@ -279,20 +284,20 @@ int aofs_write_file(const char* path, char* buf, size_t size, off_t offset) {
   return 0;
 }
 
-int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
+int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t offset) {
   printf("aofs read_file\n");
 
   //open up disk image
-  int fd = OPEN_DISK;
+  //  int fd = OPEN_DISK;
 
-  char filename[257];
+  //  char filename[257];
   //fix path to just be filename
-  strcpy(filename, path);
+  //  strcpy(filename, path);
   //  memmove(filename, filename+1, strlen(filename));
   
   //find head block for file
   Block curblock;
-  int head_block = aofs_find_file_head(filename, &curblock);
+  int head_block = aofs_find_file_head(disk, path, &curblock);
   printf("%s: head block = %d\n",__func__, head_block);
   //calculate where buf should read from
   int start_block, num_blocks, block_offset;
@@ -331,19 +336,16 @@ int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
     printf("+----------------------------------+\n");
 
 
-  
    //get the first block from which to begin reading.
    for(int i = 0; i < start_block; ++i) {
      int next_block = curblock.dbm.next;
      if(next_block < 0) {
-       close(fd);
+       //       close(fd);
        return 0;
      }
-     read_block(fd, next_block, &curblock);
+     read_block(disk, next_block, &curblock);
    }
   
-  
-
   //read first block
   // [...]-[.RR]-[...]-[.E.]
   memcpy(buf, curblock.data + block_offset, size_f);
@@ -354,10 +356,10 @@ int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
   for(int i = 1; i < num_blocks; ++i) {
     int next_block = curblock.dbm.next;
     if(next_block < 0) {
-      close(fd);
+      //      close(fd);
       return bytes_read;
     }
-    read_block(fd, next_block, &curblock);
+    read_block(disk, next_block, &curblock);
     memcpy(buf + block_offset + (BLOCK_DATA * i), curblock.data, BLOCK_DATA);
     bytes_read += BLOCK_DATA;
   }
@@ -366,17 +368,17 @@ int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
   if(num_blocks > 0) {
     int next_block = curblock.dbm.next;
     if(next_block < 0) {
-      close(fd);
+      //      close(fd);
       return bytes_read;
     }
-    read_block(fd, next_block, &curblock);
+    read_block(disk, next_block, &curblock);
     memcpy(buf + block_offset + (BLOCK_DATA * (num_blocks - 1)), curblock.data, size_l);
     bytes_read += size_l;
   }
 
   //all blocks read to buffer
   // buf = [...]-[.BB]-[BBB]-[BB.]
-  close(fd);
+  //  close(fd);
   return bytes_read;
 }
 

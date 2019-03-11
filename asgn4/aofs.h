@@ -26,7 +26,7 @@
 #define BITMAP_SIZE (BLOCK_NUM / sizeof(uint8_t))
 #define SUPER_BLOCK_OFFSET 0
 #define BLOCK_OFFSET(block_num) sizeof(SuperBlock) + (block_num*sizeof(Block))
-#define OPEN_DISK open("FS_FILE", O_RDWR, 0777)
+#define OPEN_DISK open(FS_FILE_NAME, O_RDWR, 0777)
 
 typedef struct SuperBlock {
   uint32_t magicnum;
@@ -98,18 +98,19 @@ int clear_block(Block*);
 /* Finds the first available block, marks it as unavailable, and returns its
  * block address
 */
-int aofs_allocate_block();
+int aofs_allocate_block(int fd);
 /* Initializes a single file block for a file */
-int aofs_create_file(const char* filename);
+int aofs_create_file(int fd, const char* filename);
 /* Returns the block index of a file's head block */
-int aofs_find_file_head(const char* filename, Block* block);
+int aofs_find_file_head(int fd, const char* filename, Block* block);
 /* Reads size bytes of file into buffer starting from offset. Returns number of
  *bytes read 
 */
-int aofs_read_file(const char* path, char* buf, size_t size, off_t offset);
+int aofs_read_file(int fd, const char* path, char* buf, size_t size, off_t offset);
 
 /* Writes to a file */
-//int aofs_write_file(const char* filename, const char* buf, size_t size, AOFS* fs);
+int aofs_write_file(int fd, const char* filename, char* buf, size_t size, off_t offset);
+
 /* Attempts to write buffer into block. Returns the number of bytes written */
 //int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write);
 

@@ -9,9 +9,17 @@
 #include "aofs.h"
 #include <inttypes.h>
 
-static const char *hello_str = "Hello World!\n";
+static char *hello_str = "Hello World!";
 static const char *hello_path = "/hello";
 static const char* hola_path = "/HolaMundo.txt";
+
+int open_disk(char* calling_func) {
+  int disk = open(FS_FILE_NAME, O_RDWR, 0777);
+  if (disk < 0) {
+    printf("Unable to open disk image in %s\n",calling_func);
+  }
+  return disk;
+}
 
 void print_stbuf(struct stat *stbuf) {
 
@@ -27,11 +35,13 @@ void print_stbuf(struct stat *stbuf) {
   printf("-----------------------------------\n");
 }
 
-//static AOFS* get_context() {
-//  return ((AOFS *) fuse_get_context()->private_data);
-//}
 static int aofs_getattr(const char *path, struct stat *stbuf)
 {
+  int disk;
+  if ((disk = OPEN_DISK) < 0) {
+    printf("Unable to open disk img in %s\n",__func__);
+    return disk;
+  }
   printf("aofs_getattr. Path: %s\n",path);
 //  print_stbuf(stbuf);
   int res = 0;
@@ -41,7 +51,7 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
     stbuf->st_nlink = 2;
   } else {
     Block b;
-    int file_head = aofs_find_file_head(path, &b);
+    int file_head = aofs_find_file_head(disk, path, &b);
     printf("file head at %d. This is where we copy over the metadata\n", file_head);
     if (file_head != -1) {
       BlockMeta* bm = &b.dbm;
@@ -68,9 +78,11 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
     }
     //file does not exist
     else {
+      close(disk);
       return -ENOENT;
     }
   }
+  close(disk);
   return res;
 }
 
@@ -96,7 +108,7 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   int disk = OPEN_DISK;
   if (disk < 0) {
     printf("There was a problem reading the disk image in %s\n", __func__);
-    return -1;
+    return disk;
   }
   
   read_super_block(disk, &sb);
@@ -110,6 +122,7 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
       }
     }
   }
+  close(disk);
   return 0;
 }
 
@@ -128,7 +141,11 @@ void print_fi_flags(struct fuse_file_info *fi) {
 }
 
 static int aofs_open(const char *path, struct fuse_file_info *fi) {
-
+  int disk = OPEN_DISK;
+  if (disk < 0) {
+    printf("Unable to open disk image in %s\n",__func__);
+    return disk;
+  }
   printf("aofs_open\n");
   printf("OPEN path: %s\n", path);
 
@@ -140,7 +157,7 @@ static int aofs_open(const char *path, struct fuse_file_info *fi) {
 
   //check to see file exists
   Block b;
-  if(aofs_find_file_head(path,&b) != -1) {
+  if(aofs_find_file_head(disk, path,&b) != -1) {
     fi->nonseekable = 0;
     fi->direct_io   = 0;
     //fi->fh          = open(path, fi->flags, S_IRWXU | S_IRWXG | S_IRWXO);
@@ -148,19 +165,26 @@ static int aofs_open(const char *path, struct fuse_file_info *fi) {
     fi->writepage   = 0;
     printf("Set fuse_file_info\n");
     printf("File descriptor: %" PRIu64 "\n", fi->fh);
+    close(disk);
     return ((fi->fh < 0) ? -ENOENT : 0);
   } else {  
     printf("aofs_open error. couldn't find specified file :/\n");
+    close(disk);
     return -ENOENT;
   }
 }
 
 static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
-
+  int disk = OPEN_DISK;
+  if (disk < 0) {
+    printf("Unable to open disk image in %s\n",__func__);
+    return disk;
+  }
+  
   printf("aofs_create\n");
 
   //Create file at first avaliable block
-  int x = aofs_create_file(path);
+  int x = aofs_create_file(disk, path);
   printf("new file at: %d\n", x);
   if(x >= 0) {
     return 0;
@@ -170,9 +194,14 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 
 static int aofs_read(const char *path, char *buf, size_t size, off_t offset,
 		     struct fuse_file_info *fi) {
+  int disk = OPEN_DISK;
+  if (disk < 0) {
+    printf("Unable to open disk in %s\n",__func__);
+    return disk;
+  }    
   printf("aofs_read\n");
   printf("size: %lu, offset: %lu\n", size, offset);
-  int bytes_read = aofs_read_file(path, buf, size, offset);
+  int bytes_read = aofs_read_file(disk, path, buf, size, offset);
   printf("Read %d bytes: '%s'\n", bytes_read, buf);
   return bytes_read;
 }
@@ -230,15 +259,18 @@ int main(int argc, char *argv[])
     printf("There was a problem loading the disk image\n");
     exit(1);
   }
-  
 
-  aofs_create_file(hello_path);
-  aofs_create_file(hola_path);
-  
-  
   int disk = OPEN_DISK;
-  if (disk < 0)
+  if (disk < 0) {
     printf("error opening disk >:(\n");
+    return disk;
+  }
+  //    aofs_create_file(hello_path);
+  aofs_create_file(disk, hola_path); 
+  aofs_write_file(disk, hello_path, hello_str, sizeof(hello_str), 0);
+ 
+  
+  
   char buf[256] = "A simple sentence. This is data that will live in the data portion of a file, and hopefully be present for some time";
   SuperBlock super;
   Block* block = malloc(sizeof(Block));
@@ -254,6 +286,7 @@ int main(int argc, char *argv[])
   free(block);
   
   close(disk);
+  
   fuse_main(argc, argv, &aofs_oper, NULL);
 
   return 0;
