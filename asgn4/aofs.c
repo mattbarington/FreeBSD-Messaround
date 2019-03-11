@@ -92,19 +92,6 @@ int read_fs(const char* filename, AOFS* fs) {
   }
   close(disk);
   return 0;
-  
-  
-  
-  FILE* rf;
-    
-  rf = fopen(filename, "r");
-  if(rf) {
-    fread(fs, sizeof(AOFS), 1, rf);
-    fclose(rf);
-    return 0;
-  } else {
-    return -1;
-  }
 }
 
 int write_fs(const char* filename, AOFS* fs) {
@@ -293,8 +280,7 @@ int aofs_write_file(const char* path, char* buf, size_t size, off_t offset) {
 }
 
 int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
-  
-  Block curblock;
+  printf("aofs read_file\n");
 
   //open up disk image
   int fd = OPEN_DISK;
@@ -302,14 +288,16 @@ int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
   char filename[257];
   //fix path to just be filename
   strcpy(filename, path);
-  memmove(filename, filename+1, strlen(filename));
+  //  memmove(filename, filename+1, strlen(filename));
   
   //find head block for file
+  Block curblock;
   int head_block = aofs_find_file_head(filename, &curblock);
-
+  printf("%s: head block = %d\n",__func__, head_block);
   //calculate where buf should read from
   int start_block, num_blocks, block_offset;
   size_t size_f, size_l;
+  int bytes_read = 0;
   /*
   // NOTE: blocks indexed at 0, num_blocks = additional blocks beyond head block
   // Example (BLOCK_DATA = 3)
@@ -333,7 +321,16 @@ int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
   size_l = ((num_blocks == 0) ? 0 : size - (size_f + ((num_blocks - 1) * BLOCK_DATA)));
 
   //get the first block
-  int i;
+  if (aofs_find_file_head(filename, &curblock) == -1) {
+    printf("file could not be found\n");
+    close(fd);
+    return 0;
+  }
+  printf("So, we've found file %s. Now we want to copy its contents {%s} into the buf\n",filename,curblock.data);
+  memcpy(buf, curblock.data, size);
+  close(fd);
+  return size;
+  /*int i;
   for(i = 0; i < start_block; ++i) { 
     int next_block = curblock.dbm.next;
     if(next_block < 0) {
@@ -342,18 +339,21 @@ int aofs_read_file(const char* path, char* buf, size_t size, off_t offset) {
     }
     read_block(fd, next_block, &curblock);
   }
+  */
+  
 
   //read first block
   // [...]-[.RR]-[...]-[.E.]
   memcpy(buf, curblock.data + block_offset, size_f);
+  bytes_read = size_f;
   
   //read additional full blocks
   // [...]-[.S.]-[RRR]-[.E.]
-  for(i = 0; i < num_blocks - 1; ++i) {
+  for(int i = 1; i < num_blocks; ++i) {
     int next_block = curblock.dbm.next;
     if(next_block < 0) {
       close(fd);
-      return -ENOENT;
+      return size_f;
     }
     read_block(fd, next_block, &curblock);
     memcpy(buf + block_offset + (BLOCK_DATA * i), curblock.data, BLOCK_DATA);

@@ -95,12 +95,18 @@ int write_block(int fd, int block_num, Block* block);
 int init_fs(AOFS* fs);
 /* Wipes block's data and metadata */
 int clear_block(Block*);
-/* Finds the first available block, marks it as unavailable, and returns its block address */
+/* Finds the first available block, marks it as unavailable, and returns its
+ * block address
+*/
 int aofs_allocate_block();
 /* Initializes a single file block for a file */
 int aofs_create_file(const char* filename);
 /* Returns the block index of a file's head block */
 int aofs_find_file_head(const char* filename, Block* block);
+/* Reads size bytes of file into buffer starting from offset. Returns number of
+ *bytes read 
+*/
+int aofs_read_file(const char* path, char* buf, size_t size, off_t offset);
 
 /* Writes to a file */
 //int aofs_write_file(const char* filename, const char* buf, size_t size, AOFS* fs);

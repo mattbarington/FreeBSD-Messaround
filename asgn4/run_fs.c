@@ -168,12 +168,11 @@ static int aofs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 }
 
 
-static int aofs2_read(const char *path, char *buf, size_t size, off_t offset,
+static int aofs_read(const char *path, char *buf, size_t size, off_t offset,
 		     struct fuse_file_info *fi) {
   printf("aofs_read\n");
   printf("size: %lu, offset: %lu\n", size, offset);
-  //read_file(path, buf, size, offset);
-  return 0;
+  return aofs_read_file(path, buf, size, offset);
 }
 
 static int aofs_write(const char *path, const char *buf, size_t size,
@@ -197,11 +196,11 @@ static struct fuse_operations aofs_oper = {
 	.getattr	= aofs_getattr,
 	.readdir	= aofs_readdir,
 	.create   = aofs_create,
-  .read     = aofs2_read,
+	.read     = aofs_read,
 	.open     = aofs_open,
-  .write    = aofs_write,
-  .statfs   = aofs_statfs,
-  .release  = aofs_release,
+	.write    = aofs_write,
+	.statfs   = aofs_statfs,
+	.release  = aofs_release,
 };
 
 int main(int argc, char *argv[])
@@ -221,7 +220,7 @@ int main(int argc, char *argv[])
   }
 
   //printf("Launching AOFS file system from img %s in %s\n", argv[1], argv[2]);
-  /*
+
   AOFS* aofs = calloc(1,sizeof(AOFS));
   //char* buf = malloc(sizeof(AOFS));
   char* filename = FS_FILE_NAME;
@@ -234,20 +233,25 @@ int main(int argc, char *argv[])
   aofs_create_file(hello_path);
   aofs_create_file(hola_path);
   
+  
   int disk = OPEN_DISK;
   if (disk < 0)
     printf("error opening disk >:(\n");
-
+  char buf[256] = "A simple sentence. This is data that will live in the data portion of a file, and hopefully be present for some time";
   SuperBlock super;
   Block* block = malloc(sizeof(Block));
+  int block_num = 0;
   read_super_block(disk, &super);
   int first_free = find_free_bit(super.bitmap, super.totalblocks);
-  read_block(disk, 0, block);
+  read_block(disk, block_num, block);
   printf("First block filename is %s\n", block->dbm.filename);
-  printf("First free should be like 1? %d\n", first_free);
+  printf("First free should be like 2? %d\nWriting a simple sentence to block %d\n", first_free,block_num);
+  memcpy(block->data,buf,sizeof(buf));
+  block->dbm.st_size = sizeof(buf);
+  write_block(disk, block_num, block);
   free(block);
-  */
   
+  close(disk);
   fuse_main(argc, argv, &aofs_oper, NULL);
 
   return 0;

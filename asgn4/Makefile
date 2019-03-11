@@ -20,3 +20,12 @@ aofs.o:  aofs.c aofs.h
 
 clean:
 	rm ${EXE} *.o
+
+reset: clean
+	rm FS_FILE
+
+fresh: reset all
+	./fs_init
+
+unmount:
+	umount /dev/fuse
