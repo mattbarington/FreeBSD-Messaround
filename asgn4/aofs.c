@@ -172,13 +172,6 @@ int clear_block(Block* block) {
 
 int aofs_allocate_block(int disk) {
   SuperBlock sb;
-  /*
-  int disk = OPEN_DISK;
-  if (disk < 0) {
-    printf("There was a problem opening the disk image in %s\n", __func__);
-    return -1;
-  }
-  */
   read_super_block(disk, &sb);
   uint8_t* map = sb.bitmap;
   int block_num = find_free_bit(map,sb.totalblocks);
@@ -190,8 +183,19 @@ int aofs_allocate_block(int disk) {
   clear_block(&b);
   write_block(disk, block_num, &b);
   write_super_block(disk, &sb);
-  //  close(disk);
   return block_num;
+}
+
+int aofs_deallocate_block(int disk, int block_num) {
+  SuperBlock sb;
+  read_super_block(disk, &sb);
+  uint8_t* map = sb.bitmap;
+  clear_bit(map, block_num);
+  Block b;
+  clear_block(&b);
+  write_block(disk, block_num, &b);
+  write_super_block(disk, &sb);
+  return b.dbm.next;
 }
 
 int aofs_create_file(int disk, const char* filename) {
@@ -247,6 +251,12 @@ int write_to_block(const char* buf, Block* block, int bytes_to_write, off_t offs
   return bytes_to_write;
 }
 
+int delete_chain(int disk, int blockidx) {
+  do {
+    blockidx = aofs_deallocate_block(disk, blockidx);
+  } while(blockidx != -1);
+  return 0;
+}
 
 int aofs_write_file(int disk, const char* filename, char* buf, size_t size, off_t offset) {
 
@@ -413,5 +423,22 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
   // buf = [...]-[.BB]-[BBB]-[BB.]
   //  close(fd);
   return bytes_read;
+}
+
+int aofs_delete_file(int disk, const char* path) {
+
+  Block curblock;
+  int blockidx;
+
+  //find file head
+  blockidx = aofs_find_file_head(disk, path, &curblock); 
+  if (blockidx < 0) {
+    return -ENOENT;
+  }
+
+  //remove file recursively
+  delete_chain(disk, blockidx);
+
+  return 0;
 }
 

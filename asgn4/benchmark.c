@@ -46,8 +46,8 @@ int main(int argc, char* argv[]) {
   char aofs_touch_100_files[] = "./aofs.sh";
   char fbsd_write_file[] = "dd if=/dev/urandom of=fbsd_test/test_file1 bs=8192 count=1 > /dev/null 2>&1 ";
   char aofs_write_file[] = "dd if=/dev/urandom of=aofs_test/test_file1 bs=8192 count=1 > /dev/null 2>&1";
-  char fbsd_read_file[] = "cat fbsd_test/test_file1 >nul 2>&1";
-  char aofs_read_file[] = "cat aofs_test/test_file1 >nul 2>&1";
+  char fbsd_read_file[] = "cat fbsd_test/test_file1 >/dev/null 2>&1";
+  char aofs_read_file[] = "cat aofs_test/test_file1 >/dev/null 2>&1";
   int i;
 
   char fbsd_build_create[] = "touch fbsd.sh ; chmod 777 fbsd.sh ; printf 'for i in `seq 1 100`\ndo\n  touch fbsd_test/test_file$i\ndone' > fbsd.sh ;";

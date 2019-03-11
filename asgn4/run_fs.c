@@ -227,6 +227,18 @@ static int aofs_release(const char* path, struct fuse_file_info *fi) {
   return 0;
 }
 
+static int aofs_unlink(const char* path) {
+
+  int disk = OPEN_DISK;
+  if (disk < 0) {
+    printf("Unable to open disk image in %s\n",__func__);
+    return disk;
+  }
+  int res = aofs_delete_file(disk, path);
+  close(disk);
+  return res;
+}
+
 static struct fuse_operations aofs_oper = {
 	.getattr	= aofs_getattr,
 	.readdir	= aofs_readdir,
@@ -236,6 +248,7 @@ static struct fuse_operations aofs_oper = {
 	.write    = aofs_write,
 	.statfs   = aofs_statfs,
 	.release  = aofs_release,
+  .unlink   = aofs_unlink,
 };
 
 int main(int argc, char *argv[])

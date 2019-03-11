@@ -92,6 +92,8 @@ int read_block(int fd, int block_num, Block* block);
 int read_super_block(int fd, SuperBlock*);
 /* Writes provided block to disk img */
 int write_block(int fd, int block_num, Block* block);
+/* Deletes file blocks in chain, starting at block_num */
+int delete_chain(int fd, int block_num);
 
 /* Initializes a new AOFS structure to default and empty values */
 int init_fs(AOFS* fs);
@@ -112,6 +114,8 @@ int aofs_read_file(int fd, const char* path, char* buf, size_t size, off_t offse
 
 /* Writes to a file */
 int aofs_write_file(int fd, const char* filename, char* buf, size_t size, off_t offset);
+
+int aofs_delete_file(int fd, const char* path);
 
 /* Attempts to write buffer into block. Returns the number of bytes written */
 //int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write);
