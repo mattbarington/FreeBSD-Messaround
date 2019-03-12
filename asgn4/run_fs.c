@@ -196,7 +196,6 @@ static int aofs_write(const char *path, const char *buf, size_t size,
   }
   printf("size: %lu, offset: %lu\n", size, offset);
   int bytes_written = aofs_write_file(disk, path, buf, size, offset);
-  //  printf("Wrote %d bytes: '%s'\n", bytes_written, buf);
   close(disk);
   return bytes_written;
 }
@@ -221,7 +220,15 @@ static int aofs_unlink(const char* path) {
 static int aofs_truncate(const char* path, off_t size) {
 
   printf("$$$ aofs_truncate\n");
-  return 0;
+  int disk = OPEN_DISK;
+  if (disk < 0) {
+    printf("Unable to open disk image in %s\n",__func__);
+    return disk;
+  }
+ 
+  int res = aofs_truncate_file(disk, path, size);
+  close(disk);
+  return res;
 }
 
 static struct fuse_operations aofs_oper = {
