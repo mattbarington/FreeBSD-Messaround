@@ -210,14 +210,14 @@ int aofs_create_file(int disk, const char* filename) {
   clear_block(&b);
   strcpy(b.dbm.filename, filename);
   b.dbm.head = true;
-  printf("Head block for file %s initialized at block %d\n", filename,block_num);
+  //  printf("Head block for file %s initialized at block %d\n", filename,block_num);
   //  int disk = OPEN_DISK;
   write_block(disk, block_num, &b);
 
   SuperBlock sb;
   read_super_block(disk, &sb);
   int first_free = find_free_bit(sb.bitmap, sb.totalblocks);
-  printf("first free after creation: %d\n", first_free);
+  //  printf("first free after creation: %d\n", first_free);
 
   
   //  close(disk);
@@ -280,7 +280,7 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
   // new file size will be number of bytes written + offset starting pos
   block->dbm.st_size = size + offset;
   write_block(disk, block_num, block);
-  printf("size = %zu\n", size+offset);
+  //  printf("size = %zu\n", size+offset);
   bytes_to_write = size;
   while (bytes_to_write > 0) {
     if (offset > BLOCK_DATA) {  //traverse down block list until finding the block with offset
@@ -288,9 +288,9 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
       read_block(disk, block->dbm.next, block);
       continue;
     }
-    printf("about to write to block %d for %s=%s\n", block_num, filename,block->dbm.filename);
+    //    printf("about to write to block %d for %s=%s\n", block_num, filename,block->dbm.filename);
     int wr = write_to_block(buf, block, bytes_to_write, offset);
-    printf("just  wrote to block %d for %s=%s\n", block_num, filename,block->dbm.filename);
+    //    printf("just  wrote to block %d for %s=%s\n", block_num, filename,block->dbm.filename);
     //    printf("%s\n", block->data);
     bytes_to_write -= wr;
     buf = &buf[wr];
@@ -301,16 +301,16 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
       block->dbm.next = b;
       read_block(disk, b, next_block);
       strcpy(next_block->dbm.filename, filename);
-      printf("allocating block %d for file %s\n",b,filename);
+      //      printf("allocating block %d for file %s\n",b,filename);
     } else {
       read_block(disk, block->dbm.next, next_block);
     }
-    printf("storing block %d for %s=%s\n", block_num, filename,block->dbm.filename);
+    //    printf("storing block %d for %s=%s\n", block_num, filename,block->dbm.filename);
     write_block(disk, block_num, block);
-    printf("just  wrote to block(2) %d for %s=%s\n", block_num, filename,block->dbm.filename);
+    //    printf("just  wrote to block(2) %d for %s=%s\n", block_num, filename,block->dbm.filename);
     Block bb;
     read_block(disk, block_num, &bb);
-    printf("checking that the fetch matches for block %d, %s=%s\n", block_num, filename, bb.dbm.filename);
+    //    printf("checking that the fetch matches for block %d, %s=%s\n", block_num, filename, bb.dbm.filename);
     //    printf("%s\n", bb.data);
     block_num = block->dbm.next;
     memcpy(block, next_block, sizeof(Block));
@@ -318,7 +318,7 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
   }
 
   aofs_find_file_head(disk, filename, block);
-  printf("ending file size %s = %ld\n", block->dbm.filename, block->dbm.st_size);
+  //  printf("ending file size %s = %ld\n", block->dbm.filename, block->dbm.st_size);
   
   print_aofs(disk);
   free(block);
@@ -395,7 +395,7 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
   memcpy(buf, curblock.data + block_offset, size_f);
   bytes_read = size_f;
   printf("copying [first] block %d to position 0\n", start_block);
-  printf("\n\nREAD 1ST BLOCK OF %s with offset %ld:\n%s",path, offset, curblock.data);
+  //  printf("\n\nREAD 1ST BLOCK OF %s with offset %ld:\n%s",path, offset, curblock.data);
   //  return bytes_read;
   
   //read additional full blocks

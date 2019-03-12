@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
     printf("There was a problem loading the disk image\n");
     exit(1);
   }
-
+  /*
   int disk = OPEN_DISK;
   if (disk < 0) {
     printf("error opening disk >:(\n");
@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
 	       block.dbm.filename, (block.dbm.head ? "true":"false"), b, block.data);
       }
   }
-  
+  */
   
   /*
   char buf[256] = "A simple sentence. This is data that will live in the data portion of a file, and hopefully be present for some time";
@@ -367,7 +367,7 @@ int main(int argc, char *argv[])
   
   */
   //  print_aofs(disk);
-  close(disk);
+  //  close(disk);
   
   fuse_main(argc, argv, &aofs_oper, NULL);
 
