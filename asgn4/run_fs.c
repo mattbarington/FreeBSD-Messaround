@@ -52,7 +52,6 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
   } else {
     Block b;
     int file_head = aofs_find_file_head(disk, path, &b);
-    printf("file head at %d. This is where we copy over the metadata\n", file_head);
     if (file_head != -1) {
       BlockMeta* bm = &b.dbm;
       //stbuf->st_mode = S_IFREG | 0444;
@@ -206,7 +205,7 @@ static int aofs_read(const char *path, char *buf, size_t size, off_t offset,
   printf("$$$ aofs_read\n");
   printf("size: %lu, offset: %lu\n", size, offset);
   int bytes_read = aofs_read_file(disk, path, buf, size, offset);
-  printf("Read %d bytes: '%s'\n", bytes_read, buf);
+  //  printf("Read %d bytes: '%s'\n", bytes_read, buf);
   close(disk);
   return bytes_read;
 }
@@ -319,14 +318,14 @@ int main(int argc, char *argv[])
     return disk;
   }
   //    aofs_create_file(hello_path);
-  char* longboi = calloc(4110, sizeof(char));
+  char* longboi = calloc(8000, sizeof(char));
   int fd = open("nums", O_RDWR);
   if (fd < 0) {
     printf("problem opening file\n");
     exit(1);
   }
   const char* longpath = "/thisisbig";
-  int howlong = read(fd, longboi, BLOCK_DATA + 6);//sizeof(longboi));//BLOCK_DATA + 10);
+  int howlong = read(fd, longboi, 2*BLOCK_DATA + 6);//sizeof(longboi));//BLOCK_DATA + 10);
   printf("last 8 chars of long boi: %s\n", &longboi[strlen(longboi) - 9]);
   printf("read in %lu bytes\n", strlen(longboi));
   aofs_create_file(disk, hola_path);
@@ -342,10 +341,10 @@ int main(int argc, char *argv[])
   SuperBlock super;
   Block block;
   read_super_block(disk, &super);
-  for (int b = 0; b < 3; b++) {
+  for (int b = 0; b < super.totalblocks; b++) {
     if (bit_at(super.bitmap, b)) {
 	read_block(disk, b, &block);
-	printf("--------------file: %s--- head - %s---- block %d--------------------------%s\n",
+	printf("--------------file: %s--- head - %s---- block %d--------------------------\n%s\n",
 	       block.dbm.filename, (block.dbm.head ? "true":"false"), b, block.data);
       }
   }

@@ -161,7 +161,7 @@ int clear_block(Block* block) {
   block->dbm.st_birthtim = time(NULL);
   block->dbm.st_size = 0;
   block->dbm.st_blocks = 0;
-  block->dbm.st_blksize = BLOCK_SIZE;
+  block->dbm.st_blksize = BLOCK_DATA;
   block->dbm.st_flags = 0;
   
   
@@ -279,6 +279,8 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
     offset = block->dbm.st_size;
   // new file size will be number of bytes written + offset starting pos
   block->dbm.st_size = size + offset;
+  write_block(disk, block_num, block);
+  printf("size = %zu\n", size+offset);
   bytes_to_write = size;
   while (bytes_to_write > 0) {
     if (offset > BLOCK_DATA) {  //traverse down block list until finding the block with offset
@@ -289,7 +291,7 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
     printf("about to write to block %d for %s=%s\n", block_num, filename,block->dbm.filename);
     int wr = write_to_block(buf, block, bytes_to_write, offset);
     printf("just  wrote to block %d for %s=%s\n", block_num, filename,block->dbm.filename);
-    printf("%s\n", block->data);
+    //    printf("%s\n", block->data);
     bytes_to_write -= wr;
     buf = &buf[wr];
     bytes_written += wr;
@@ -309,52 +311,18 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
     Block bb;
     read_block(disk, block_num, &bb);
     printf("checking that the fetch matches for block %d, %s=%s\n", block_num, filename, bb.dbm.filename);
-    printf("%s\n", bb.data);
+    //    printf("%s\n", bb.data);
     block_num = block->dbm.next;
     memcpy(block, next_block, sizeof(Block));
     
   }
+
+  aofs_find_file_head(disk, filename, block);
+  printf("ending file size %s = %ld\n", block->dbm.filename, block->dbm.st_size);
+  
   print_aofs(disk);
   free(block);
   free(next_block);
-  return bytes_written;
-  
-
-
-  
-    // we don't "write" the offset but we can consider this as padding buf.
-  bytes_to_write += offset;
-  while (bytes_to_write > 0) {
-    
-    write_to_block(buf, block, bytes_to_write, offset);
-    printf("writing block %d to disk\n", block_num);
-    write_block(disk, block_num, block);
-    bytes_to_write -= BLOCK_DATA;
-    bytes_written += BLOCK_DATA;
-    if (bytes_to_write > 0 && block->dbm.next == -1) {
-      printf("still more to write and no next. better allocate another block\n");
-      int b = aofs_allocate_block(disk);
-      block->dbm.next = b;
-      write_block(disk, block_num, block);
-      read_block(disk, b, block);
-      strcpy(block->dbm.filename,filename);
-      block_num = b;
-    } else {
-      //      write_block(disk, block_num, block);
-      block_num = block->dbm.next;      
-      read_block(disk, block_num, block);
-    }
-    printf("block's next = %d. bytes_left = %d\n", block->dbm.next, bytes_to_write);
-  }
-  bytes_written += bytes_to_write - offset;
-  printf("Block num: %d\n", block_num);
-
-  
-  printf("after write:\n");
-  print_aofs(disk);
-
-  
-  
   return bytes_written;
 }
 
@@ -426,12 +394,13 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
   // [...]-[.RR]-[...]-[.E.]
   memcpy(buf, curblock.data + block_offset, size_f);
   bytes_read = size_f;
-  //printf("\n\nREAD 1ST BLOCK OF %s with offset %ld:\n%s",path, offset, curblock.data);
+  printf("copying [first] block %d to position 0\n", start_block);
+  printf("\n\nREAD 1ST BLOCK OF %s with offset %ld:\n%s",path, offset, curblock.data);
   //  return bytes_read;
   
   //read additional full blocks
   // [...]-[.S.]-[RRR]-[.E.]
-  for(int i = 1; i < num_blocks; ++i) {
+  for(int i = 0; i < num_blocks - 1; ++i) {
     int next_block = curblock.dbm.next;
     if(next_block < 0) {
       //      close(fd);
@@ -440,6 +409,7 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
     read_block(disk, next_block, &curblock);
     //    buf = &buf[bytes_read];
     //    printf("copying to bytes from %d of range %d\n", buf + block_offset + (BLOCK_DATA * i), BLOCK_DATA);
+    printf("copying [middle] block %d to position %lu\n", next_block, block_offset + (BLOCK_DATA * i));
     memcpy(buf + block_offset + (BLOCK_DATA * i), curblock.data, BLOCK_DATA);
     bytes_read += BLOCK_DATA;
   }
@@ -451,8 +421,12 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
       //      close(fd);
       return bytes_read;
     }
+    
     read_block(disk, next_block, &curblock);
-    memcpy(&buf[ block_offset + (BLOCK_DATA * num_blocks)], curblock.data, size_l);
+    printf("copying [last] block %d to position %lu\n", next_block, block_offset + (BLOCK_DATA *( num_blocks)));
+    printf("copying last amount: %zu\n",size_l);
+
+    memcpy(buf + block_offset + (BLOCK_DATA * (num_blocks)), curblock.data, size_l);
     bytes_read += size_l;
   }
 
