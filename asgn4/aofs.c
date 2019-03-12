@@ -311,6 +311,7 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
   while (bytes_to_write > 0) {
     if (offset > BLOCK_DATA) {  //traverse down block list until finding the block with offset
       offset -= BLOCK_DATA;
+      block_num = block->dbm.next;
       read_block(disk, block->dbm.next, block);
       continue;
     }
@@ -339,12 +340,11 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
     //    printf("%s\n", bb.data);
     block_num = block->dbm.next;
     memcpy(block, next_block, sizeof(Block));
-    
   }
 
   aofs_find_file_head(disk, filename, block);
   //  printf("ending file size %s = %ld\n", block->dbm.filename, block->dbm.st_size);
-  
+  printf("AOFSafter write\n");
   print_aofs(disk);
   free(block);
   free(next_block);
