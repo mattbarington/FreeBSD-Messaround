@@ -22,7 +22,7 @@ clean:
 	rm ${EXE} *.o
 
 reset: clean
-	rm FS_FILE
+	rm /FS_FILE
 
 fresh: reset all
 	./fs_init

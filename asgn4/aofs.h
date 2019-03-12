@@ -9,11 +9,12 @@
 #include <time.h>
 #include <sys/_types.h>
 #include <fcntl.h>
+#include <limits.h>
 
 #define byte unsigned char
 #define EMPTY 0x00
 
-#define FS_FILE_NAME "FS_FILE"
+#define FS_FILE_NAME "/FS_FILE"
 #define MAX_FILENAME 255
 
 //Magic number
@@ -71,6 +72,9 @@ typedef struct AOFS {
   Block blocks[BLOCK_NUM];
 } AOFS;
 
+
+///* Opens disk file, returning file descriptor value */
+//int open_disk();
 /* prints out the head block for each file and their block_num in Blocks[] */
 void print_aofs(int disk);
 /* returns the value of bit at idx */

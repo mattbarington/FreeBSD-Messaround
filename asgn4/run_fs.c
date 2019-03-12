@@ -9,13 +9,6 @@
 #include "aofs.h"
 #include <inttypes.h>
 
-int open_disk(char* calling_func) {
-  int disk = open(FS_FILE_NAME, O_RDWR, 0777);
-  if (disk < 0) {
-    printf("Unable to open disk image in %s\n",calling_func);
-  }
-  return disk;
-}
 
 void print_stbuf(struct stat *stbuf) {
   printf("----------<Current stbuf>----------\n");
@@ -203,7 +196,7 @@ static int aofs_write(const char *path, const char *buf, size_t size,
   }
   printf("size: %lu, offset: %lu\n", size, offset);
   int bytes_written = aofs_write_file(disk, path, buf, size, offset);
-  printf("Wrote %d bytes: '%s'\n", bytes_written, buf);
+  //  printf("Wrote %d bytes: '%s'\n", bytes_written, buf);
   close(disk);
   return bytes_written;
 }
@@ -249,7 +242,6 @@ int main(int argc, char *argv[])
   //check number of arguments
   if(argc < 2) {
         printf("Incorrect number of arguments.\n");
-    //    printf("Incorrect number of arguments.\nMust Provide <disk_img> <mount folder>");
     return 1;
   }
 
@@ -268,7 +260,7 @@ int main(int argc, char *argv[])
   } else {
     free(aofs);
   }
-
+  //  open_disk();
   fuse_main(argc, argv, &aofs_oper, NULL);
 
   return 0;
