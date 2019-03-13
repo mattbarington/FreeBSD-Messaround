@@ -195,7 +195,7 @@ int clear_block(Block* block) {
   return 0;
 }
 
-int aofs_allocate_block(int disk) {
+int allocate_block(int disk) {
   SuperBlock sb;
   read_super_block(disk, &sb);
   uint8_t* map = sb.bitmap;
@@ -221,7 +221,9 @@ int aofs_allocate_block(int disk) {
   return block_num;
 }
 
-int aofs_deallocate_block(int disk, int block_num) {
+int deallocate_block(int disk, int block_num) {
+  if (block_num < 0)
+    return block_num;
   SuperBlock sb;
   read_super_block(disk, &sb);
   uint8_t* map = sb.bitmap;
@@ -237,7 +239,7 @@ int aofs_deallocate_block(int disk, int block_num) {
 
 int aofs_create_file(int disk, const char* filename) {
   // Allocate head block
-  int block_num = aofs_allocate_block(disk);
+  int block_num = allocate_block(disk);
   if (block_num == -1) {
     printf("There was a problem allocating a new block in %s\n", __func__);
     return -1;
@@ -271,9 +273,9 @@ int aofs_find_file_head(int disk, const char* filename, Block* block) {
 }
 
 int delete_chain(int disk, int blockidx) {
-  do {
-    blockidx = aofs_deallocate_block(disk, blockidx);
-  } while(blockidx != -1);
+  while (blockidx != -1){
+    blockidx = deallocate_block(disk, blockidx);
+  }
   return 0;
 }
 
@@ -328,7 +330,7 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
     offset = 0;
     // A block must be added to chain to accomodate more block writing
     if (bytes_to_write > 0 && block->dbm.next == -1) {
-      int b = aofs_allocate_block(disk);
+      int b = allocate_block(disk);
       block->dbm.next = b;
       read_block(disk, b, next_block);
       strcpy(next_block->dbm.filename, filename);
@@ -436,9 +438,7 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
       return bytes_read;
     }
     read_block(disk, next_block, &curblock);
-    //    buf = &buf[bytes_read];
-    //    printf("copying to bytes from %d of range %d\n", buf + block_offset + (BLOCK_DATA * i), BLOCK_DATA);
-    printf("copying [middle] block %d to position %lu\n", next_block, block_offset + (BLOCK_DATA * i));
+    //    printf("copying [middle] block %d to position %lu\n", next_block, block_offset + (BLOCK_DATA * i));
     memcpy(buf + block_offset + (BLOCK_DATA * i), curblock.data, BLOCK_DATA);
     bytes_read += BLOCK_DATA;
   }
@@ -452,8 +452,8 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
     }
     
     read_block(disk, next_block, &curblock);
-    printf("copying [last] block %d to position %lu\n", next_block, block_offset + (BLOCK_DATA *( num_blocks)));
-    printf("copying last amount: %zu\n",size_l);
+    //    printf("copying [last] block %d to position %lu\n", next_block, block_offset + (BLOCK_DATA *( num_blocks)));
+    //    printf("copying last amount: %zu\n",size_l);
 
     memcpy(buf + block_offset + (BLOCK_DATA * (num_blocks)), curblock.data, size_l);
     bytes_read += size_l;
@@ -540,7 +540,7 @@ int aofs_truncate_file(int fd, const char* path, off_t size) {
       //allocate new blocks
       for(i = 0; i < diff_blocks; ++i) {
         printf("allocating block\n");
-        curblock.dbm.next = aofs_allocate_block(fd);
+        curblock.dbm.next = allocate_block(fd);
         printf("new next: %d\n", curblock.dbm.next);
         //if new block couldn't be allocated
         if(curblock.dbm.next == -1) {

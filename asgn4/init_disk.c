@@ -21,16 +21,7 @@ int main(int argc, char *argv[])
   }
 
   //initialize filename
-  if(argc == 2) {
-    if(strlen(argv[1]) > MAX_FILENAME) {
-      printf("Filename must be less than %d characters.\n", MAX_FILENAME);
-      return 1;
-    } else {
-      strcpy(filename, argv[1]);
-    }
-  } else {
-    strcpy(filename, FS_FILE_NAME);
-  }
+  strcpy(filename, FS_FILE_NAME);
   
   new_aofs = malloc(1*sizeof(AOFS));
   if(init_fs(new_aofs) != 0) {

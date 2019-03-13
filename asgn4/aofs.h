@@ -100,11 +100,14 @@ int clear_block(Block*);
 /* Finds the first available block, marks it as unavailable, and returns its
  * block address
 */
-int aofs_allocate_block(int fd);
-/* Initializes a single file block for a file */
-int aofs_create_file(int fd, const char* filename);
+int allocate_block(int fd);
+/* removes block at index block_num from the file system, returning the block's next index */
+int deallocate_block(int fd, int block_num);
+
 /* Returns the block index of a file's head block */
 int aofs_find_file_head(int fd, const char* filename, Block* block);
+/* Initializes a single file block for a file */
+int aofs_create_file(int fd, const char* filename);
 /* Reads size bytes of file into buffer starting from offset. Returns number of
  *bytes read 
 */
