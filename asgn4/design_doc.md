@@ -34,19 +34,3 @@ Author(s): Matt Ovenden, Ryan Blelloch
     call fuse_main
   - Each FUSE operation is implemented to interface with our AOFS filesystem. 
     The operation structure is passed into fuse_main
-
-## 
-
-## Benchmark:
-
- - **Build**:
-  `$ make benchmark`
-    
-  - **Run** (as Root):
-  `$ ./benchmark`
-
-  - **Usage**:
-
- - **Description**: 
-              
-  - **Results**:
