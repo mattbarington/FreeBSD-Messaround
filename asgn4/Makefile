@@ -4,16 +4,16 @@ EXE= fs_run fs_init
 
 make:
 	@echo No target specified for make.
-all: init run
+all: fs_init fs_run
 
 benchmark: benchmark.c
 	${CC} benchmark.c -o $@
 
-init: init_disk.c aofs.o
-	${CC} init_disk.c aofs.o -o fs_$@  $(FUSE)
+fs_init: init_disk.c aofs.o
+	${CC} init_disk.c aofs.o -o $@  $(FUSE)
 
-run: run_fs.c aofs.o 
-	${CC} run_fs.c aofs.o -o fs_$@  $(FUSE)
+fs_run: run_fs.c aofs.o 
+	${CC} run_fs.c aofs.o -o $@  $(FUSE)
 
 aofs.o:  aofs.c aofs.h
 	${CC} -c aofs.c
