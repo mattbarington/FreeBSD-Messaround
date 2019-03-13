@@ -24,6 +24,9 @@ clean:
 reset: clean
 	rm /FS_FILE
 
+setup: all
+	./fs_init
+
 fresh: reset all
 	./fs_init
 
