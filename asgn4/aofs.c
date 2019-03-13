@@ -208,10 +208,10 @@ int clear_block(Block* block) {
   block->dbm.next = -1;
   block->dbm.head = false;
   
-  block->dbm.st_atim = time(NULL);
-  block->dbm.st_mtim = time(NULL);
-  block->dbm.st_ctim = time(NULL);
-  block->dbm.st_birthtim = time(NULL);
+  block->dbm.st_atim = 0;//time(NULL);
+  block->dbm.st_mtim = 0;//time(NULL);
+  block->dbm.st_ctim = 0;//time(NULL);
+  block->dbm.st_birthtim = 0;//time(NULL);
   block->dbm.st_size = 0;
   block->dbm.st_blocks = 0;
   block->dbm.st_blksize = BLOCK_DATA;
@@ -235,6 +235,11 @@ int aofs_allocate_block(int disk) {
   set_bit(map, block_num);
   Block b;
   clear_block(&b);
+  // timestamp block
+  b.dbm.st_atim = time(NULL);
+  b.dbm.st_mtim = time(NULL);
+  b.dbm.st_ctim = time(NULL);
+  b.dbm.st_birthtim = time(NULL);
   write_block(disk, block_num, &b);
   write_super_block(disk, &sb);
   return block_num;
@@ -359,6 +364,9 @@ int aofs_write_file(int disk, const char* filename, const char* buf, size_t size
       read_block(disk, block->dbm.next, next_block);
     }
     //    printf("storing block %d for %s=%s\n", block_num, filename,block->dbm.filename);
+    block->dbm.st_mtim = time(NULL);
+    block->dbm.st_atim = time(NULL);
+    block->dbm.st_ctim = time(NULL);
     write_block(disk, block_num, block);
     //    printf("just  wrote to block(2) %d for %s=%s\n", block_num, filename,block->dbm.filename);
     //Block bb;
@@ -395,6 +403,11 @@ int aofs_read_file(int disk, const char* path, char* buf, size_t size, off_t off
   //find head block for file
   Block curblock;
   int head_block = aofs_find_file_head(disk, path, &curblock);
+  if (head_block == -1) {
+    return -ENOENT;
+  }
+  curblock.dbm.st_atim = time(NULL);
+  write_block(disk, head_block, &curblock);
   printf("%s: head block = %d\n",__func__, head_block);
   //calculate where buf should read from
   int start_block, num_blocks, block_offset;
