@@ -14,7 +14,7 @@
 #define byte unsigned char
 #define EMPTY 0x00
 
-#define FS_FILE_NAME "/FS_FILE"
+#define FS_FILE_NAME "/FS_FILE"   //Stick FS_FILE in top level directory so that it's always reachable
 #define MAX_FILENAME 255
 
 //Magic number
@@ -42,12 +42,7 @@ typedef struct BlockMeta {
   char filename[256];
   int next;
   bool head;
-  //  __dev_t   st_dev;               /* inode's device */
-  //  ino_t     st_ino;               /* inode's number */
   __mode_t    st_mode;              /* inode protection mode */
-  //  nlink_t   st_nlink;             /* number of hard links */
-  //uid_t     st_uid;               /* user ID of the file's owner */
-  //  gid_t     st_gid;               /* group ID of the file's group */
   uint64_t  st_atim;              /* time of last access */
   uint64_t  st_mtim;              /* time of last data modification */
   uint64_t  st_ctim;              /* time of last file status change */
@@ -72,9 +67,6 @@ typedef struct AOFS {
   Block blocks[BLOCK_NUM];
 } AOFS;
 
-
-///* Opens disk file, returning file descriptor value */
-//int open_disk();
 /* prints out the head block for each file and their block_num in Blocks[] */
 void print_aofs(int disk);
 
@@ -117,16 +109,12 @@ int aofs_find_file_head(int fd, const char* filename, Block* block);
  *bytes read 
 */
 int aofs_read_file(int fd, const char* path, char* buf, size_t size, off_t offset);
-
-/* Writes to a file */
+/* Writes to a file with filename 'filename'. Creates file if needed */
 int aofs_write_file(int fd, const char* filename, const char* buf, size_t size, off_t offset);
-
+/* Deletes a file with filename 'path' */
 int aofs_delete_file(int fd, const char* path);
-
+/* Truncates file to specified size. If size > filesize the difference is padded with 0 */
 int aofs_truncate_file(int fd, const char* path, off_t size);
-
-/* Attempts to write buffer into block. Returns the number of bytes written */
-//int aofs_write_to_block(const char* buf, Block* block, int bytes_to_write);
 
 #endif
 

@@ -267,7 +267,6 @@ int main(int argc, char *argv[])
   } else {
     free(aofs);
   }
-  //  open_disk();
   fuse_main(argc, argv, &aofs_oper, NULL);
 
   return 0;
