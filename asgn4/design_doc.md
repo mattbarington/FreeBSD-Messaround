@@ -166,3 +166,26 @@ chaining blocks together in a linked-list of blocks.
                 the block with the offset'th byte is located. The remainder of 
                 the block is padded with 0s, and any trailing blocks are 
                 deallocated.
+
+## Running the Benchmark
+- **Build**:
+  `$ make benchmark`
+    
+ - **Run** (as Root):
+  `$ ./benchmark`
+
+ - **Usage**:
+  Simply build and run
+
+ - **Description**:
+  This benchmark uses system calls to build identical folders 
+  (one for FreeBSD and one for AOFS). Identical  tests are run 
+  inside to compare. Tests:
+    - 100 Files (Shell Script used to touch 100 files)
+    - Write File (A random-filled file of 8192 bytes is written)
+    - Read File (The written file is read)
+              
+ - **Results**:
+  Results are compared in microseconds (printed to the screen)
+
+
