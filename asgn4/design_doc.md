@@ -97,8 +97,8 @@ to a file which does not yet exists. AOFS handles both of these by creating a
 file on the fly if needed (it is important to note that FUSE tends to call 
 create then write immediately after if a file does not yet exist).
 
-Storage across disjoint potentially non-contiguous blocks complicates writing of
-files that are larger than the size of a block. We deal with large files by 
+Storage across disjoint potentially non-contiguous blocks complicates writing/reading
+of files that are larger than the size of a block. We deal with large files by 
 chaining blocks together in a linked-list of blocks.
 
   - Each file block stores a index `next` of the next block in the chain.
@@ -108,6 +108,49 @@ chaining blocks together in a linked-list of blocks.
     then the block is the last in the chain and another must be allocated on the
     fly to accomodate the additional data.
 
+### Handling Write/Read Offset
+  - If the offset is larger than the file size then the offset is truncated to 
+    the file size (i.e., `offset = min(offset, filesize)`).
+  - If the offset is smaller than a block size (3,776) then we can start to copy
+    the buffer to the first block at the offset'th byte.
+  - If the offset is beyond the first data block size we iterate through the 
+    blocks until we find the block containing the offset'th byte and begin 
+    copying the buffer.
+  - The same protocol is followed to handle offset on read operations.
+
 ### Reading Files
+  - The protocol to handle reads is similar to the protocol to handle writes, 
+    but differs in implementation. One significant difference is that read will
+    not allocate new blocks if the `size` parameter is larger than the file size.
+    Instead it will copy as many bytes as possible into the buffer and return 
+    the number of bytes read.
+    
+
+### Deleting Blocks
+  - Block deletion and deallocation is done by deallocating a block and 
+    "recursively" deallocating the next block in the chain (the implementation
+    is iterative).
+  - A block index is passed into the function `deletechain(disk,int)`, the block
+    index is marked as available in the bitmap, and the same is done to the 
+    `block.next`, and so on, until `block.next == -1`.
 
 ### Deleting Files
+  - Deletion of files is simple given the above block deletion mechanism. All we
+    have to do is find the head block for a given filename, and pass its block
+    number to `deletechain(disk,block_num)`.
+
+### File Truncation
+  - Truncation combines the strategies the logic of writing with an offset and 
+    block chain deletion. Truncation changes the size of a file, which can lead
+    to one of two cases that need be handled.
+    
+     - **Case 1**: Truncation size is larger than the file size. In this case we
+                pad the rest of the file with 0. If this new filesize requires
+                additional blocks, then additional blocks will be allocated and
+                chained behind the existing ones. These new blocks are filled
+                with padding 0s.
+     
+     - **Case 2**: Truncation size is smaller than the file size. In this case
+                the block with the offset'th byte is located. The remainder of 
+                the block is padded with 0s, and any trailing blocks are 
+                deallocated.
