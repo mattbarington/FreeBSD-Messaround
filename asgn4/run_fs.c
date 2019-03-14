@@ -20,8 +20,8 @@ void print_stbuf(struct stat *stbuf) {
   printf("st_mtime: %ld\n", stbuf->st_mtime);
   printf("st_ctime: %ld\n", stbuf->st_ctime);
   printf("st_size:  %ld\n", stbuf->st_size);
-  printf("st_uid:  %ld\n", stbuf->st_uid);
-  printf("st_gid:  %ld\n", stbuf->st_gid);
+  printf("st_uid:  %u\n", stbuf->st_uid);
+  printf("st_gid:  %u\n", stbuf->st_gid);
   printf("-----------------------------------\n");
 }
 
