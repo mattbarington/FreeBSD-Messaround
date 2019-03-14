@@ -179,10 +179,11 @@ int clear_block(Block* block) {
   block->dbm.next = -1;
   block->dbm.head = false;
   
-  block->dbm.st_atim = 0;
-  block->dbm.st_mtim = 0;
-  block->dbm.st_ctim = 0;
-  block->dbm.st_birthtim = 0;
+  block->dbm.st_atim = time(NULL);
+  block->dbm.st_mtim = time(NULL);//0;
+  block->dbm.st_ctim = time(NULL);//0;
+  block->dbm.st_birthtim = time(NULL);//0;
+  
   block->dbm.st_size = 0;
   block->dbm.st_blocks = 0;
   block->dbm.st_blksize = BLOCK_DATA;

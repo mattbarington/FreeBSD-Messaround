@@ -79,7 +79,7 @@ The everything else is the file data: the Blocks.
 
 The blocks live in a Block
     array. Each block is 4,096 Bytes including space for the block's
-    metadata which takes up 320 Bytes. This leaves 3,776 Bytes available for
+    metadata which takes up 328 Bytes. This leaves 3,768 Bytes available for
     raw data storage in each block.
 
 

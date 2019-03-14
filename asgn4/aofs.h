@@ -1,6 +1,7 @@
 #ifndef AOFS_H
 #define AOFS_H
 
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -10,6 +11,7 @@
 #include <sys/_types.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <unistd.h>
 
 #define byte unsigned char
 #define EMPTY 0x00
@@ -47,6 +49,8 @@ typedef struct BlockMeta {
   uint64_t  st_mtim;              /* time of last data modification */
   uint64_t  st_ctim;              /* time of last file status change */
   off_t     st_size;              /* file size, in bytes */
+  uid_t     st_uid;               /* user ID of the file's owner */
+  gid_t     st_gid;               /* group ID of the file's group */
   __blkcnt_t st_blocks;             /* blocks allocated for file */
   __blksize_t st_blksize;           /* optimal blocksize for I/O */
   __fflags_t  st_flags;             /* user defined flags for file */

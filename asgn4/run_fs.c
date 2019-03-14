@@ -67,8 +67,8 @@ static int aofs_getattr(const char *path, struct stat *stbuf)
       stbuf->st_blocks  = bm->st_blocks;
       stbuf->st_blksize = bm->st_blksize;
       stbuf->st_flags   = bm->st_flags;
-      stbuf->st_uid     = getuid();
-      stbuf->st_gid     = getgid();
+      stbuf->st_uid     = bm->st_uid;
+      stbuf->st_gid     = bm->st_gid;
       //stbuf->st_mode = S_IFREG | 0444 | 0777;
       //stbuf->st_mode = S_IFREG | 0777 | 0777;
       //stbuf->st_mode    = 0040777;
@@ -93,11 +93,6 @@ static int aofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
   (void) offset;
   (void) fi;
-  int lgg = open("log.txt", O_CREAT | O_RDWR);
-  if (lgg < 0) {
-    printf("couldn't open log\n");
-  }
-  write(lgg, path, strlen(path));
   if (strcmp(path, "/") != 0) {
     filler(buf, path + 1, NULL, 0);
     return 0;
@@ -231,6 +226,37 @@ static int aofs_truncate(const char* path, off_t size) {
   return res;
 }
 
+
+static int aofs_utimens(const char* path, const struct timespec ts[2]) {
+  printf("$$$ %s\n",__func__);
+  int disk = OPEN_DISK;
+   if (disk < 0) {
+     printf("Unable to open disk image in %s\n",__func__);
+     return disk;
+   }
+   Block head;
+   int file_head = aofs_find_file_head(disk, path, &head);
+   head.dbm.st_atim = ts[0].tv_sec;
+   head.dbm.st_mtim = ts[1].tv_sec;
+   write_block(disk, file_head, &head);
+  return 0;
+}
+
+static int aofs_chown(const char* path, uid_t uid, gid_t gid) {
+   printf("$$$ %s\n",__func__);
+   int disk = OPEN_DISK;
+   if (disk < 0) {
+     printf("Unable to open disk image in %s\n",__func__);
+     return disk;
+   }
+   Block head;
+   int file_head = aofs_find_file_head(disk, path, &head);
+   head.dbm.st_uid = uid;
+   head.dbm.st_gid = gid;
+   write_block(disk, file_head, &head);
+   return 0;
+}
+
 static struct fuse_operations aofs_oper = {
 	.getattr	= aofs_getattr,
 	.readdir	= aofs_readdir,
@@ -241,6 +267,8 @@ static struct fuse_operations aofs_oper = {
 	.release  = aofs_release,
   .unlink   = aofs_unlink,
   .truncate = aofs_truncate,
+	.chown = aofs_chown,
+	.utimens = aofs_utimens,
 };
 
 int main(int argc, char *argv[])
