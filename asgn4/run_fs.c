@@ -203,7 +203,7 @@ static int aofs_release(const char* path, struct fuse_file_info *fi) {
 }
 
 static int aofs_unlink(const char* path) {
-
+  printf("$$$%s\n",__func__);
   int disk = OPEN_DISK;
   if (disk < 0) {
     printf("Unable to open disk image in %s\n",__func__);
