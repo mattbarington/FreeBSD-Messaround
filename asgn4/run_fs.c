@@ -258,17 +258,17 @@ static int aofs_chown(const char* path, uid_t uid, gid_t gid) {
 }
 
 static struct fuse_operations aofs_oper = {
-	.getattr	= aofs_getattr,
-	.readdir	= aofs_readdir,
-	.create   = aofs_create,
-	.read     = aofs_read,
-	.open     = aofs_open,
-	.write    = aofs_write,
-	.release  = aofs_release,
-  .unlink   = aofs_unlink,
-  .truncate = aofs_truncate,
-	.chown = aofs_chown,
-	.utimens = aofs_utimens,
+    .getattr    = aofs_getattr,
+    .readdir    = aofs_readdir,
+    .create     = aofs_create,
+    .read       = aofs_read,
+    .open       = aofs_open,
+    .write      = aofs_write,
+    .release    = aofs_release,
+    .unlink     = aofs_unlink,
+    .truncate   = aofs_truncate,
+    .chown      = aofs_chown,
+    .utimens    = aofs_utimens,
 };
 
 int main(int argc, char *argv[])
