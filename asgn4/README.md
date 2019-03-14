@@ -54,15 +54,12 @@
 - **Build**:
   `$ make benchmark`
     
-  - **Run** (as Root):
  - **Run** (as Root):
   `$ ./benchmark`
 
-  - **Usage**:
  - **Usage**:
   Simply build and run
 
- - **Description**: 
  - **Description**:
   This benchmark uses system calls to build identical folders 
   (one for FreeBSD and one for AOFS). Identical  tests are run 
@@ -71,7 +68,6 @@
     - Write File (A random-filled file of 8192 bytes is written)
     - Read File (The written file is read)
               
-  - **Results**:
  - **Results**:
   Results are compared in microseconds (printed to the screen)
 
