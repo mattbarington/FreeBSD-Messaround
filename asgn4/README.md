@@ -3,19 +3,29 @@
 ## How to setup FUSE with AOFS. The fast version:
 
 - `$su -` then enter the password.
+
 - `git clone https://gitlab.soe.ucsc.edu/gitlab/cmps111/winter19-01/movenden.git`.
+
 - `$ cd movenden/asgn4`.
+
 - `$ kldload fuse`.
+
 - `$ make setup`.
+
 - `$ mkdir <directory name>`.
+
 - `$ ./fs_run <directory name> [-f]`. `-f` is optional.
+
 - `$ make benchmark`.
+
 - `$ ./benchmark`.
+
 - Have fun and remember to wear a helmet when going outside.
 
 ## Makefile Description
 
 - `$ make ` - does nothing
+
 - `$ make fs_init` - compiles `init_disk.c` into executable `fs_init`.
 - `$ make fs_run` - compiles `run_fs.c` into executable `fs_run`.
 - `$ make all` - runs `make fs_init` and `make fs_run` in one step.
