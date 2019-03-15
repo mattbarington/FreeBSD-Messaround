@@ -4,6 +4,8 @@
 
 - `$su -` then enter the password.
 
+- `$ pkg install fusefs-libs`
+
 - `git clone https://gitlab.soe.ucsc.edu/gitlab/cmps111/winter19-01/movenden.git`.
 
 - `$ cd movenden/asgn4`.
